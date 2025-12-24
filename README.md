@@ -36,7 +36,7 @@ console.log(result);
 
 // List available models
 console.log(getAvailableModels());
-// ['gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini', 'claude-opus-4.5', 'claude-sonnet-4', 'claude-haiku-3.5']
+// ['gpt-5.2', 'gpt-4o', 'claude-opus-4.5', 'gemini-3-pro', ...]
 ```
 
 ## API Reference
@@ -110,15 +110,48 @@ This package counts Unicode code points, not UTF-16 code units. This means:
 
 ## Supported Models
 
+### OpenAI Models
+
 | Model | Chars/Token | Input Cost (per 1M tokens) |
 |-------|-------------|---------------------------|
+| gpt-5.2 | 4 | $1.75 |
+| gpt-5.2-pro | 4 | $21.00 |
+| gpt-5-mini | 4 | $0.25 |
+| gpt-4.1 | 4 | $3.00 |
+| gpt-4.1-mini | 4 | $0.80 |
+| gpt-4.1-nano | 4 | $0.20 |
 | gpt-4o | 4 | $2.50 |
 | gpt-4o-mini | 4 | $0.15 |
-| gpt-4.1 | 4 | $3.00 |
-| gpt-4.1-mini | 4 | $0.40 |
+| o3 | 4 | $2.00 |
+| o4-mini | 4 | $4.00 |
+| o1 | 4 | $15.00 |
+| o1-pro | 4 | $150.00 |
+
+### Anthropic Claude Models
+
+| Model | Chars/Token | Input Cost (per 1M tokens) |
+|-------|-------------|---------------------------|
 | claude-opus-4.5 | 3.5 | $5.00 |
+| claude-sonnet-4.5 | 3.5 | $3.00 |
+| claude-haiku-4.5 | 3.5 | $1.00 |
+| claude-opus-4 | 3.5 | $15.00 |
+| claude-opus-4.1 | 3.5 | $15.00 |
 | claude-sonnet-4 | 3.5 | $3.00 |
+| claude-opus-3 | 3.5 | $15.00 |
+| claude-haiku-3 | 3.5 | $0.25 |
 | claude-haiku-3.5 | 3.5 | $0.80 |
+
+### Google Gemini Models
+
+| Model | Chars/Token | Input Cost (per 1M tokens) |
+|-------|-------------|---------------------------|
+| gemini-3-pro | 4 | $2.00 |
+| gemini-3-flash | 4 | $0.50 |
+| gemini-2.5-pro | 4 | $1.25 |
+| gemini-2.5-flash | 4 | $0.30 |
+| gemini-2.5-flash-lite | 4 | $0.10 |
+| gemini-2.0-flash | 4 | $0.10 |
+| gemini-2.0-flash-lite | 4 | $0.075 |
 
 *Pricing last verified: December 2025*
 
