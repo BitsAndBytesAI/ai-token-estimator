@@ -3,14 +3,19 @@ import type { ModelConfig } from './types.js';
 /**
  * Default model configurations.
  *
- * Pricing last verified: 2025-12-24
+ * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
+ * Last updated: 2025-12-24
+ *
  * Sources:
  * - OpenAI: https://openai.com/api/pricing/
  * - Anthropic: https://www.anthropic.com/pricing
  * - Google: https://ai.google.dev/gemini-api/docs/pricing
  *
- * To update: modify this file and publish a new package version.
+ * This file is automatically updated weekly by GitHub Actions.
  */
+
+export const LAST_UPDATED = '2025-12-24';
+
 const models: Record<string, ModelConfig> = {
   // ===================
   // OpenAI Models
