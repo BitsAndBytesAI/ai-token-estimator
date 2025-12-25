@@ -1,0 +1,76 @@
+name: Update Pricing
+
+on:
+  schedule:
+    # Run every Monday at 9am UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update-pricing:
+    name: Update Model Pricing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Update pricing from provider websites
+        run: npm run update-pricing
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+
+      - name: Run tests
+        run: npm test
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet src/models.ts; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No pricing changes detected"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Pricing changes detected:"
+            git diff src/models.ts | head -50
+          fi
+
+      - name: Create changeset and commit
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          # Create changeset
+          mkdir -p .changeset
+          CHANGESET_FILE=".changeset/pricing-update-$(date +%Y%m%d).md"
+          cat > "$CHANGESET_FILE" << 'EOF'
+          ---
+          "ai-token-estimator": patch
+          ---
+
+          Update model pricing from provider websites
+          EOF
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Commit and push
+          git add .
+          git commit -m "chore: update model pricing $(date +%Y-%m-%d)
+
+          Automatically updated from:
+          - OpenAI: https://openai.com/api/pricing/
+          - Anthropic: https://www.anthropic.com/pricing
+          - Google: https://ai.google.dev/gemini-api/docs/pricing
+
+          🤖 Generated with GitHub Actions"
+          git push
