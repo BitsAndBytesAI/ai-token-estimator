@@ -4,12 +4,13 @@
  * Pricing Update Script
  *
  * Fetches latest model pricing from OpenAI, Anthropic, and Google using Firecrawl,
- * then updates src/models.ts with the new prices.
+ * then updates src/models.ts and README.md with the new prices.
  *
  * Usage:
  *   FIRECRAWL_API_KEY=your_key npx tsx scripts/update-pricing.ts
  *
  * This script is run weekly by GitHub Actions to keep prices up to date.
+ * It also updates the README.md model tables to keep npm documentation in sync.
  */
 
 import FirecrawlApp from '@mendable/firecrawl-js';
