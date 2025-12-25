@@ -15,6 +15,7 @@
 import FirecrawlApp from '@mendable/firecrawl-js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { DEFAULT_MODELS } from '../src/models.js';
 
 // Provider URLs
 const PROVIDER_URLS = {
@@ -156,13 +157,13 @@ async function fetchProviderPricing(
 }
 
 /**
- * Generate the TypeScript source code for models.ts
+ * Group models by provider
  */
-function generateModelsFile(
-  allModels: Map<string, ModelConfig>,
-  timestamp: string
-): string {
-  // Group models by provider
+function groupModelsByProvider(allModels: Map<string, ModelConfig>): {
+  openai: [string, ModelConfig][];
+  anthropic: [string, ModelConfig][];
+  google: [string, ModelConfig][];
+} {
   const openaiModels: [string, ModelConfig][] = [];
   const anthropicModels: [string, ModelConfig][] = [];
   const googleModels: [string, ModelConfig][] = [];
@@ -181,6 +182,99 @@ function generateModelsFile(
   openaiModels.sort((a, b) => a[0].localeCompare(b[0]));
   anthropicModels.sort((a, b) => a[0].localeCompare(b[0]));
   googleModels.sort((a, b) => a[0].localeCompare(b[0]));
+
+  return { openai: openaiModels, anthropic: anthropicModels, google: googleModels };
+}
+
+/**
+ * Format price for display (e.g., 0.075 -> "$0.08", 15 -> "$15.00")
+ */
+function formatPrice(price: number): string {
+  if (price < 1) {
+    return `$${price.toFixed(2)}`;
+  }
+  return `$${price.toFixed(2)}`;
+}
+
+/**
+ * Generate the README supported models section
+ */
+function generateReadmeModelsSection(
+  allModels: Map<string, ModelConfig>,
+  timestamp: string
+): string {
+  const { openai, anthropic, google } = groupModelsByProvider(allModels);
+
+  const formatTableRow = ([name, config]: [string, ModelConfig]) =>
+    `| ${name} | ${config.charsPerToken} | ${formatPrice(config.inputCostPerMillion)} |`;
+
+  const tableHeader = `| Model | Chars/Token | Input Cost (per 1M tokens) |
+|-------|-------------|---------------------------|`;
+
+  return `<!-- SUPPORTED_MODELS_START -->
+## Supported Models
+
+> **Auto-updated weekly** via GitHub Actions from provider pricing pages.
+
+### OpenAI Models
+
+${tableHeader}
+${openai.map(formatTableRow).join('\n')}
+
+### Anthropic Claude Models
+
+${tableHeader}
+${anthropic.map(formatTableRow).join('\n')}
+
+### Google Gemini Models
+
+${tableHeader}
+${google.map(formatTableRow).join('\n')}
+
+*Last updated: ${timestamp}*
+<!-- SUPPORTED_MODELS_END -->`;
+}
+
+/**
+ * Update the README.md with the new models section
+ */
+function updateReadme(
+  allModels: Map<string, ModelConfig>,
+  timestamp: string,
+  readmePath: string
+): void {
+  const content = fs.readFileSync(readmePath, 'utf-8');
+  const newSection = generateReadmeModelsSection(allModels, timestamp);
+
+  // Replace content between markers
+  const startMarker = '<!-- SUPPORTED_MODELS_START -->';
+  const endMarker = '<!-- SUPPORTED_MODELS_END -->';
+
+  const startIdx = content.indexOf(startMarker);
+  const endIdx = content.indexOf(endMarker);
+
+  if (startIdx === -1 || endIdx === -1) {
+    console.warn('Warning: README markers not found, skipping README update');
+    return;
+  }
+
+  const newContent =
+    content.substring(0, startIdx) +
+    newSection +
+    content.substring(endIdx + endMarker.length);
+
+  fs.writeFileSync(readmePath, newContent, 'utf-8');
+  console.log(`Updated ${readmePath}`);
+}
+
+/**
+ * Generate the TypeScript source code for models.ts
+ */
+function generateModelsFile(
+  allModels: Map<string, ModelConfig>,
+  timestamp: string
+): string {
+  const { openai: openaiModels, anthropic: anthropicModels, google: googleModels } = groupModelsByProvider(allModels);
 
   const formatModel = ([name, config]: [string, ModelConfig]) =>
     `  '${name}': {
@@ -273,27 +367,47 @@ async function main(): Promise<void> {
 
   const firecrawl = new FirecrawlApp({ apiKey });
 
-  // Fetch pricing from all providers
+  // Start with existing models (preserve models not found in scrape)
   const allModels = new Map<string, ModelConfig>();
+  for (const [name, config] of Object.entries(DEFAULT_MODELS)) {
+    allModels.set(name, {
+      charsPerToken: config.charsPerToken,
+      inputCostPerMillion: config.inputCostPerMillion,
+    });
+  }
+  console.log(`Starting with ${allModels.size} existing models`);
+
+  // Fetch pricing from all providers and update/add models
+  let updatedCount = 0;
+  let addedCount = 0;
 
   for (const [provider, url] of Object.entries(PROVIDER_URLS)) {
     try {
       const models = await fetchProviderPricing(firecrawl, provider, url);
       for (const [name, config] of models) {
+        if (allModels.has(name)) {
+          const existing = allModels.get(name)!;
+          if (existing.inputCostPerMillion !== config.inputCostPerMillion) {
+            console.log(
+              `  Updated ${name}: $${existing.inputCostPerMillion} -> $${config.inputCostPerMillion}`
+            );
+            updatedCount++;
+          }
+        } else {
+          console.log(`  Added new model: ${name} at $${config.inputCostPerMillion}/M`);
+          addedCount++;
+        }
         allModels.set(name, config);
       }
     } catch (error) {
       console.error(`Error fetching from ${provider}:`, error);
-      // Continue with other providers
+      // Continue with other providers - we still have existing models
     }
   }
 
-  if (allModels.size === 0) {
-    console.error('Error: No models were fetched from any provider');
-    process.exit(1);
-  }
+  console.log(`\nSummary: ${updatedCount} prices updated, ${addedCount} new models added`);
 
-  // Require minimum models from each provider
+  // Count models by provider
   const openaiCount = [...allModels.keys()].filter(
     (k) => k.startsWith('gpt-') || k.startsWith('o')
   ).length;
@@ -305,15 +419,8 @@ async function main(): Promise<void> {
   ).length;
 
   console.log(
-    `\nTotal: ${allModels.size} models (OpenAI: ${openaiCount}, Anthropic: ${anthropicCount}, Google: ${googleCount})`
+    `Total: ${allModels.size} models (OpenAI: ${openaiCount}, Anthropic: ${anthropicCount}, Google: ${googleCount})`
   );
-
-  if (openaiCount < 3 || anthropicCount < 3 || googleCount < 3) {
-    console.error(
-      'Error: Not enough models from each provider. Minimum 3 required.'
-    );
-    process.exit(1);
-  }
 
   // Generate and write the file
   const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
@@ -328,6 +435,14 @@ async function main(): Promise<void> {
 
   fs.writeFileSync(outputPath, content, 'utf-8');
   console.log(`\nUpdated ${outputPath}`);
+
+  // Update README.md
+  const readmePath = path.join(
+    path.dirname(new URL(import.meta.url).pathname),
+    '..',
+    'README.md'
+  );
+  updateReadme(allModels, timestamp, readmePath);
 }
 
 main().catch((error) => {
