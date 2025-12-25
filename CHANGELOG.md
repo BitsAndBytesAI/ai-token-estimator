@@ -1,5 +1,11 @@
 # ai-token-estimator
 
+## 1.0.1
+
+### Patch Changes
+
+- a72a004: Update model pricing from provider websites
+
 ## 1.0.0
 
 ### Major Changes
