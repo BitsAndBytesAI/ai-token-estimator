@@ -15,6 +15,7 @@
 import FirecrawlApp from '@mendable/firecrawl-js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { DEFAULT_MODELS } from '../src/models.js';
 
 // Provider URLs
 const PROVIDER_URLS = {
@@ -273,27 +274,47 @@ async function main(): Promise<void> {
 
   const firecrawl = new FirecrawlApp({ apiKey });
 
-  // Fetch pricing from all providers
+  // Start with existing models (preserve models not found in scrape)
   const allModels = new Map<string, ModelConfig>();
+  for (const [name, config] of Object.entries(DEFAULT_MODELS)) {
+    allModels.set(name, {
+      charsPerToken: config.charsPerToken,
+      inputCostPerMillion: config.inputCostPerMillion,
+    });
+  }
+  console.log(`Starting with ${allModels.size} existing models`);
+
+  // Fetch pricing from all providers and update/add models
+  let updatedCount = 0;
+  let addedCount = 0;
 
   for (const [provider, url] of Object.entries(PROVIDER_URLS)) {
     try {
       const models = await fetchProviderPricing(firecrawl, provider, url);
       for (const [name, config] of models) {
+        if (allModels.has(name)) {
+          const existing = allModels.get(name)!;
+          if (existing.inputCostPerMillion !== config.inputCostPerMillion) {
+            console.log(
+              `  Updated ${name}: $${existing.inputCostPerMillion} -> $${config.inputCostPerMillion}`
+            );
+            updatedCount++;
+          }
+        } else {
+          console.log(`  Added new model: ${name} at $${config.inputCostPerMillion}/M`);
+          addedCount++;
+        }
         allModels.set(name, config);
       }
     } catch (error) {
       console.error(`Error fetching from ${provider}:`, error);
-      // Continue with other providers
+      // Continue with other providers - we still have existing models
     }
   }
 
-  if (allModels.size === 0) {
-    console.error('Error: No models were fetched from any provider');
-    process.exit(1);
-  }
+  console.log(`\nSummary: ${updatedCount} prices updated, ${addedCount} new models added`);
 
-  // Require minimum models from each provider
+  // Count models by provider
   const openaiCount = [...allModels.keys()].filter(
     (k) => k.startsWith('gpt-') || k.startsWith('o')
   ).length;
@@ -305,15 +326,8 @@ async function main(): Promise<void> {
   ).length;
 
   console.log(
-    `\nTotal: ${allModels.size} models (OpenAI: ${openaiCount}, Anthropic: ${anthropicCount}, Google: ${googleCount})`
+    `Total: ${allModels.size} models (OpenAI: ${openaiCount}, Anthropic: ${anthropicCount}, Google: ${googleCount})`
   );
-
-  if (openaiCount < 3 || anthropicCount < 3 || googleCount < 3) {
-    console.error(
-      'Error: Not enough models from each provider. Minimum 3 required.'
-    );
-    process.exit(1);
-  }
 
   // Generate and write the file
   const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
