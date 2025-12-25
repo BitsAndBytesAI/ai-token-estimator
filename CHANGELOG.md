@@ -1,5 +1,11 @@
 # ai-token-estimator
 
+## 1.0.2
+
+### Patch Changes
+
+- 5b83e15: Auto-update README model tables with weekly pricing updates
+
 ## 1.0.1
 
 ### Patch Changes
