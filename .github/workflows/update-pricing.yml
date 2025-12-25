@@ -36,13 +36,13 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          if git diff --quiet src/models.ts; then
+          if git diff --quiet src/models.ts README.md; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No pricing changes detected"
           else
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "Pricing changes detected:"
-            git diff src/models.ts | head -50
+            git diff src/models.ts README.md | head -100
           fi
 
       - name: Create changeset and commit
