@@ -108,59 +108,78 @@ This package counts Unicode code points, not UTF-16 code units. This means:
 - Accented characters count correctly
 - Most source code characters count as 1
 
+<!-- SUPPORTED_MODELS_START -->
 ## Supported Models
+
+> **Auto-updated weekly** via GitHub Actions from provider pricing pages.
 
 ### OpenAI Models
 
 | Model | Chars/Token | Input Cost (per 1M tokens) |
 |-------|-------------|---------------------------|
-| gpt-5.2 | 4 | $1.75 |
-| gpt-5.2-pro | 4 | $21.00 |
-| gpt-5-mini | 4 | $0.25 |
 | gpt-4.1 | 4 | $3.00 |
-| gpt-4.1-mini | 4 | $0.80 |
-| gpt-4.1-nano | 4 | $0.20 |
+| gpt-4.1-mini | 4 | $0.40 |
+| gpt-4.1-nano | 4 | $0.10 |
 | gpt-4o | 4 | $2.50 |
 | gpt-4o-mini | 4 | $0.15 |
-| o3 | 4 | $2.00 |
-| o4-mini | 4 | $4.00 |
+| gpt-5-mini | 4 | $0.25 |
+| gpt-5.2 | 4 | $1.75 |
+| gpt-5.2-pro | 4 | $21.00 |
+| gpt-realtime | 4 | $4.00 |
+| gpt-realtime-mini | 4 | $0.60 |
 | o1 | 4 | $15.00 |
 | o1-pro | 4 | $150.00 |
+| o3 | 4 | $2.00 |
+| o4-mini | 4 | $4.00 |
 
 ### Anthropic Claude Models
 
 | Model | Chars/Token | Input Cost (per 1M tokens) |
 |-------|-------------|---------------------------|
-| claude-opus-4.5 | 3.5 | $5.00 |
-| claude-sonnet-4.5 | 3.5 | $3.00 |
-| claude-haiku-4.5 | 3.5 | $1.00 |
-| claude-opus-4 | 3.5 | $15.00 |
-| claude-opus-4.1 | 3.5 | $15.00 |
-| claude-sonnet-4 | 3.5 | $3.00 |
-| claude-opus-3 | 3.5 | $15.00 |
 | claude-haiku-3 | 3.5 | $0.25 |
 | claude-haiku-3.5 | 3.5 | $0.80 |
+| claude-haiku-4.5 | 3.5 | $1.00 |
+| claude-opus-3 | 3.5 | $15.00 |
+| claude-opus-4 | 3.5 | $15.00 |
+| claude-opus-4.1 | 3.5 | $15.00 |
+| claude-opus-4.5 | 3.5 | $5.00 |
+| claude-sonnet-4 | 3.5 | $3.00 |
+| claude-sonnet-4.5 | 3.5 | $3.00 |
 
 ### Google Gemini Models
 
 | Model | Chars/Token | Input Cost (per 1M tokens) |
 |-------|-------------|---------------------------|
-| gemini-3-pro | 4 | $2.00 |
-| gemini-3-flash | 4 | $0.50 |
-| gemini-2.5-pro | 4 | $1.25 |
+| gemini-2.0-flash | 4 | $0.10 |
+| gemini-2.0-flash-lite | 4 | $0.08 |
+| gemini-2.5-computer-use-preview-10-2025 | 4 | $1.25 |
 | gemini-2.5-flash | 4 | $0.30 |
 | gemini-2.5-flash-lite | 4 | $0.10 |
-| gemini-2.0-flash | 4 | $0.10 |
-| gemini-2.0-flash-lite | 4 | $0.075 |
+| gemini-2.5-flash-lite-preview-09-2025 | 4 | $0.10 |
+| gemini-2.5-flash-native-audio-preview-12-2025 | 4 | $0.50 |
+| gemini-2.5-flash-preview-09-2025 | 4 | $0.30 |
+| gemini-2.5-flash-preview-tts | 4 | $0.50 |
+| gemini-2.5-pro | 4 | $1.25 |
+| gemini-2.5-pro-preview-tts | 4 | $1.00 |
+| gemini-3-flash | 4 | $0.50 |
+| gemini-3-pro | 4 | $2.00 |
 
-*Pricing last verified: December 2025*
+*Last updated: 2025-12-25*
+<!-- SUPPORTED_MODELS_END -->
 
-## Updating Pricing
+## Pricing Updates
 
-Model configurations are embedded in the package. To update pricing:
-1. Modify `src/models.ts`
-2. Create a changeset: `npx changeset`
-3. Publish a new version
+Model pricing is automatically updated weekly via GitHub Actions. The update script fetches the latest prices directly from:
+- [OpenAI Pricing](https://openai.com/api/pricing/)
+- [Anthropic Pricing](https://www.anthropic.com/pricing)
+- [Google AI Pricing](https://ai.google.dev/gemini-api/docs/pricing)
+
+You can check when prices were last updated:
+
+```typescript
+import { LAST_UPDATED } from 'ai-token-estimator';
+console.log(LAST_UPDATED); // '2025-12-25'
+```
 
 ## License
 

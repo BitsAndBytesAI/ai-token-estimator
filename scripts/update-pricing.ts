@@ -157,13 +157,13 @@ async function fetchProviderPricing(
 }
 
 /**
- * Generate the TypeScript source code for models.ts
+ * Group models by provider
  */
-function generateModelsFile(
-  allModels: Map<string, ModelConfig>,
-  timestamp: string
-): string {
-  // Group models by provider
+function groupModelsByProvider(allModels: Map<string, ModelConfig>): {
+  openai: [string, ModelConfig][];
+  anthropic: [string, ModelConfig][];
+  google: [string, ModelConfig][];
+} {
   const openaiModels: [string, ModelConfig][] = [];
   const anthropicModels: [string, ModelConfig][] = [];
   const googleModels: [string, ModelConfig][] = [];
@@ -182,6 +182,99 @@ function generateModelsFile(
   openaiModels.sort((a, b) => a[0].localeCompare(b[0]));
   anthropicModels.sort((a, b) => a[0].localeCompare(b[0]));
   googleModels.sort((a, b) => a[0].localeCompare(b[0]));
+
+  return { openai: openaiModels, anthropic: anthropicModels, google: googleModels };
+}
+
+/**
+ * Format price for display (e.g., 0.075 -> "$0.08", 15 -> "$15.00")
+ */
+function formatPrice(price: number): string {
+  if (price < 1) {
+    return `$${price.toFixed(2)}`;
+  }
+  return `$${price.toFixed(2)}`;
+}
+
+/**
+ * Generate the README supported models section
+ */
+function generateReadmeModelsSection(
+  allModels: Map<string, ModelConfig>,
+  timestamp: string
+): string {
+  const { openai, anthropic, google } = groupModelsByProvider(allModels);
+
+  const formatTableRow = ([name, config]: [string, ModelConfig]) =>
+    `| ${name} | ${config.charsPerToken} | ${formatPrice(config.inputCostPerMillion)} |`;
+
+  const tableHeader = `| Model | Chars/Token | Input Cost (per 1M tokens) |
+|-------|-------------|---------------------------|`;
+
+  return `<!-- SUPPORTED_MODELS_START -->
+## Supported Models
+
+> **Auto-updated weekly** via GitHub Actions from provider pricing pages.
+
+### OpenAI Models
+
+${tableHeader}
+${openai.map(formatTableRow).join('\n')}
+
+### Anthropic Claude Models
+
+${tableHeader}
+${anthropic.map(formatTableRow).join('\n')}
+
+### Google Gemini Models
+
+${tableHeader}
+${google.map(formatTableRow).join('\n')}
+
+*Last updated: ${timestamp}*
+<!-- SUPPORTED_MODELS_END -->`;
+}
+
+/**
+ * Update the README.md with the new models section
+ */
+function updateReadme(
+  allModels: Map<string, ModelConfig>,
+  timestamp: string,
+  readmePath: string
+): void {
+  const content = fs.readFileSync(readmePath, 'utf-8');
+  const newSection = generateReadmeModelsSection(allModels, timestamp);
+
+  // Replace content between markers
+  const startMarker = '<!-- SUPPORTED_MODELS_START -->';
+  const endMarker = '<!-- SUPPORTED_MODELS_END -->';
+
+  const startIdx = content.indexOf(startMarker);
+  const endIdx = content.indexOf(endMarker);
+
+  if (startIdx === -1 || endIdx === -1) {
+    console.warn('Warning: README markers not found, skipping README update');
+    return;
+  }
+
+  const newContent =
+    content.substring(0, startIdx) +
+    newSection +
+    content.substring(endIdx + endMarker.length);
+
+  fs.writeFileSync(readmePath, newContent, 'utf-8');
+  console.log(`Updated ${readmePath}`);
+}
+
+/**
+ * Generate the TypeScript source code for models.ts
+ */
+function generateModelsFile(
+  allModels: Map<string, ModelConfig>,
+  timestamp: string
+): string {
+  const { openai: openaiModels, anthropic: anthropicModels, google: googleModels } = groupModelsByProvider(allModels);
 
   const formatModel = ([name, config]: [string, ModelConfig]) =>
     `  '${name}': {
@@ -342,6 +435,14 @@ async function main(): Promise<void> {
 
   fs.writeFileSync(outputPath, content, 'utf-8');
   console.log(`\nUpdated ${outputPath}`);
+
+  // Update README.md
+  const readmePath = path.join(
+    path.dirname(new URL(import.meta.url).pathname),
+    '..',
+    'README.md'
+  );
+  updateReadme(allModels, timestamp, readmePath);
 }
 
 main().catch((error) => {
