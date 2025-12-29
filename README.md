@@ -118,8 +118,8 @@ This package counts Unicode code points, not UTF-16 code units. This means:
 | Model | Chars/Token | Input Cost (per 1M tokens) |
 |-------|-------------|---------------------------|
 | gpt-4.1 | 4 | $3.00 |
-| gpt-4.1-mini | 4 | $0.40 |
-| gpt-4.1-nano | 4 | $0.10 |
+| gpt-4.1-mini | 4 | $0.80 |
+| gpt-4.1-nano | 4 | $0.20 |
 | gpt-4o | 4 | $2.50 |
 | gpt-4o-mini | 4 | $0.15 |
 | gpt-5-mini | 4 | $0.25 |
@@ -150,21 +150,21 @@ This package counts Unicode code points, not UTF-16 code units. This means:
 
 | Model | Chars/Token | Input Cost (per 1M tokens) |
 |-------|-------------|---------------------------|
-| gemini-2.0-flash | 4 | $0.10 |
-| gemini-2.0-flash-lite | 4 | $0.08 |
+| gemini-2.0-flash | 4 | $100.00 |
+| gemini-2.0-flash-lite | 4 | $75.00 |
 | gemini-2.5-computer-use-preview-10-2025 | 4 | $1.25 |
-| gemini-2.5-flash | 4 | $0.30 |
-| gemini-2.5-flash-lite | 4 | $0.10 |
-| gemini-2.5-flash-lite-preview-09-2025 | 4 | $0.10 |
+| gemini-2.5-flash | 4 | $300.00 |
+| gemini-2.5-flash-lite | 4 | $100.00 |
+| gemini-2.5-flash-lite-preview-09-2025 | 4 | $100.00 |
 | gemini-2.5-flash-native-audio-preview-12-2025 | 4 | $0.50 |
-| gemini-2.5-flash-preview-09-2025 | 4 | $0.30 |
-| gemini-2.5-flash-preview-tts | 4 | $0.50 |
+| gemini-2.5-flash-preview-09-2025 | 4 | $300.00 |
+| gemini-2.5-flash-preview-tts | 4 | $50.00 |
 | gemini-2.5-pro | 4 | $1.25 |
-| gemini-2.5-pro-preview-tts | 4 | $1.00 |
-| gemini-3-flash | 4 | $0.50 |
+| gemini-2.5-pro-preview-tts | 4 | $100.00 |
+| gemini-3-flash | 4 | $500.00 |
 | gemini-3-pro | 4 | $2.00 |
 
-*Last updated: 2025-12-25*
+*Last updated: 2025-12-29*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates

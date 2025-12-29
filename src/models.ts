@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2025-12-25
+ * Last updated: 2025-12-29
  *
  * Sources:
  * - OpenAI: https://openai.com/api/pricing/
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2025-12-25';
+export const LAST_UPDATED = '2025-12-29';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -128,11 +128,11 @@ const models: Record<string, ModelConfig> = {
 
   'gemini-2.0-flash': {
     charsPerToken: 4,
-    inputCostPerMillion: 0.1,
+    inputCostPerMillion: 100,
   },
   'gemini-2.0-flash-lite': {
     charsPerToken: 4,
-    inputCostPerMillion: 0.075,
+    inputCostPerMillion: 75,
   },
   'gemini-2.5-computer-use-preview-10-2025': {
     charsPerToken: 4,
@@ -140,15 +140,15 @@ const models: Record<string, ModelConfig> = {
   },
   'gemini-2.5-flash': {
     charsPerToken: 4,
-    inputCostPerMillion: 0.3,
+    inputCostPerMillion: 300,
   },
   'gemini-2.5-flash-lite': {
     charsPerToken: 4,
-    inputCostPerMillion: 0.1,
+    inputCostPerMillion: 100,
   },
   'gemini-2.5-flash-lite-preview-09-2025': {
     charsPerToken: 4,
-    inputCostPerMillion: 0.1,
+    inputCostPerMillion: 100,
   },
   'gemini-2.5-flash-native-audio-preview-12-2025': {
     charsPerToken: 4,
@@ -156,11 +156,11 @@ const models: Record<string, ModelConfig> = {
   },
   'gemini-2.5-flash-preview-09-2025': {
     charsPerToken: 4,
-    inputCostPerMillion: 0.3,
+    inputCostPerMillion: 300,
   },
   'gemini-2.5-flash-preview-tts': {
     charsPerToken: 4,
-    inputCostPerMillion: 0.5,
+    inputCostPerMillion: 50,
   },
   'gemini-2.5-pro': {
     charsPerToken: 4,
@@ -168,11 +168,11 @@ const models: Record<string, ModelConfig> = {
   },
   'gemini-2.5-pro-preview-tts': {
     charsPerToken: 4,
-    inputCostPerMillion: 1,
+    inputCostPerMillion: 100,
   },
   'gemini-3-flash': {
     charsPerToken: 4,
-    inputCostPerMillion: 0.5,
+    inputCostPerMillion: 500,
   },
   'gemini-3-pro': {
     charsPerToken: 4,
