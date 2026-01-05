@@ -164,7 +164,7 @@ This package counts Unicode code points, not UTF-16 code units. This means:
 | gemini-3-flash | 4 | $500.00 |
 | gemini-3-pro | 4 | $2.00 |
 
-*Last updated: 2025-12-29*
+*Last updated: 2026-01-05*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
