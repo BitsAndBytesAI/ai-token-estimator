@@ -156,6 +156,7 @@ This package counts Unicode code points, not UTF-16 code units. This means:
 | gemini-2.5-flash | 4 | $300.00 |
 | gemini-2.5-flash-lite | 4 | $100.00 |
 | gemini-2.5-flash-lite-preview-09-2025 | 4 | $100.00 |
+| gemini-2.5-flash-native-audio | 4 | $500.00 |
 | gemini-2.5-flash-native-audio-preview-12-2025 | 4 | $0.50 |
 | gemini-2.5-flash-preview-09-2025 | 4 | $300.00 |
 | gemini-2.5-flash-preview-tts | 4 | $50.00 |
@@ -164,7 +165,7 @@ This package counts Unicode code points, not UTF-16 code units. This means:
 | gemini-3-flash | 4 | $500.00 |
 | gemini-3-pro | 4 | $2.00 |
 
-*Last updated: 2026-01-05*
+*Last updated: 2026-01-12*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
