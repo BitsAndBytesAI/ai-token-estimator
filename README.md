@@ -39,6 +39,24 @@ console.log(getAvailableModels());
 // ['gpt-5.2', 'gpt-4o', 'claude-opus-4.5', 'gemini-3-pro', ...]
 ```
 
+## Exact OpenAI tokenization (BPE)
+
+This package includes **exact tokenization for OpenAI models** using a tiktoken-compatible BPE tokenizer (via `gpt-tokenizer`).
+
+```ts
+import { encode, decode } from 'ai-token-estimator';
+
+const text = 'Hello, world!';
+const tokens = encode(text, { model: 'gpt-5.1' }); // exact OpenAI token IDs
+const roundTrip = decode(tokens, { model: 'gpt-5.1' });
+
+console.log(tokens.length);
+console.log(roundTrip); // "Hello, world!"
+```
+
+Supported encodings:
+`r50k_base`, `p50k_base`, `p50k_edit`, `cl100k_base`, `o200k_base`, `o200k_harmony`
+
 ## API Reference
 
 ### `estimate(input: EstimateInput): EstimateOutput`
@@ -70,6 +88,14 @@ interface EstimateOutput {
 ### `getAvailableModels(): string[]`
 
 Returns an array of all supported model IDs.
+
+### `encode(text: string, options?: EncodeOptions): number[]`
+
+Encodes text into **OpenAI token IDs** using tiktoken-compatible BPE tokenization.
+
+### `decode(tokens: Iterable<number>, options?: { encoding?: OpenAIEncoding; model?: string }): string`
+
+Decodes OpenAI token IDs back into text using the selected encoding/model.
 
 ### `getModelConfig(model: string): ModelConfig`
 
