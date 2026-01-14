@@ -1,5 +1,11 @@
 # ai-token-estimator
 
+## 1.0.3
+
+### Patch Changes
+
+- 7aa869d: Update OpenAI pricing source and add missing OpenAI model IDs (including `gpt-5.1`) so token/cost estimation works for newer models.
+
 ## 1.0.2
 
 ### Patch Changes
