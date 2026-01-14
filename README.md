@@ -43,6 +43,11 @@ console.log(getAvailableModels());
 
 This package includes **exact tokenization for OpenAI models** using a tiktoken-compatible BPE tokenizer (via `gpt-tokenizer`).
 
+Notes:
+- Encodings are **lazy-loaded on first use** (one-time cost per encoding).
+- Exact tokenization is **slower** than heuristic estimation; `estimate()` defaults to `'heuristic'` to keep existing behavior fast.
+- `encode` / `decode` and `estimate({ tokenizer: 'openai_exact' })` require **Node.js** (uses `node:module` under the hood).
+
 ```ts
 import { encode, decode } from 'ai-token-estimator';
 
@@ -149,6 +154,14 @@ This package counts Unicode code points, not UTF-16 code units. This means:
 - Emojis count as 1 character (not 2)
 - Accented characters count correctly
 - Most source code characters count as 1
+
+## Benchmarks (repo only)
+
+This repository includes a small benchmark script to compare heuristic vs exact OpenAI tokenization:
+
+```bash
+npm run benchmark:tokenizer
+```
 
 <!-- SUPPORTED_MODELS_START -->
 ## Supported Models
