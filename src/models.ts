@@ -4,17 +4,17 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2025-12-25
+ * Last updated: 2026-01-14
  *
  * Sources:
- * - OpenAI: https://openai.com/api/pricing/
+ * - OpenAI: https://platform.openai.com/docs/pricing
  * - Anthropic: https://www.anthropic.com/pricing
  * - Google: https://ai.google.dev/gemini-api/docs/pricing
  *
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2025-12-25';
+export const LAST_UPDATED = '2026-01-14';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -22,19 +22,107 @@ const models: Record<string, ModelConfig> = {
   // ===================
   // OpenAI uses ~4 chars per token for English text
 
-  'gpt-4.1': {
+  'babbage-002': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.4,
+  },
+  'chatgpt-4o-latest': {
+    charsPerToken: 4,
+    inputCostPerMillion: 5,
+  },
+  'chatgpt-image-latest': {
+    charsPerToken: 4,
+    inputCostPerMillion: 5,
+  },
+  'codex-mini-latest': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.5,
+  },
+  'computer-use-preview': {
     charsPerToken: 4,
     inputCostPerMillion: 3,
   },
+  'davinci-002': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2,
+  },
+  'gpt-3.5-0301': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.5,
+  },
+  'gpt-3.5-turbo': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.5,
+  },
+  'gpt-3.5-turbo-0125': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.5,
+  },
+  'gpt-3.5-turbo-0613': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.5,
+  },
+  'gpt-3.5-turbo-1106': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1,
+  },
+  'gpt-3.5-turbo-16k-0613': {
+    charsPerToken: 4,
+    inputCostPerMillion: 3,
+  },
+  'gpt-3.5-turbo-instruct': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.5,
+  },
+  'gpt-4-0125-preview': {
+    charsPerToken: 4,
+    inputCostPerMillion: 10,
+  },
+  'gpt-4-0314': {
+    charsPerToken: 4,
+    inputCostPerMillion: 30,
+  },
+  'gpt-4-0613': {
+    charsPerToken: 4,
+    inputCostPerMillion: 30,
+  },
+  'gpt-4-1106-preview': {
+    charsPerToken: 4,
+    inputCostPerMillion: 10,
+  },
+  'gpt-4-1106-vision-preview': {
+    charsPerToken: 4,
+    inputCostPerMillion: 10,
+  },
+  'gpt-4-32k': {
+    charsPerToken: 4,
+    inputCostPerMillion: 60,
+  },
+  'gpt-4-turbo-2024-04-09': {
+    charsPerToken: 4,
+    inputCostPerMillion: 10,
+  },
+  'gpt-4.1': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2,
+  },
   'gpt-4.1-mini': {
     charsPerToken: 4,
-    inputCostPerMillion: 0.8,
+    inputCostPerMillion: 0.4,
   },
   'gpt-4.1-nano': {
     charsPerToken: 4,
-    inputCostPerMillion: 0.2,
+    inputCostPerMillion: 0.1,
   },
   'gpt-4o': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2.5,
+  },
+  'gpt-4o-2024-05-13': {
+    charsPerToken: 4,
+    inputCostPerMillion: 5,
+  },
+  'gpt-4o-audio-preview': {
     charsPerToken: 4,
     inputCostPerMillion: 2.5,
   },
@@ -42,17 +130,109 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 0.15,
   },
+  'gpt-4o-mini-audio-preview': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.15,
+  },
+  'gpt-4o-mini-realtime-preview': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.6,
+  },
+  'gpt-4o-mini-search-preview': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.15,
+  },
+  'gpt-4o-realtime-preview': {
+    charsPerToken: 4,
+    inputCostPerMillion: 5,
+  },
+  'gpt-4o-search-preview': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2.5,
+  },
+  'gpt-5': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.25,
+  },
   'gpt-5-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 0.25,
   },
+  'gpt-5-nano': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.05,
+  },
+  'gpt-5-pro': {
+    charsPerToken: 4,
+    inputCostPerMillion: 15,
+  },
+  'gpt-5-search-api': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.25,
+  },
+  'gpt-5.1': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.25,
+  },
+  'gpt-5.1-chat-latest': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.25,
+  },
+  'gpt-5.1-codex': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.25,
+  },
+  'gpt-5.1-codex-max': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.25,
+  },
+  'gpt-5.1-codex-mini': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.25,
+  },
+  'gpt-5-chat-latest': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.25,
+  },
+  'gpt-5-codex': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.25,
+  },
   'gpt-5.2': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.75,
+  },
+  'gpt-5.2-chat-latest': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.75,
+  },
+  'gpt-5.2-codex': {
     charsPerToken: 4,
     inputCostPerMillion: 1.75,
   },
   'gpt-5.2-pro': {
     charsPerToken: 4,
     inputCostPerMillion: 21,
+  },
+  'gpt-audio': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2.5,
+  },
+  'gpt-audio-mini': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.6,
+  },
+  'gpt-image-1': {
+    charsPerToken: 4,
+    inputCostPerMillion: 5,
+  },
+  'gpt-image-1-mini': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2,
+  },
+  'gpt-image-1.5': {
+    charsPerToken: 4,
+    inputCostPerMillion: 5,
   },
   'gpt-realtime': {
     charsPerToken: 4,
@@ -66,6 +246,10 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 15,
   },
+  'o1-mini': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.1,
+  },
   'o1-pro': {
     charsPerToken: 4,
     inputCostPerMillion: 150,
@@ -74,9 +258,25 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 2,
   },
+  'o3-deep-research': {
+    charsPerToken: 4,
+    inputCostPerMillion: 10,
+  },
+  'o3-mini': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.1,
+  },
+  'o3-pro': {
+    charsPerToken: 4,
+    inputCostPerMillion: 20,
+  },
   'o4-mini': {
     charsPerToken: 4,
-    inputCostPerMillion: 4,
+    inputCostPerMillion: 1.1,
+  },
+  'o4-mini-deep-research': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2,
   },
 
   // ===================

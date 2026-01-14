@@ -20,7 +20,7 @@ import { DEFAULT_MODELS } from '../src/models.js';
 
 // Provider URLs
 const PROVIDER_URLS = {
-  openai: 'https://openai.com/api/pricing/',
+  openai: 'https://platform.openai.com/docs/pricing',
   anthropic: 'https://www.anthropic.com/pricing',
   google: 'https://ai.google.dev/gemini-api/docs/pricing',
 } as const;
@@ -119,8 +119,13 @@ async function fetchProviderPricing(
 ): Promise<Map<string, ModelConfig>> {
   console.log(`Fetching pricing from ${provider}...`);
 
+  const prompt =
+    provider === 'openai'
+      ? `From the OpenAI pricing page, extract ONLY token-based pricing for the Standard API tier (NOT Batch). Include models from the "Text tokens" -> Standard table and the "Legacy models" -> Standard table. For each model return: model name/ID and input cost per 1 million tokens in USD. Do not include per-image pricing, subscription plans, or non-token pricing.`
+      : `Extract all LLM model names and their API pricing. For each model, get: model name/ID and input cost per million tokens in USD. Only include text/chat models (not image or video generation models).`;
+
   const result = await firecrawl.extract([url], {
-    prompt: `Extract all LLM model names and their API pricing. For each model, get: model name/ID, input cost per million tokens, output cost per million tokens. Only include text/chat models, not image or video generation models.`,
+    prompt,
     schema: PRICING_SCHEMA,
   });
 
@@ -170,12 +175,14 @@ function groupModelsByProvider(allModels: Map<string, ModelConfig>): {
   const googleModels: [string, ModelConfig][] = [];
 
   for (const [name, config] of allModels) {
-    if (name.startsWith('gpt-') || name.startsWith('o1') || name.startsWith('o3') || name.startsWith('o4')) {
-      openaiModels.push([name, config]);
-    } else if (name.startsWith('claude-')) {
+    if (name.startsWith('claude-')) {
       anthropicModels.push([name, config]);
     } else if (name.startsWith('gemini-')) {
       googleModels.push([name, config]);
+    } else {
+      // Default to OpenAI for any non-Anthropic/non-Google model IDs.
+      // This avoids silently dropping models when provider grouping rules drift.
+      openaiModels.push([name, config]);
     }
   }
 
@@ -191,10 +198,8 @@ function groupModelsByProvider(allModels: Map<string, ModelConfig>): {
  * Format price for display (e.g., 0.075 -> "$0.08", 15 -> "$15.00")
  */
 function formatPrice(price: number): string {
-  if (price < 1) {
-    return `$${price.toFixed(2)}`;
-  }
-  return `$${price.toFixed(2)}`;
+  const rounded = Math.round((price + Number.EPSILON) * 100) / 100;
+  return `$${rounded.toFixed(2)}`;
 }
 
 /**
@@ -292,7 +297,7 @@ function generateModelsFile(
  * Last updated: ${timestamp}
  *
  * Sources:
- * - OpenAI: https://openai.com/api/pricing/
+ * - OpenAI: https://platform.openai.com/docs/pricing
  * - Anthropic: https://www.anthropic.com/pricing
  * - Google: https://ai.google.dev/gemini-api/docs/pricing
  *
@@ -410,7 +415,7 @@ async function main(): Promise<void> {
 
   // Count models by provider
   const openaiCount = [...allModels.keys()].filter(
-    (k) => k.startsWith('gpt-') || k.startsWith('o')
+    (k) => !k.startsWith('claude-') && !k.startsWith('gemini-')
   ).length;
   const anthropicCount = [...allModels.keys()].filter((k) =>
     k.startsWith('claude-')
