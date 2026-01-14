@@ -1,5 +1,11 @@
 # ai-token-estimator
 
+## 1.1.0
+
+### Minor Changes
+
+- 8ed0abd: Add Phase 2 OpenAI tokenizer enhancements: `countTokens()` (exact for OpenAI, heuristic otherwise) and optional tokenizer modes for `estimate()` (`heuristic`/`openai_exact`/`auto`).
+
 ## 1.0.3
 
 ### Patch Changes
