@@ -109,7 +109,7 @@ import type { ModelConfig } from './types';
  *
  * Pricing last verified: 2024-12-24
  * Sources:
- * - OpenAI: https://openai.com/api/pricing/
+ * - OpenAI: https://platform.openai.com/docs/pricing
  * - Anthropic: https://www.anthropic.com/pricing
  *
  * To update: modify this file and publish a new package version.
@@ -126,7 +126,7 @@ const models: Record<string, ModelConfig> = {
   },
   'gpt-4.1': {
     charsPerToken: 4,
-    inputCostPerMillion: 3.00,
+    inputCostPerMillion: 2.00,
   },
   'gpt-4.1-mini': {
     charsPerToken: 4,

@@ -117,20 +117,70 @@ This package counts Unicode code points, not UTF-16 code units. This means:
 
 | Model | Chars/Token | Input Cost (per 1M tokens) |
 |-------|-------------|---------------------------|
-| gpt-4.1 | 4 | $3.00 |
+| babbage-002 | 4 | $0.40 |
+| chatgpt-4o-latest | 4 | $5.00 |
+| chatgpt-image-latest | 4 | $5.00 |
+| codex-mini-latest | 4 | $1.50 |
+| computer-use-preview | 4 | $3.00 |
+| davinci-002 | 4 | $2.00 |
+| gpt-3.5-0301 | 4 | $1.50 |
+| gpt-3.5-turbo | 4 | $0.50 |
+| gpt-3.5-turbo-0125 | 4 | $0.50 |
+| gpt-3.5-turbo-0613 | 4 | $1.50 |
+| gpt-3.5-turbo-1106 | 4 | $1.00 |
+| gpt-3.5-turbo-16k-0613 | 4 | $3.00 |
+| gpt-3.5-turbo-instruct | 4 | $1.50 |
+| gpt-4-0125-preview | 4 | $10.00 |
+| gpt-4-0314 | 4 | $30.00 |
+| gpt-4-0613 | 4 | $30.00 |
+| gpt-4-1106-preview | 4 | $10.00 |
+| gpt-4-1106-vision-preview | 4 | $10.00 |
+| gpt-4-32k | 4 | $60.00 |
+| gpt-4-turbo-2024-04-09 | 4 | $10.00 |
+| gpt-4.1 | 4 | $2.00 |
 | gpt-4.1-mini | 4 | $0.40 |
 | gpt-4.1-nano | 4 | $0.10 |
 | gpt-4o | 4 | $2.50 |
+| gpt-4o-2024-05-13 | 4 | $5.00 |
+| gpt-4o-audio-preview | 4 | $2.50 |
 | gpt-4o-mini | 4 | $0.15 |
+| gpt-4o-mini-audio-preview | 4 | $0.15 |
+| gpt-4o-mini-realtime-preview | 4 | $0.60 |
+| gpt-4o-mini-search-preview | 4 | $0.15 |
+| gpt-4o-realtime-preview | 4 | $5.00 |
+| gpt-4o-search-preview | 4 | $2.50 |
+| gpt-5 | 4 | $1.25 |
+| gpt-5-chat-latest | 4 | $1.25 |
+| gpt-5-codex | 4 | $1.25 |
 | gpt-5-mini | 4 | $0.25 |
+| gpt-5-nano | 4 | $0.05 |
+| gpt-5-pro | 4 | $15.00 |
+| gpt-5-search-api | 4 | $1.25 |
+| gpt-5.1 | 4 | $1.25 |
+| gpt-5.1-chat-latest | 4 | $1.25 |
+| gpt-5.1-codex | 4 | $1.25 |
+| gpt-5.1-codex-max | 4 | $1.25 |
+| gpt-5.1-codex-mini | 4 | $0.25 |
 | gpt-5.2 | 4 | $1.75 |
+| gpt-5.2-chat-latest | 4 | $1.75 |
+| gpt-5.2-codex | 4 | $1.75 |
 | gpt-5.2-pro | 4 | $21.00 |
+| gpt-audio | 4 | $2.50 |
+| gpt-audio-mini | 4 | $0.60 |
+| gpt-image-1 | 4 | $5.00 |
+| gpt-image-1-mini | 4 | $2.00 |
+| gpt-image-1.5 | 4 | $5.00 |
 | gpt-realtime | 4 | $4.00 |
 | gpt-realtime-mini | 4 | $0.60 |
 | o1 | 4 | $15.00 |
+| o1-mini | 4 | $1.10 |
 | o1-pro | 4 | $150.00 |
 | o3 | 4 | $2.00 |
-| o4-mini | 4 | $4.00 |
+| o3-deep-research | 4 | $10.00 |
+| o3-mini | 4 | $1.10 |
+| o3-pro | 4 | $20.00 |
+| o4-mini | 4 | $1.10 |
+| o4-mini-deep-research | 4 | $2.00 |
 
 ### Anthropic Claude Models
 
@@ -164,13 +214,13 @@ This package counts Unicode code points, not UTF-16 code units. This means:
 | gemini-3-flash | 4 | $0.50 |
 | gemini-3-pro | 4 | $2.00 |
 
-*Last updated: 2025-12-25*
+*Last updated: 2026-01-14*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
 
 Model pricing is automatically updated weekly via GitHub Actions. The update script fetches the latest prices directly from:
-- [OpenAI Pricing](https://openai.com/api/pricing/)
+- [OpenAI Pricing](https://platform.openai.com/docs/pricing)
 - [Anthropic Pricing](https://www.anthropic.com/pricing)
 - [Google AI Pricing](https://ai.google.dev/gemini-api/docs/pricing)
 
@@ -178,7 +228,7 @@ You can check when prices were last updated:
 
 ```typescript
 import { LAST_UPDATED } from 'ai-token-estimator';
-console.log(LAST_UPDATED); // '2025-12-25'
+console.log(LAST_UPDATED); // e.g. '2026-01-14'
 ```
 
 ## License
