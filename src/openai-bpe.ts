@@ -97,6 +97,15 @@ function resolveEncoding(selector: EncodingSelector | undefined): OpenAIEncoding
   return DEFAULT_ENCODING as OpenAIEncoding;
 }
 
+/**
+ * Resolve the OpenAI encoding that will be used for a given model/encoding selector.
+ */
+export function getOpenAIEncoding(
+  selector?: Pick<EncodeOptions, 'encoding' | 'model'>
+): OpenAIEncoding {
+  return resolveEncoding(selector);
+}
+
 function toGptTokenizerEncodeOptions(
   allowSpecial: SpecialTokenHandling | undefined
 ): GptTokenizerEncodeOptions | undefined {
@@ -147,4 +156,3 @@ export function decode(
   const api = ENCODING_APIS[encoding];
   return api.decode(tokens);
 }
-

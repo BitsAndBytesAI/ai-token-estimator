@@ -6,5 +6,7 @@ export {
   LAST_UPDATED,
 } from './models.js';
 export { encode, decode } from './openai-bpe.js';
-export type { EstimateInput, EstimateOutput, ModelConfig } from './types.js';
+export { countTokens } from './token-counter.js';
+export type { EstimateInput, EstimateOutput, ModelConfig, TokenizerMode } from './types.js';
 export type { EncodeOptions, OpenAIEncoding, SpecialTokenHandling } from './openai-bpe.js';
+export type { TokenCountInput, TokenCountOutput } from './token-counter.js';
