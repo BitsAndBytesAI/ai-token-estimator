@@ -1,12 +1,25 @@
 # ai-token-estimator
 
-Estimate token counts and costs for LLM API calls based on character count and model-specific ratios.
+[![npm](https://img.shields.io/npm/v/ai-token-estimator.svg)](https://www.npmjs.com/package/ai-token-estimator)
+[![CI](https://github.com/BitsAndBytesAI/ai-token-estimator/actions/workflows/ci.yml/badge.svg)](https://github.com/BitsAndBytesAI/ai-token-estimator/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/ai-token-estimator.svg)](https://github.com/BitsAndBytesAI/ai-token-estimator/blob/main/LICENSE)
+
+Estimate token counts and input costs for LLM API calls — plus **exact OpenAI tokenization** (tiktoken-compatible BPE) when you need it.
 
 > **Important:** This is a rough estimation tool for budgeting purposes, not a precise tokenizer. Actual token counts may vary by ±20% depending on:
 > - Content type (code vs prose)
 > - Language (CJK languages use more tokens)
 > - API message framing overhead
 > - Special characters and formatting
+
+## Features
+
+- Estimates tokens + input cost for many OpenAI / Anthropic / Google models
+- Pricing/model list auto-updated weekly via GitHub Actions
+- Exact OpenAI token IDs via `encode()` / `decode()` (tiktoken-compatible BPE)
+- `estimate()` supports tokenizer modes: `heuristic` (default), `openai_exact`, `auto`
+- `countTokens()` unified API (OpenAI exact, others heuristic)
+- TypeScript-first, ships ESM + CJS
 
 ## Installation
 
@@ -17,7 +30,7 @@ npm install ai-token-estimator
 ## Usage
 
 ```typescript
-import { estimate, getAvailableModels } from 'ai-token-estimator';
+import { countTokens, estimate, getAvailableModels } from 'ai-token-estimator';
 
 // Basic usage
 const result = estimate({
@@ -37,6 +50,10 @@ console.log(result);
 // List available models
 console.log(getAvailableModels());
 // ['gpt-5.2', 'gpt-4o', 'claude-opus-4.5', 'gemini-3-pro', ...]
+
+// Exact tokens for OpenAI, heuristic for others
+console.log(countTokens({ text: 'Hello, world!', model: 'gpt-5.1' }));
+// { tokens: 4, exact: true, encoding: 'o200k_base' }
 ```
 
 ## Exact OpenAI tokenization (BPE)
@@ -61,6 +78,25 @@ console.log(roundTrip); // "Hello, world!"
 
 Supported encodings:
 `r50k_base`, `p50k_base`, `p50k_edit`, `cl100k_base`, `o200k_base`, `o200k_harmony`
+
+## Using the exact tokenizer with `estimate()`
+
+`estimate()` is heuristic by default (fast). If you want to use exact OpenAI token counting:
+
+```ts
+import { estimate } from 'ai-token-estimator';
+
+const result = estimate({
+  text: 'Hello, world!',
+  model: 'gpt-5.1',
+  tokenizer: 'openai_exact',
+});
+
+console.log(result.tokenizerMode); // "openai_exact"
+console.log(result.encodingUsed);  // "o200k_base"
+```
+
+Or use `tokenizer: 'auto'` to use exact counting for OpenAI models and heuristic for everything else.
 
 ## API Reference
 
