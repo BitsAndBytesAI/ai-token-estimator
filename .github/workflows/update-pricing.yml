@@ -68,7 +68,7 @@ jobs:
           git commit -m "chore: update model pricing $(date +%Y-%m-%d)
 
           Automatically updated from:
-          - OpenAI: https://openai.com/api/pricing/
+          - OpenAI: https://platform.openai.com/docs/pricing
           - Anthropic: https://www.anthropic.com/pricing
           - Google: https://ai.google.dev/gemini-api/docs/pricing
 
