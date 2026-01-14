@@ -70,6 +70,7 @@ interface EstimateInput {
   text: string;           // The text to estimate tokens for
   model: string;          // Model ID (e.g., 'gpt-4o', 'claude-opus-4.5')
   rounding?: 'ceil' | 'round' | 'floor';  // Rounding strategy (default: 'ceil')
+  tokenizer?: 'heuristic' | 'openai_exact' | 'auto'; // Token counting strategy (default: 'heuristic')
 }
 ```
 
@@ -82,7 +83,22 @@ interface EstimateOutput {
   estimatedTokens: number; // Estimated token count (integer)
   estimatedInputCost: number; // Estimated cost in USD
   charsPerToken: number;   // The ratio used for this model
+  tokenizerMode?: 'heuristic' | 'openai_exact' | 'auto'; // Which strategy was used
+  encodingUsed?: string;   // OpenAI encoding when using exact tokenization
 }
+```
+
+### `countTokens(input: TokenCountInput): TokenCountOutput`
+
+Counts tokens for a given model:
+- OpenAI models: **exact** BPE tokenization
+- Other providers: heuristic estimate
+
+```ts
+import { countTokens } from 'ai-token-estimator';
+
+const result = countTokens({ text: 'Hello, world!', model: 'gpt-5.1' });
+// { tokens: 4, exact: true, encoding: 'o200k_base' }
 ```
 
 ### `getAvailableModels(): string[]`
