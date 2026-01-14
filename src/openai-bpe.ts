@@ -1,30 +1,7 @@
+import { createRequire } from 'node:module';
+
 import { ALL_SPECIAL_TOKENS } from 'gpt-tokenizer/constants';
 import { DEFAULT_ENCODING, modelToEncodingMap } from 'gpt-tokenizer/mapping';
-
-import {
-  decode as decodeCl100kBase,
-  encode as encodeCl100kBase,
-} from 'gpt-tokenizer/encoding/cl100k_base';
-import {
-  decode as decodeO200kBase,
-  encode as encodeO200kBase,
-} from 'gpt-tokenizer/encoding/o200k_base';
-import {
-  decode as decodeO200kHarmony,
-  encode as encodeO200kHarmony,
-} from 'gpt-tokenizer/encoding/o200k_harmony';
-import {
-  decode as decodeP50kBase,
-  encode as encodeP50kBase,
-} from 'gpt-tokenizer/encoding/p50k_base';
-import {
-  decode as decodeP50kEdit,
-  encode as encodeP50kEdit,
-} from 'gpt-tokenizer/encoding/p50k_edit';
-import {
-  decode as decodeR50kBase,
-  encode as encodeR50kBase,
-} from 'gpt-tokenizer/encoding/r50k_base';
 
 export type OpenAIEncoding =
   | 'r50k_base'
@@ -65,20 +42,43 @@ type GptTokenizerEncodeOptions = {
   disallowedSpecial?: Set<string> | typeof ALL_SPECIAL_TOKENS;
 };
 
-const ENCODING_APIS: Record<
-  OpenAIEncoding,
-  {
-    encode: (text: string, options?: GptTokenizerEncodeOptions) => number[];
-    decode: (tokens: Iterable<number>) => string;
-  }
-> = {
-  r50k_base: { encode: encodeR50kBase, decode: decodeR50kBase },
-  p50k_base: { encode: encodeP50kBase, decode: decodeP50kBase },
-  p50k_edit: { encode: encodeP50kEdit, decode: decodeP50kEdit },
-  cl100k_base: { encode: encodeCl100kBase, decode: decodeCl100kBase },
-  o200k_base: { encode: encodeO200kBase, decode: decodeO200kBase },
-  o200k_harmony: { encode: encodeO200kHarmony, decode: decodeO200kHarmony },
+type EncodingApi = {
+  encode: (text: string, options?: GptTokenizerEncodeOptions) => number[];
+  decode: (tokens: Iterable<number>) => string;
 };
+
+// `__filename` exists in CJS output, but not in ESM.
+// `import.meta.url` exists in ESM output, but is not available in CJS.
+// Use whichever is available at runtime.
+declare const __filename: string | undefined;
+const requireBase =
+  typeof __filename === 'string' && __filename.length > 0
+    ? __filename
+    : import.meta.url;
+const NODE_REQUIRE = createRequire(requireBase);
+
+const ENCODING_MODULES: Record<OpenAIEncoding, string> = {
+  r50k_base: 'gpt-tokenizer/cjs/encoding/r50k_base',
+  p50k_base: 'gpt-tokenizer/cjs/encoding/p50k_base',
+  p50k_edit: 'gpt-tokenizer/cjs/encoding/p50k_edit',
+  cl100k_base: 'gpt-tokenizer/cjs/encoding/cl100k_base',
+  o200k_base: 'gpt-tokenizer/cjs/encoding/o200k_base',
+  o200k_harmony: 'gpt-tokenizer/cjs/encoding/o200k_harmony',
+};
+
+const encodingApiCache = new Map<OpenAIEncoding, EncodingApi>();
+
+function getEncodingApi(encoding: OpenAIEncoding): EncodingApi {
+  const cached = encodingApiCache.get(encoding);
+  if (cached) return cached;
+
+  const modulePath = ENCODING_MODULES[encoding];
+  const mod = NODE_REQUIRE(modulePath) as { encode: EncodingApi['encode']; decode: EncodingApi['decode'] };
+
+  const api: EncodingApi = { encode: mod.encode, decode: mod.decode };
+  encodingApiCache.set(encoding, api);
+  return api;
+}
 
 function resolveEncoding(selector: EncodingSelector | undefined): OpenAIEncoding {
   if (selector?.encoding) {
@@ -95,6 +95,15 @@ function resolveEncoding(selector: EncodingSelector | undefined): OpenAIEncoding
   }
 
   return DEFAULT_ENCODING as OpenAIEncoding;
+}
+
+/**
+ * Resolve the OpenAI encoding that will be used for a given model/encoding selector.
+ */
+export function getOpenAIEncoding(
+  selector?: Pick<EncodeOptions, 'encoding' | 'model'>
+): OpenAIEncoding {
+  return resolveEncoding(selector);
 }
 
 function toGptTokenizerEncodeOptions(
@@ -131,7 +140,7 @@ function toGptTokenizerEncodeOptions(
  */
 export function encode(text: string, options?: EncodeOptions): number[] {
   const encoding = resolveEncoding(options);
-  const api = ENCODING_APIS[encoding];
+  const api = getEncodingApi(encoding);
   const encodeOptions = toGptTokenizerEncodeOptions(options?.allowSpecial);
   return api.encode(text, encodeOptions);
 }
@@ -144,7 +153,6 @@ export function decode(
   options?: Pick<EncodeOptions, 'encoding' | 'model'>
 ): string {
   const encoding = resolveEncoding(options);
-  const api = ENCODING_APIS[encoding];
+  const api = getEncodingApi(encoding);
   return api.decode(tokens);
 }
-

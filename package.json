@@ -32,7 +32,8 @@
     "test:watch": "vitest",
     "lint": "eslint src tests",
     "prepublishOnly": "npm run lint && npm run test && npm run build",
-    "update-pricing": "tsx scripts/update-pricing.ts"
+    "update-pricing": "tsx scripts/update-pricing.ts",
+    "benchmark:tokenizer": "tsx benchmark/tokenizer.ts"
   },
   "keywords": [
     "llm",
