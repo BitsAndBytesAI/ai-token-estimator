@@ -1,5 +1,6 @@
 import { getModelConfig } from './models.js';
-import type { EstimateInput, EstimateOutput } from './types.js';
+import { encode, getOpenAIEncoding } from './openai-bpe.js';
+import type { EstimateInput, EstimateOutput, TokenizerMode } from './types.js';
 
 /**
  * Count Unicode code points in a string.
@@ -32,24 +33,54 @@ function countCodePoints(text: string): number {
  * ```
  */
 export function estimate(input: EstimateInput): EstimateOutput {
-  const { text, model, rounding = 'ceil' } = input;
+  const { text, model, rounding = 'ceil', tokenizer = 'heuristic' } = input;
   const config = getModelConfig(model);
 
   const characterCount = countCodePoints(text);
-  const rawTokens = characterCount / config.charsPerToken;
 
-  // Apply rounding strategy
-  let estimatedTokens: number;
-  switch (rounding) {
-    case 'floor':
-      estimatedTokens = Math.floor(rawTokens);
-      break;
-    case 'round':
-      estimatedTokens = Math.round(rawTokens);
-      break;
-    case 'ceil':
-    default:
-      estimatedTokens = Math.ceil(rawTokens);
+  const isNonOpenAIModel =
+    model.startsWith('claude-') || model.startsWith('gemini-');
+
+  let estimatedTokens: number | undefined;
+  let tokenizerModeUsed: TokenizerMode = 'heuristic';
+  let encodingUsed: string | undefined;
+
+  const shouldTryExact =
+    tokenizer === 'openai_exact' || tokenizer === 'auto';
+
+  if (shouldTryExact && !isNonOpenAIModel) {
+    try {
+      // Estimation should not fail if special-token-like strings exist.
+      estimatedTokens = encode(text, { model, allowSpecial: 'none' }).length;
+      tokenizerModeUsed = 'openai_exact';
+      encodingUsed = getOpenAIEncoding({ model });
+    } catch (error) {
+      if (tokenizer === 'openai_exact') {
+        throw error;
+      }
+      // auto mode falls back to heuristic below
+    }
+  } else if (tokenizer === 'openai_exact' && isNonOpenAIModel) {
+    throw new Error(
+      `Tokenizer mode "openai_exact" requested for non-OpenAI model: "${model}"`
+    );
+  }
+
+  if (estimatedTokens === undefined) {
+    const rawTokens = characterCount / config.charsPerToken;
+    // Apply rounding strategy
+    switch (rounding) {
+      case 'floor':
+        estimatedTokens = Math.floor(rawTokens);
+        break;
+      case 'round':
+        estimatedTokens = Math.round(rawTokens);
+        break;
+      case 'ceil':
+      default:
+        estimatedTokens = Math.ceil(rawTokens);
+    }
+    tokenizerModeUsed = 'heuristic';
   }
 
   const estimatedInputCost =
@@ -61,5 +92,7 @@ export function estimate(input: EstimateInput): EstimateOutput {
     estimatedTokens,
     estimatedInputCost,
     charsPerToken: config.charsPerToken,
+    tokenizerMode: tokenizerModeUsed,
+    encodingUsed,
   };
 }

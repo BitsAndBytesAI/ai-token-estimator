@@ -43,6 +43,11 @@ console.log(getAvailableModels());
 
 This package includes **exact tokenization for OpenAI models** using a tiktoken-compatible BPE tokenizer (via `gpt-tokenizer`).
 
+Notes:
+- Encodings are **lazy-loaded on first use** (one-time cost per encoding).
+- Exact tokenization is **slower** than heuristic estimation; `estimate()` defaults to `'heuristic'` to keep existing behavior fast.
+- `encode` / `decode` and `estimate({ tokenizer: 'openai_exact' })` require **Node.js** (uses `node:module` under the hood).
+
 ```ts
 import { encode, decode } from 'ai-token-estimator';
 
@@ -70,6 +75,7 @@ interface EstimateInput {
   text: string;           // The text to estimate tokens for
   model: string;          // Model ID (e.g., 'gpt-4o', 'claude-opus-4.5')
   rounding?: 'ceil' | 'round' | 'floor';  // Rounding strategy (default: 'ceil')
+  tokenizer?: 'heuristic' | 'openai_exact' | 'auto'; // Token counting strategy (default: 'heuristic')
 }
 ```
 
@@ -82,7 +88,22 @@ interface EstimateOutput {
   estimatedTokens: number; // Estimated token count (integer)
   estimatedInputCost: number; // Estimated cost in USD
   charsPerToken: number;   // The ratio used for this model
+  tokenizerMode?: 'heuristic' | 'openai_exact' | 'auto'; // Which strategy was used
+  encodingUsed?: string;   // OpenAI encoding when using exact tokenization
 }
+```
+
+### `countTokens(input: TokenCountInput): TokenCountOutput`
+
+Counts tokens for a given model:
+- OpenAI models: **exact** BPE tokenization
+- Other providers: heuristic estimate
+
+```ts
+import { countTokens } from 'ai-token-estimator';
+
+const result = countTokens({ text: 'Hello, world!', model: 'gpt-5.1' });
+// { tokens: 4, exact: true, encoding: 'o200k_base' }
 ```
 
 ### `getAvailableModels(): string[]`
@@ -133,6 +154,14 @@ This package counts Unicode code points, not UTF-16 code units. This means:
 - Emojis count as 1 character (not 2)
 - Accented characters count correctly
 - Most source code characters count as 1
+
+## Benchmarks (repo only)
+
+This repository includes a small benchmark script to compare heuristic vs exact OpenAI tokenization:
+
+```bash
+npm run benchmark:tokenizer
+```
 
 <!-- SUPPORTED_MODELS_START -->
 ## Supported Models

@@ -8,6 +8,8 @@ export interface ModelConfig {
   inputCostPerMillion: number;
 }
 
+export type TokenizerMode = 'heuristic' | 'openai_exact' | 'auto';
+
 /**
  * Input parameters for the estimate function.
  */
@@ -18,6 +20,13 @@ export interface EstimateInput {
   model: string;
   /** Rounding strategy for token count (default: 'ceil') */
   rounding?: 'ceil' | 'round' | 'floor';
+  /**
+   * Token counting strategy.
+   * - `heuristic` (default): use chars-per-token ratios
+   * - `openai_exact`: use OpenAI BPE tokenization (throws if non-OpenAI model)
+   * - `auto`: use OpenAI BPE for OpenAI models, otherwise heuristic
+   */
+  tokenizer?: TokenizerMode;
 }
 
 /**
@@ -34,4 +43,8 @@ export interface EstimateOutput {
   estimatedInputCost: number;
   /** The chars-per-token ratio used */
   charsPerToken: number;
+  /** Which tokenizer strategy was used */
+  tokenizerMode?: TokenizerMode;
+  /** OpenAI encoding used when tokenizerMode is `openai_exact` */
+  encodingUsed?: string;
 }
