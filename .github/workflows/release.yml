@@ -28,7 +28,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: npm publish
+          publish: npx changeset publish
           title: 'chore: release package'
           commit: 'chore: release package'
         env:
