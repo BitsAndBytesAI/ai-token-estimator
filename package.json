@@ -1,7 +1,7 @@
 {
   "name": "ai-token-estimator",
   "version": "1.1.0",
-  "description": "Estimate token counts and costs for LLM API calls",
+  "description": "Estimate and count tokens (incl. exact OpenAI BPE) and input costs for LLM API calls",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -37,8 +37,14 @@
   },
   "keywords": [
     "llm",
+    "tokenizer",
+    "token-count",
+    "token-counter",
     "tokens",
     "estimator",
+    "cost-estimator",
+    "tiktoken",
+    "bpe",
     "openai",
     "anthropic",
     "claude",
