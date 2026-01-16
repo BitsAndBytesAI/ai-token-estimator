@@ -28,7 +28,7 @@ async function loadSentencePiece(): Promise<SentencePieceModule> {
     return mod;
   } catch {
     throw new Error(
-      'Local Gemma SentencePiece tokenization requires the optional dependency `sentencepiece-js`. Install it and try again.'
+      'Local Gemma SentencePiece tokenization requires the optional dependency `sentencepiece-js`. Install it (e.g. `npm i sentencepiece-js`) and try again.'
     );
   }
 }
