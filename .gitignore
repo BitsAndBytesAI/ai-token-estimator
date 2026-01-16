@@ -4,6 +4,9 @@ node_modules/
 # Build output
 dist/
 
+# Local git worktrees
+worktrees/
+
 # IDE
 .idea/
 .vscode/
