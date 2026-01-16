@@ -19,7 +19,7 @@ The best way to estimate **tokens + input cost** for LLM calls — with **exact 
   - Gemini `models/:countTokens` (`gemini_count_tokens`)
 - **Fast local fallback** options:
   - Heuristic (`heuristic`, default)
-  - Local Gemma SentencePiece approximation (`gemma_sentencepiece`, optional dependency, lazy-loaded)
+  - Local Gemma SentencePiece approximation (`gemma_sentencepiece`, lazy-loaded)
   - Automatic fallback to heuristic on provider failures (`fallbackToHeuristicOnError`)
 - **Cost estimation** using a weekly auto-updated pricing/model list (GitHub Actions)
 - TypeScript-first, ships ESM + CJS
@@ -156,7 +156,7 @@ If you want a **local** tokenizer option for Gemini-like models, you can use a S
 `tokenizer.model`) via `sentencepiece-js`.
 
 Note:
-- `sentencepiece-js` is an **optional dependency** and is only loaded when you use `tokenizer: 'gemma_sentencepiece'`.
+- `sentencepiece-js` is only loaded when you use `tokenizer: 'gemma_sentencepiece'` (lazy-loaded).
 
 ```ts
 import { estimateAsync } from 'ai-token-estimator';

@@ -27,9 +27,7 @@
     "README.md"
   ],
   "dependencies": {
-    "gpt-tokenizer": "^3.4.0"
-  },
-  "optionalDependencies": {
+    "gpt-tokenizer": "^3.4.0",
     "sentencepiece-js": "^1.1.0"
   },
   "scripts": {
