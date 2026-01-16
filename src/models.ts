@@ -392,14 +392,26 @@ export const DEFAULT_MODELS: Readonly<Record<string, Readonly<ModelConfig>>> =
  * @throws Error if model is not found
  */
 export function getModelConfig(model: string): ModelConfig {
-  const config = DEFAULT_MODELS[model];
-  if (!config) {
+  const direct = DEFAULT_MODELS[model];
+  if (direct) return direct;
+
+  const normalized = (() => {
+    if (!model.startsWith('claude-')) return model;
+    // Normalize common Anthropic model id variants:
+    // - Strip dated suffixes like `-20251101` (Anthropic frequently versions model IDs).
+    // - Accept `-3-5`/`-4-5` style and map to our internal `-3.5`/`-4.5` IDs.
+    const withoutDate = model.replace(/-\d{8}$/, '');
+    return withoutDate.replace(/-(\d+)-(\d+)$/, (_m, major, minor) => `-${major}.${minor}`);
+  })();
+
+  const aliased = DEFAULT_MODELS[normalized];
+  if (!aliased) {
     const available = Object.keys(DEFAULT_MODELS).join(', ');
     throw new Error(
       `Unknown model: "${model}". Available models: ${available}`
     );
   }
-  return config;
+  return aliased;
 }
 
 /**
