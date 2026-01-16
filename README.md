@@ -4,25 +4,24 @@
 [![CI](https://github.com/BitsAndBytesAI/ai-token-estimator/actions/workflows/ci.yml/badge.svg)](https://github.com/BitsAndBytesAI/ai-token-estimator/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/ai-token-estimator.svg)](https://github.com/BitsAndBytesAI/ai-token-estimator/blob/main/LICENSE)
 
-Estimate token counts and input costs for LLM API calls — plus **exact OpenAI tokenization** (tiktoken-compatible BPE) when you need it.
+The best way to estimate **tokens + input cost** for LLM calls — with **exact OpenAI tokenization** (tiktoken-compatible BPE) and optional **official provider token counting** for Claude/Gemini.
 
-> **Important:** This is a rough estimation tool for budgeting purposes, not a precise tokenizer. Actual token counts may vary by ±20% depending on:
-> - Content type (code vs prose)
-> - Language (CJK languages use more tokens)
-> - API message framing overhead
-> - Special characters and formatting
+> Accuracy depends on the tokenizer mode you choose:
+> - **Exact** for OpenAI models when you use `openai_exact` / `encode()` / `decode()`.
+> - **Exact** for Claude/Gemini when you use `estimateAsync()` with their official count-tokens endpoints.
+> - **Heuristic** fallback is available for speed and resilience.
 
 ## Features
 
-- Estimates tokens + input cost for many OpenAI / Anthropic / Google models
-- Pricing/model list auto-updated weekly via GitHub Actions
-- Exact OpenAI token IDs via `encode()` / `decode()` (tiktoken-compatible BPE)
-- `estimate()` supports tokenizer modes: `heuristic` (default), `openai_exact`, `auto`
-- `estimateAsync()` supports **provider token counting** for:
+- **Exact OpenAI tokenization** (tiktoken-compatible BPE): `encode()` / `decode()` / `openai_exact`
+- **Official provider token counting** (async):
   - Anthropic `POST /v1/messages/count_tokens` (`anthropic_count_tokens`)
   - Gemini `models/:countTokens` (`gemini_count_tokens`)
-  - Local Gemma SentencePiece (`gemma_sentencepiece`)
-- `countTokens()` unified API (OpenAI exact, others heuristic)
+- **Fast local fallback** options:
+  - Heuristic (`heuristic`, default)
+  - Local Gemma SentencePiece approximation (`gemma_sentencepiece`)
+  - Automatic fallback to heuristic on provider failures (`fallbackToHeuristicOnError`)
+- **Cost estimation** using a weekly auto-updated pricing/model list (GitHub Actions)
 - TypeScript-first, ships ESM + CJS
 
 ## Installation
