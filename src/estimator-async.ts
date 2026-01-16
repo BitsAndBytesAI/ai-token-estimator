@@ -1,6 +1,6 @@
 import { getModelConfig } from './models.js';
 import { encode, getOpenAIEncoding } from './openai-bpe.js';
-import type { EstimateAsyncInput, EstimateOutput, TokenizerMode } from './types.js';
+import type { EstimateAsyncInput, EstimateOutput, TokenizerModeAsync } from './types.js';
 import { countAnthropicInputTokens } from './providers/anthropic.js';
 import { countGeminiTokens } from './providers/gemini.js';
 import { countGemmaSentencePieceTokens } from './providers/gemma-sentencepiece.js';
@@ -34,7 +34,7 @@ export async function estimateAsync(input: EstimateAsyncInput): Promise<Estimate
   const characterCount = countCodePoints(text);
 
   let estimatedTokens: number | undefined;
-  let tokenizerModeUsed: TokenizerMode = 'heuristic';
+  let tokenizerModeUsed: TokenizerModeAsync = 'heuristic';
   let encodingUsed: string | undefined;
 
   if (tokenizer === 'anthropic_count_tokens') {

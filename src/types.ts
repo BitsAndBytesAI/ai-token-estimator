@@ -12,6 +12,15 @@ export type TokenizerMode =
   | 'heuristic'
   | 'openai_exact'
   | 'auto'
+
+/**
+ * Tokenizer modes supported by `estimateAsync(...)`.
+ *
+ * This is intentionally separate from `TokenizerMode` to avoid breaking
+ * TypeScript users who exhaustively switch on the legacy `TokenizerMode` union.
+ */
+export type TokenizerModeAsync =
+  | TokenizerMode
   | 'anthropic_count_tokens'
   | 'gemini_count_tokens'
   | 'gemma_sentencepiece';
@@ -35,7 +44,13 @@ export interface EstimateInput {
   tokenizer?: TokenizerMode;
 }
 
-export interface EstimateAsyncInput extends EstimateInput {
+export interface EstimateAsyncInput extends Omit<EstimateInput, 'tokenizer'> {
+  /**
+   * Token counting strategy for async estimation.
+   * Includes provider-backed modes that require network access or local model files.
+   */
+  tokenizer?: TokenizerModeAsync;
+
   /**
    * Optional fetch implementation (useful for tests, edge runtimes, or custom fetch).
    * Defaults to globalThis.fetch.
@@ -97,7 +112,7 @@ export interface EstimateOutput {
   /** The chars-per-token ratio used */
   charsPerToken: number;
   /** Which tokenizer strategy was used */
-  tokenizerMode?: TokenizerMode;
+  tokenizerMode?: TokenizerModeAsync;
   /** OpenAI encoding used when tokenizerMode is `openai_exact` */
   encodingUsed?: string;
 }
