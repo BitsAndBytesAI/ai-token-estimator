@@ -24,7 +24,8 @@
     "README.md"
   ],
   "dependencies": {
-    "gpt-tokenizer": "^3.4.0"
+    "gpt-tokenizer": "^3.4.0",
+    "sentencepiece-js": "^1.1.0"
   },
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",

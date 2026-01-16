@@ -8,7 +8,13 @@ export interface ModelConfig {
   inputCostPerMillion: number;
 }
 
-export type TokenizerMode = 'heuristic' | 'openai_exact' | 'auto';
+export type TokenizerMode =
+  | 'heuristic'
+  | 'openai_exact'
+  | 'auto'
+  | 'anthropic_count_tokens'
+  | 'gemini_count_tokens'
+  | 'gemma_sentencepiece';
 
 /**
  * Input parameters for the estimate function.
@@ -27,6 +33,43 @@ export interface EstimateInput {
    * - `auto`: use OpenAI BPE for OpenAI models, otherwise heuristic
    */
   tokenizer?: TokenizerMode;
+}
+
+export interface EstimateAsyncInput extends EstimateInput {
+  /**
+   * Optional fetch implementation (useful for tests, edge runtimes, or custom fetch).
+   * Defaults to globalThis.fetch.
+   */
+  fetch?: typeof fetch;
+
+  /**
+   * Configuration for Anthropic token counting.
+   * Only used when tokenizer === 'anthropic_count_tokens'.
+   */
+  anthropic?: {
+    apiKey?: string;
+    baseUrl?: string;
+    version?: string;
+    system?: string;
+  };
+
+  /**
+   * Configuration for Gemini token counting (Google AI Studio / Generative Language API).
+   * Only used when tokenizer === 'gemini_count_tokens'.
+   */
+  gemini?: {
+    apiKey?: string;
+    baseUrl?: string;
+  };
+
+  /**
+   * Configuration for local Gemma SentencePiece tokenization.
+   * Only used when tokenizer === 'gemma_sentencepiece'.
+   */
+  gemma?: {
+    /** Filesystem path to a SentencePiece model file (e.g. Gemma tokenizer.model). */
+    modelPath?: string;
+  };
 }
 
 /**
