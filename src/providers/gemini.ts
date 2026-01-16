@@ -21,9 +21,17 @@ function getFetch(fetchImpl: typeof fetch | undefined): typeof fetch {
   return f;
 }
 
+type StatusError = Error & { status: number };
+
+function withStatus(message: string, status: number): StatusError {
+  const err = new Error(message) as StatusError;
+  err.status = status;
+  return err;
+}
+
 function getApiKey(explicit: string | undefined): string {
   const key = explicit ?? (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
-  if (!key) throw new Error('Gemini API key missing (set GEMINI_API_KEY or pass apiKey)');
+  if (!key) throw withStatus('Gemini API key missing (set GEMINI_API_KEY or pass apiKey)', 401);
   return key;
 }
 
@@ -74,7 +82,7 @@ export async function countGeminiTokens(params: GeminiCountTokensParams): Promis
         : typeof dataObj?.message === 'string'
           ? dataObj.message
           : `HTTP ${response.status}`;
-    throw new Error(`Gemini countTokens failed: ${msg}`);
+    throw withStatus(`Gemini countTokens failed: ${msg}`, response.status);
   }
 
   const totalTokens = dataObj?.totalTokens ?? dataObj?.total_tokens ?? dataObj?.total_tokens_count;

@@ -107,6 +107,9 @@ Or use `tokenizer: 'auto'` to use exact counting for OpenAI models and heuristic
 If you want **more accurate token counts** for Anthropic or Gemini models, you can call their official token counting endpoints
 via `estimateAsync()`. This requires API keys, and therefore should be used **server-side** (never in the browser).
 
+If you want these modes to **fail open** (fallback to heuristic estimation) when the provider API is throttled/unavailable or the API key is invalid,
+set `fallbackToHeuristicOnError: true`.
+
 ### Anthropic: `POST /v1/messages/count_tokens`
 
 - Env var: `ANTHROPIC_API_KEY`
@@ -118,6 +121,7 @@ const out = await estimateAsync({
   text: 'Hello, Claude',
   model: 'claude-sonnet-4-5',
   tokenizer: 'anthropic_count_tokens',
+  fallbackToHeuristicOnError: true,
   anthropic: {
     // apiKey: '...' // optional; otherwise uses process.env.ANTHROPIC_API_KEY
     system: 'You are a helpful assistant',
@@ -138,6 +142,7 @@ const out = await estimateAsync({
   text: 'The quick brown fox jumps over the lazy dog.',
   model: 'gemini-2.0-flash',
   tokenizer: 'gemini_count_tokens',
+  fallbackToHeuristicOnError: true,
   gemini: {
     // apiKey: '...' // optional; otherwise uses process.env.GEMINI_API_KEY
   },
@@ -186,6 +191,9 @@ interface EstimateInput {
 }
 ```
 
+Note:
+- Provider-backed modes (`anthropic_count_tokens`, `gemini_count_tokens`, `gemma_sentencepiece`) are only supported in `estimateAsync()`.
+
 **Returns:**
 
 ```typescript
@@ -208,6 +216,11 @@ Async estimator that supports provider token counting modes:
 - `gemma_sentencepiece` (local SentencePiece, requires `sentencepiece-js` and a model file)
 
 API keys should be provided via env vars (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`) or passed explicitly in the config objects.
+
+If you pass `fallbackToHeuristicOnError: true`, provider-backed modes will fall back to heuristic estimation on:
+- invalid/expired API key (401/403)
+- rate limiting (429)
+- provider errors (5xx) or network issues
 
 ### `countTokens(input: TokenCountInput): TokenCountOutput`
 

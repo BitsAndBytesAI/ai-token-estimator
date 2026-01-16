@@ -43,6 +43,16 @@ export interface EstimateAsyncInput extends EstimateInput {
   fetch?: typeof fetch;
 
   /**
+   * If true, provider-backed tokenizer modes will fall back to heuristic token estimation
+   * when the provider API is throttled/unavailable or the API key is invalid.
+   *
+   * This never stores API keys; it only affects error handling.
+   *
+   * Default: false (throw on provider errors)
+   */
+  fallbackToHeuristicOnError?: boolean;
+
+  /**
    * Configuration for Anthropic token counting.
    * Only used when tokenizer === 'anthropic_count_tokens'.
    */
