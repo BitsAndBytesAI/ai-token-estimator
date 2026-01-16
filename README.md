@@ -18,6 +18,10 @@ Estimate token counts and input costs for LLM API calls — plus **exact OpenAI 
 - Pricing/model list auto-updated weekly via GitHub Actions
 - Exact OpenAI token IDs via `encode()` / `decode()` (tiktoken-compatible BPE)
 - `estimate()` supports tokenizer modes: `heuristic` (default), `openai_exact`, `auto`
+- `estimateAsync()` supports **provider token counting** for:
+  - Anthropic `POST /v1/messages/count_tokens` (`anthropic_count_tokens`)
+  - Gemini `models/:countTokens` (`gemini_count_tokens`)
+  - Local Gemma SentencePiece (`gemma_sentencepiece`)
 - `countTokens()` unified API (OpenAI exact, others heuristic)
 - TypeScript-first, ships ESM + CJS
 
@@ -98,6 +102,78 @@ console.log(result.encodingUsed);  // "o200k_base"
 
 Or use `tokenizer: 'auto'` to use exact counting for OpenAI models and heuristic for everything else.
 
+## Provider token counting (Claude / Gemini)
+
+If you want **more accurate token counts** for Anthropic or Gemini models, you can call their official token counting endpoints
+via `estimateAsync()`. This requires API keys, and therefore should be used **server-side** (never in the browser).
+
+If you want these modes to **fail open** (fallback to heuristic estimation) when the provider API is throttled/unavailable or the API key is invalid,
+set `fallbackToHeuristicOnError: true`.
+
+### Anthropic: `POST /v1/messages/count_tokens`
+
+- Env var: `ANTHROPIC_API_KEY`
+
+```ts
+import { estimateAsync } from 'ai-token-estimator';
+
+const out = await estimateAsync({
+  text: 'Hello, Claude',
+  model: 'claude-sonnet-4-5',
+  tokenizer: 'anthropic_count_tokens',
+  fallbackToHeuristicOnError: true,
+  anthropic: {
+    // apiKey: '...' // optional; otherwise uses process.env.ANTHROPIC_API_KEY
+    system: 'You are a helpful assistant',
+  },
+});
+
+console.log(out.estimatedTokens);
+```
+
+### Gemini: `models/:countTokens` (Google AI Studio)
+
+- Env var: `GEMINI_API_KEY`
+
+```ts
+import { estimateAsync } from 'ai-token-estimator';
+
+const out = await estimateAsync({
+  text: 'The quick brown fox jumps over the lazy dog.',
+  model: 'gemini-2.0-flash',
+  tokenizer: 'gemini_count_tokens',
+  fallbackToHeuristicOnError: true,
+  gemini: {
+    // apiKey: '...' // optional; otherwise uses process.env.GEMINI_API_KEY
+  },
+});
+
+console.log(out.estimatedTokens);
+```
+
+### Local Gemini option: Gemma SentencePiece (approximation)
+
+If you want a **local** tokenizer option for Gemini-like models, you can use a SentencePiece tokenizer model (e.g. Gemma's
+`tokenizer.model`) via `sentencepiece-js`.
+
+```ts
+import { estimateAsync } from 'ai-token-estimator';
+
+const out = await estimateAsync({
+  text: 'Hello!',
+  model: 'gemini-2.0-flash',
+  tokenizer: 'gemma_sentencepiece',
+  gemma: {
+    modelPath: '/path/to/tokenizer.model',
+  },
+});
+
+console.log(out.estimatedTokens);
+```
+
+Note:
+- This is **not** an official Gemini tokenizer; treat it as an approximation unless you have verified equivalence for your models.
+
 ## API Reference
 
 ### `estimate(input: EstimateInput): EstimateOutput`
@@ -115,6 +191,9 @@ interface EstimateInput {
 }
 ```
 
+Note:
+- Provider-backed modes (`anthropic_count_tokens`, `gemini_count_tokens`, `gemma_sentencepiece`) are only supported in `estimateAsync()`.
+
 **Returns:**
 
 ```typescript
@@ -128,6 +207,20 @@ interface EstimateOutput {
   encodingUsed?: string;   // OpenAI encoding when using exact tokenization
 }
 ```
+
+### `estimateAsync(input: EstimateAsyncInput): Promise<EstimateOutput>`
+
+Async estimator that supports provider token counting modes:
+- `anthropic_count_tokens` (Anthropic token count endpoint)
+- `gemini_count_tokens` (Gemini token count endpoint)
+- `gemma_sentencepiece` (local SentencePiece, requires `sentencepiece-js` and a model file)
+
+API keys should be provided via env vars (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`) or passed explicitly in the config objects.
+
+If you pass `fallbackToHeuristicOnError: true`, provider-backed modes will fall back to heuristic estimation on:
+- invalid/expired API key (401/403)
+- rate limiting (429)
+- provider errors (5xx) or network issues
 
 ### `countTokens(input: TokenCountInput): TokenCountOutput`
 
