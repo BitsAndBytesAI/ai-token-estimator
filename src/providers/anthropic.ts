@@ -25,9 +25,17 @@ function getFetch(fetchImpl: typeof fetch | undefined): typeof fetch {
   return f;
 }
 
+type StatusError = Error & { status: number };
+
+function withStatus(message: string, status: number): StatusError {
+  const err = new Error(message) as StatusError;
+  err.status = status;
+  return err;
+}
+
 function getApiKey(explicit: string | undefined): string {
   const key = explicit ?? (typeof process !== 'undefined' ? process.env.ANTHROPIC_API_KEY : undefined);
-  if (!key) throw new Error('Anthropic API key missing (set ANTHROPIC_API_KEY or pass apiKey)');
+  if (!key) throw withStatus('Anthropic API key missing (set ANTHROPIC_API_KEY or pass apiKey)', 401);
   return key;
 }
 
@@ -86,7 +94,7 @@ export async function countAnthropicInputTokens(params: AnthropicCountTokensPara
         : typeof dataObj?.message === 'string'
           ? dataObj.message
           : `HTTP ${response.status}`;
-    throw new Error(`Anthropic count_tokens failed: ${msg}`);
+    throw withStatus(`Anthropic count_tokens failed: ${msg}`, response.status);
   }
 
   const inputTokens = dataObj?.input_tokens;

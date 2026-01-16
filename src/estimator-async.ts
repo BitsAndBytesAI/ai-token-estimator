@@ -15,6 +15,19 @@ function isNonOpenAIModel(model: string): boolean {
   return model.startsWith('claude-') || model.startsWith('gemini-');
 }
 
+type MaybeStatusError = Error & { status?: unknown };
+
+function shouldFallbackToHeuristic(err: unknown): boolean {
+  if (!err) return true;
+  const maybe = err as Partial<MaybeStatusError>;
+  const statusRaw = maybe.status;
+  const status = typeof statusRaw === 'number' && Number.isFinite(statusRaw) ? statusRaw : null;
+  if (!status) return true; // network errors, timeouts, parse issues
+  if (status === 401 || status === 403 || status === 429) return true; // auth/rate-limit
+  if (status >= 500 && status <= 599) return true; // provider unavailable
+  return false;
+}
+
 export async function estimateAsync(input: EstimateAsyncInput): Promise<EstimateOutput> {
   const { text, model, rounding = 'ceil', tokenizer = 'heuristic' } = input;
   const config = getModelConfig(model);
@@ -25,25 +38,43 @@ export async function estimateAsync(input: EstimateAsyncInput): Promise<Estimate
   let encodingUsed: string | undefined;
 
   if (tokenizer === 'anthropic_count_tokens') {
-    estimatedTokens = await countAnthropicInputTokens({
-      model,
-      text,
-      system: input.anthropic?.system,
-      apiKey: input.anthropic?.apiKey,
-      baseUrl: input.anthropic?.baseUrl,
-      version: input.anthropic?.version,
-      fetch: input.fetch,
-    });
-    tokenizerModeUsed = 'anthropic_count_tokens';
+    try {
+      estimatedTokens = await countAnthropicInputTokens({
+        model,
+        text,
+        system: input.anthropic?.system,
+        apiKey: input.anthropic?.apiKey,
+        baseUrl: input.anthropic?.baseUrl,
+        version: input.anthropic?.version,
+        fetch: input.fetch,
+      });
+      tokenizerModeUsed = 'anthropic_count_tokens';
+    } catch (error) {
+      if (input.fallbackToHeuristicOnError && shouldFallbackToHeuristic(error)) {
+        estimatedTokens = undefined;
+        tokenizerModeUsed = 'heuristic';
+      } else {
+        throw error;
+      }
+    }
   } else if (tokenizer === 'gemini_count_tokens') {
-    estimatedTokens = await countGeminiTokens({
-      model,
-      text,
-      apiKey: input.gemini?.apiKey,
-      baseUrl: input.gemini?.baseUrl,
-      fetch: input.fetch,
-    });
-    tokenizerModeUsed = 'gemini_count_tokens';
+    try {
+      estimatedTokens = await countGeminiTokens({
+        model,
+        text,
+        apiKey: input.gemini?.apiKey,
+        baseUrl: input.gemini?.baseUrl,
+        fetch: input.fetch,
+      });
+      tokenizerModeUsed = 'gemini_count_tokens';
+    } catch (error) {
+      if (input.fallbackToHeuristicOnError && shouldFallbackToHeuristic(error)) {
+        estimatedTokens = undefined;
+        tokenizerModeUsed = 'heuristic';
+      } else {
+        throw error;
+      }
+    }
   } else if (tokenizer === 'gemma_sentencepiece') {
     const modelPath = input.gemma?.modelPath;
     if (!modelPath) {
@@ -65,22 +96,22 @@ export async function estimateAsync(input: EstimateAsyncInput): Promise<Estimate
     } else if (tokenizer === 'openai_exact' && isNonOpenAIModel(model)) {
       throw new Error(`Tokenizer mode "openai_exact" requested for non-OpenAI model: "${model}"`);
     }
+  }
 
-    if (estimatedTokens === undefined) {
-      const rawTokens = characterCount / config.charsPerToken;
-      switch (rounding) {
-        case 'floor':
-          estimatedTokens = Math.floor(rawTokens);
-          break;
-        case 'round':
-          estimatedTokens = Math.round(rawTokens);
-          break;
-        case 'ceil':
-        default:
-          estimatedTokens = Math.ceil(rawTokens);
-      }
-      tokenizerModeUsed = 'heuristic';
+  if (estimatedTokens === undefined) {
+    const rawTokens = characterCount / config.charsPerToken;
+    switch (rounding) {
+      case 'floor':
+        estimatedTokens = Math.floor(rawTokens);
+        break;
+      case 'round':
+        estimatedTokens = Math.round(rawTokens);
+        break;
+      case 'ceil':
+      default:
+        estimatedTokens = Math.ceil(rawTokens);
     }
+    tokenizerModeUsed = 'heuristic';
   }
 
   const estimatedInputCost = (estimatedTokens * config.inputCostPerMillion) / 1_000_000;
@@ -95,4 +126,3 @@ export async function estimateAsync(input: EstimateAsyncInput): Promise<Estimate
     encodingUsed,
   };
 }
-
