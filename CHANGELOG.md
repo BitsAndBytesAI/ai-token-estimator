@@ -1,5 +1,11 @@
 # ai-token-estimator
 
+## 1.2.0
+
+### Minor Changes
+
+- 4691650: Add async provider token counting for Anthropic and Gemini plus optional local SentencePiece (Gemma) tokenizer.
+
 ## 1.1.0
 
 ### Minor Changes
