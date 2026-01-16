@@ -36,6 +36,12 @@ export function estimate(input: EstimateInput): EstimateOutput {
   const { text, model, rounding = 'ceil', tokenizer = 'heuristic' } = input;
   const config = getModelConfig(model);
 
+  if (tokenizer === 'anthropic_count_tokens' || tokenizer === 'gemini_count_tokens' || tokenizer === 'gemma_sentencepiece') {
+    throw new Error(
+      `Tokenizer mode "${tokenizer}" requires async execution. Use estimateAsync(...) instead.`
+    );
+  }
+
   const characterCount = countCodePoints(text);
 
   const isNonOpenAIModel =
