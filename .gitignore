@@ -24,3 +24,6 @@ coverage/
 # Environment
 .env
 .env.local
+
+# Private/internal planning docs (do not commit)
+PRIVATE_FEATURES.md
