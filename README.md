@@ -237,6 +237,86 @@ const result = countTokens({ text: 'Hello, world!', model: 'gpt-5.1' });
 // { tokens: 4, exact: true, encoding: 'o200k_base' }
 ```
 
+### `countChatCompletionTokens(input: ChatCompletionTokenCountInput): ChatCompletionTokenCountOutput`
+
+Counts tokens for an **OpenAI chat completion request**, including messages, function definitions, and function_call controls. Achieves exact parity with `gpt-tokenizer`'s `computeChatCompletionTokenCount` for normal text inputs.
+
+**Important limitations:**
+- **Legacy functions API only** — supports `functions` and `function_call` parameters
+- **Tools API not supported** — throws if `tools`, `tool_choice`, `tool_calls`, or `tool_call_id` are present
+- **Text content only** — throws for multimodal content (arrays, images)
+- **Chat models only** — rejects non-chat models like `davinci-002`
+
+```ts
+import { countChatCompletionTokens } from 'ai-token-estimator';
+
+const result = countChatCompletionTokens({
+  messages: [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: 'What is the weather in Paris?' }
+  ],
+  model: 'gpt-4o',
+  functions: [{
+    name: 'get_weather',
+    description: 'Get weather for a location',
+    parameters: {
+      type: 'object',
+      properties: {
+        location: { type: 'string', description: 'City name' }
+      },
+      required: ['location']
+    }
+  }],
+  function_call: 'auto',
+  includeBreakdown: true  // optional: get per-message token breakdown
+});
+
+console.log(result);
+// {
+//   totalTokens: 75,
+//   messageTokens: 25,
+//   completionOverheadTokens: 3,
+//   functionTokens: 42,
+//   functionCallTokens: 0,
+//   exact: true,
+//   encoding: 'o200k_base',
+//   messageBreakdown: [...]  // when includeBreakdown: true
+// }
+```
+
+**Parameters:**
+
+```typescript
+interface ChatCompletionTokenCountInput {
+  messages: ChatMessage[];           // Chat messages
+  model: string;                     // OpenAI chat model (e.g., 'gpt-4o')
+  encoding?: OpenAIEncoding;         // Override encoding for new models
+  functions?: FunctionDefinition[];  // Legacy function definitions
+  function_call?: 'auto' | 'none' | { name: string };  // Function calling control
+  includeBreakdown?: boolean;        // Include per-message token breakdown
+}
+```
+
+**Returns:**
+
+```typescript
+interface ChatCompletionTokenCountOutput {
+  totalTokens: number;             // Total tokens in the request
+  messageTokens: number;           // Tokens from messages (including overhead)
+  completionOverheadTokens: number; // Reply priming tokens (always 3)
+  functionTokens: number;          // Tokens from function definitions
+  functionCallTokens: number;      // Tokens from function_call control
+  exact: true;                     // Always exact for this function
+  encoding: OpenAIEncoding;        // Encoding used
+  messageBreakdown?: Array<{       // Per-message breakdown (if requested)
+    role: string;
+    stringTokens: number;
+    overheadTokens: number;
+    totalTokens: number;
+  }>;
+}
+```
+
 ### `getAvailableModels(): string[]`
 
 Returns an array of all supported model IDs.

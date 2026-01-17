@@ -1,3 +1,5 @@
+import type { OpenAIEncoding } from './openai-bpe.js';
+
 /**
  * Configuration for a specific LLM model.
  */
@@ -115,4 +117,140 @@ export interface EstimateOutput {
   tokenizerMode?: TokenizerModeAsync;
   /** OpenAI encoding used when tokenizerMode is `openai_exact` */
   encodingUsed?: string;
+}
+
+// =============================================================================
+// Chat Completion Token Counting Types
+// =============================================================================
+
+/**
+ * A chat message in OpenAI legacy format (functions API).
+ *
+ * Note: This type intentionally excludes tool_calls, tool_call_id, and
+ * array content. Those features require the tools API which has different
+ * token counting logic and is not yet supported.
+ */
+export interface ChatMessage {
+  /** The role of the message author */
+  role: 'system' | 'user' | 'assistant' | 'function';
+  /**
+   * The content of the message (text only; array content not supported).
+   * Optional because assistant messages with function_call may omit content.
+   */
+  content?: string | null;
+  /** An optional name for the participant (for multi-user chats or function results) */
+  name?: string;
+  /** Function call made by the assistant (legacy API) */
+  function_call?: {
+    name: string;
+    arguments: string;
+  };
+}
+
+/**
+ * JSON Schema subset for function parameters.
+ */
+export interface FunctionParameterProperty {
+  type: string;
+  description?: string;
+  enum?: string[];
+  items?: FunctionParameterProperty;
+  properties?: Record<string, FunctionParameterProperty>;
+  required?: string[];
+}
+
+/**
+ * Function parameters schema.
+ */
+export interface FunctionParameters {
+  type: 'object';
+  properties?: Record<string, FunctionParameterProperty>;
+  required?: string[];
+}
+
+/**
+ * A function definition for legacy function calling.
+ */
+export interface FunctionDefinition {
+  name: string;
+  description?: string;
+  parameters?: FunctionParameters;
+}
+
+/**
+ * Function call control options (legacy API).
+ */
+export type FunctionCallOption = 'auto' | 'none' | { name: string };
+
+/**
+ * Input for counting chat completion tokens.
+ *
+ * Supports the legacy functions API only. For tools API support,
+ * see the roadmap in the package documentation.
+ */
+export interface ChatCompletionTokenCountInput {
+  /** The list of messages in the conversation */
+  messages: ChatMessage[];
+  /**
+   * The model to use for token counting.
+   * Must be a chat-capable OpenAI model (in gpt-tokenizer's chatModelParams).
+   * If using a new chat model not yet in the map, provide `encoding` instead.
+   */
+  model: string;
+  /**
+   * Explicit encoding override. When provided, allows unrecognized models
+   * but still rejects known non-OpenAI models (claude-*, gemini-*) and
+   * known non-chat OpenAI models (e.g., davinci-002).
+   */
+  encoding?: OpenAIEncoding;
+  /** Function definitions (legacy API) */
+  functions?: FunctionDefinition[];
+  /** Function call control (legacy API) */
+  function_call?: FunctionCallOption;
+  /** Include per-message token breakdown in output */
+  includeBreakdown?: boolean;
+}
+
+/**
+ * Output from counting chat completion tokens.
+ */
+export interface ChatCompletionTokenCountOutput {
+  /** Total token count for the request */
+  totalTokens: number;
+  /**
+   * Tokens from messages (sum of per-message tokens).
+   * Does NOT include completionOverheadTokens.
+   */
+  messageTokens: number;
+  /**
+   * Tokens added for completion request overhead (reply priming).
+   * This is the COMPLETION_REQUEST_TOKEN_OVERHEAD constant (3 tokens).
+   * Kept separate from messageTokens for clarity.
+   */
+  completionOverheadTokens: number;
+  /** Tokens from function definitions */
+  functionTokens: number;
+  /** Tokens from function_call setting */
+  functionCallTokens: number;
+  /** Whether exact tokenization was used (always true for supported inputs) */
+  exact: true;
+  /** The encoding used */
+  encoding: OpenAIEncoding;
+  /**
+   * Breakdown by message (only if includeBreakdown: true).
+   *
+   * Note on field semantics:
+   * - `stringTokens`: tokens from encoding role, content, name, function_call fields
+   * - `overheadTokens`: fixed overhead (MESSAGE_TOKEN_OVERHEAD, NAME_TOKEN_OVERHEAD, etc.)
+   *   including the function-role discount when applicable
+   *
+   * The completionOverheadTokens (reply priming) is NOT included in this breakdown
+   * as it applies to the request as a whole, not individual messages.
+   */
+  messageBreakdown?: Array<{
+    role: string;
+    stringTokens: number;
+    overheadTokens: number;
+    totalTokens: number;
+  }>;
 }
