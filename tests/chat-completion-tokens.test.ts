@@ -1,85 +1,80 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { countChatCompletionTokens } from '../src/index.js';
 import type {
   ChatMessage,
   FunctionDefinition,
   ChatCompletionTokenCountInput,
 } from '../src/index.js';
-import { functionCallingTestCases } from 'gpt-tokenizer/fixtures/functionCallingTestCases';
 
-// =============================================================================
-// Golden Tests from gpt-tokenizer
-// Imports test cases directly from gpt-tokenizer/fixtures/functionCallingTestCases.js
-// to verify exact parity with gpt-tokenizer's computeChatCompletionTokenCount.
-// All tests use model: 'gpt-4o' as the golden counts are tied to that tokenizer.
-// =============================================================================
+// Load tiktoken golden fixtures
+const fixturesPath = join(__dirname, 'fixtures', 'tiktoken-golden.json');
+const fixtures = JSON.parse(readFileSync(fixturesPath, 'utf-8'));
 
-/**
- * Generate a descriptive test name from a test case
- */
-function getTestName(
-  testCase: (typeof functionCallingTestCases)[number],
-  index: number
-): string {
-  const { messages, functions, function_call } = testCase;
-
-  // Build description based on test case structure
-  const parts: string[] = [];
-
-  // Describe messages
-  if (messages.length === 1) {
-    const msg = messages[0];
-    parts.push(`${msg.role} message`);
-    if ('name' in msg && msg.name) parts.push(`with name: ${msg.name}`);
-    if ('function_call' in msg && msg.function_call)
-      parts.push('with function_call');
-  } else {
-    parts.push(`${messages.length} messages`);
-  }
-
-  // Describe functions
-  if (functions && functions.length > 0) {
-    if (functions.length === 1) {
-      parts.push(`+ function: ${functions[0].name}`);
-    } else {
-      parts.push(`+ ${functions.length} functions`);
-    }
-  }
-
-  // Describe function_call
-  if (function_call) {
-    if (typeof function_call === 'string') {
-      parts.push(`[function_call: ${function_call}]`);
-    } else if ('name' in function_call) {
-      parts.push(`[function_call: {name: ${function_call.name}}]`);
-    }
-  }
-
-  return `[${index}] ${parts.join(' ')} => ${testCase.tokens} tokens`;
+interface ChatCompletionFixture {
+  input: {
+    messages: ChatMessage[];
+    functions?: FunctionDefinition[];
+    function_call?: 'auto' | 'none' | { name: string };
+  };
+  expected: {
+    totalTokens: number;
+    messageTokens: number;
+    completionOverheadTokens: number;
+    functionTokens: number;
+    functionCallTokens: number;
+  };
 }
 
-describe('countChatCompletionTokens - gpt-tokenizer parity', () => {
+// =============================================================================
+// Tiktoken Golden Tests
+// =============================================================================
+
+describe('countChatCompletionTokens - tiktoken parity', () => {
+  const chatFixtures: ChatCompletionFixture[] = fixtures.chatCompletionFixtures;
   const model = 'gpt-4o';
 
-  // Verify we have all expected test cases from upstream
-  it('imports all 32 test cases from gpt-tokenizer fixtures', () => {
-    expect(functionCallingTestCases.length).toBe(32);
+  it(`has ${chatFixtures.length} golden test cases from tiktoken`, () => {
+    expect(chatFixtures.length).toBeGreaterThan(0);
   });
 
-  // Loop over all upstream test cases
-  functionCallingTestCases.forEach((testCase, index) => {
-    it(getTestName(testCase, index), () => {
+  chatFixtures.forEach((fixture, index) => {
+    const { messages, functions, function_call } = fixture.input;
+
+    // Generate descriptive test name
+    const parts: string[] = [];
+    if (messages.length === 1) {
+      const msg = messages[0];
+      parts.push(`${msg.role} message`);
+      if (msg.name) parts.push(`with name`);
+      if (msg.function_call) parts.push(`with function_call`);
+    } else {
+      parts.push(`${messages.length} messages`);
+    }
+    if (functions && functions.length > 0) {
+      parts.push(`+ ${functions.length} function(s)`);
+    }
+    if (function_call && function_call !== 'auto') {
+      const fcStr = typeof function_call === 'string'
+        ? function_call
+        : `{name: ${function_call.name}}`;
+      parts.push(`[function_call: ${fcStr}]`);
+    }
+    const testName = `[${index}] ${parts.join(' ')} => ${fixture.expected.totalTokens} tokens`;
+
+    it(testName, () => {
       const result = countChatCompletionTokens({
-        messages: testCase.messages as ChatMessage[],
-        functions: testCase.functions as FunctionDefinition[] | undefined,
-        function_call: testCase.function_call as
-          | 'auto'
-          | 'none'
-          | { name: string }
-          | undefined,
+        messages: messages as ChatMessage[],
+        functions: functions as FunctionDefinition[] | undefined,
+        function_call: function_call,
         model,
       });
-      expect(result.totalTokens).toBe(testCase.tokens);
+      expect(result.totalTokens).toBe(fixture.expected.totalTokens);
+      expect(result.messageTokens).toBe(fixture.expected.messageTokens);
+      expect(result.completionOverheadTokens).toBe(fixture.expected.completionOverheadTokens);
+      expect(result.functionTokens).toBe(fixture.expected.functionTokens);
+      expect(result.functionCallTokens).toBe(fixture.expected.functionCallTokens);
     });
   });
 });

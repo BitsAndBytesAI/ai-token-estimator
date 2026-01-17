@@ -1,8 +1,6 @@
 /**
- * Token overhead constants from gpt-tokenizer.
- * These are the source of truth for legacy functions API counting.
- *
- * @see https://github.com/niieani/gpt-tokenizer/blob/main/src/functionCalling.ts
+ * Token overhead constants for OpenAI chat completion token counting.
+ * These constants represent the token overhead for various message components.
  */
 
 /** Tokens added per message (for <|im_start|>, role separator, <|im_end|>) */

@@ -193,8 +193,8 @@ export interface ChatCompletionTokenCountInput {
   messages: ChatMessage[];
   /**
    * The model to use for token counting.
-   * Must be a chat-capable OpenAI model (in gpt-tokenizer's chatModelParams).
-   * If using a new chat model not yet in the map, provide `encoding` instead.
+   * Must be a chat-capable OpenAI model.
+   * If using a new chat model not yet recognized, provide `encoding` instead.
    */
   model: string;
   /**

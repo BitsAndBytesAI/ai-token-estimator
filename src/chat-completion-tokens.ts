@@ -1,13 +1,17 @@
 /**
  * Chat completion token counting for OpenAI's legacy functions API.
  *
- * Achieves exact token count parity with gpt-tokenizer's computeChatCompletionTokenCount
- * for normal text inputs. Note: special token handling differs - this implementation
- * treats special-token-like strings as regular text (does not throw).
+ * Achieves exact token count parity for normal text inputs.
+ * Note: special token handling treats special-token-like strings
+ * as regular text (does not throw).
  */
 
-import { modelToEncodingMap, chatModelParams } from 'gpt-tokenizer/mapping';
-
+import {
+  isChatModel,
+  isAnthropicModel,
+  isGoogleModel,
+} from './mappings/chat-models.js';
+import { isKnownModel } from './mappings/model-to-encoding.js';
 import {
   MESSAGE_TOKEN_OVERHEAD,
   MESSAGE_NAME_TOKEN_OVERHEAD,
@@ -107,13 +111,13 @@ function validateOpenAIModel(
   encodingOverride?: OpenAIEncoding
 ): void {
   // Always reject known non-OpenAI models (even with encoding override)
-  if (model.startsWith('claude-')) {
+  if (isAnthropicModel(model)) {
     throw new Error(
       `Model "${model}" is an Anthropic model. Use the Anthropic API's ` +
         'count_tokens endpoint via estimateAsync() for accurate token counts.'
     );
   }
-  if (model.startsWith('gemini-')) {
+  if (isGoogleModel(model)) {
     throw new Error(
       `Model "${model}" is a Google model. Use the Gemini API's ` +
         'countTokens endpoint via estimateAsync() for accurate token counts.'
@@ -121,9 +125,7 @@ function validateOpenAIModel(
   }
 
   // Always reject known non-chat OpenAI models (even with encoding override)
-  const chatModels = chatModelParams as Record<string, unknown>;
-  const encodingModels = modelToEncodingMap as Record<string, string>;
-  if (model in encodingModels && !(model in chatModels)) {
+  if (isKnownModel(model) && !isChatModel(model)) {
     throw new Error(
       `Model "${model}" is not a chat completion model. ` +
         'This function only supports chat models (e.g., gpt-4o, gpt-3.5-turbo).'
@@ -135,12 +137,12 @@ function validateOpenAIModel(
     return;
   }
 
-  // Without encoding override, require model to be in chatModelParams
-  if (!(model in chatModels)) {
+  // Without encoding override, require model to be a known chat model
+  if (!isChatModel(model)) {
     throw new Error(
       `Model "${model}" is not recognized. ` +
         'If this is a new OpenAI model, provide the encoding option explicitly ' +
-        '(e.g., encoding: "o200k_base"). See gpt-tokenizer docs for supported models.'
+        '(e.g., encoding: "o200k_base").'
     );
   }
 }
@@ -211,7 +213,7 @@ function countMessageTokensInternal(
 /**
  * Count tokens for an OpenAI chat completion request with legacy functions API.
  *
- * Achieves exact parity with gpt-tokenizer's computeChatCompletionTokenCount.
+ * Achieves exact token count parity with OpenAI's actual API usage.
  *
  * @throws {Error} If model is not an OpenAI model (unless encoding override provided)
  * @throws {Error} If tools, tool_choice, tool_calls, or tool_call_id are present

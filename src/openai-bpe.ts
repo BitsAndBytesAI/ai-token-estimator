@@ -1,17 +1,19 @@
-import { createRequire } from 'node:module';
+/**
+ * OpenAI BPE tokenization API.
+ *
+ * Provides encode/decode functions for OpenAI models using our native
+ * BPE implementation (tiktoken-compatible).
+ */
 
-import { ALL_SPECIAL_TOKENS } from 'gpt-tokenizer/constants';
-import { DEFAULT_ENCODING, modelToEncodingMap } from 'gpt-tokenizer/mapping';
+import {
+  getTokenizer,
+  resolveEncoding,
+  SPECIAL_TOKEN_SET,
+} from './bpe/index.js';
+import type { OpenAIEncoding, SpecialTokenHandling } from './bpe/types.js';
 
-export type OpenAIEncoding =
-  | 'r50k_base'
-  | 'p50k_base'
-  | 'p50k_edit'
-  | 'cl100k_base'
-  | 'o200k_base'
-  | 'o200k_harmony';
-
-export type SpecialTokenHandling = 'all' | 'none' | 'none_raise';
+// Re-export types for backwards compatibility
+export type { OpenAIEncoding, SpecialTokenHandling } from './bpe/types.js';
 
 export interface EncodeOptions {
   /**
@@ -32,71 +34,6 @@ export interface EncodeOptions {
   allowSpecial?: SpecialTokenHandling;
 }
 
-interface EncodingSelector {
-  encoding?: OpenAIEncoding;
-  model?: string;
-}
-
-type GptTokenizerEncodeOptions = {
-  allowedSpecial?: Set<string> | typeof ALL_SPECIAL_TOKENS;
-  disallowedSpecial?: Set<string> | typeof ALL_SPECIAL_TOKENS;
-};
-
-type EncodingApi = {
-  encode: (text: string, options?: GptTokenizerEncodeOptions) => number[];
-  decode: (tokens: Iterable<number>) => string;
-};
-
-// `__filename` exists in CJS output, but not in ESM.
-// `import.meta.url` exists in ESM output, but is not available in CJS.
-// Use whichever is available at runtime.
-declare const __filename: string | undefined;
-const requireBase =
-  typeof __filename === 'string' && __filename.length > 0
-    ? __filename
-    : import.meta.url;
-const NODE_REQUIRE = createRequire(requireBase);
-
-const ENCODING_MODULES: Record<OpenAIEncoding, string> = {
-  r50k_base: 'gpt-tokenizer/cjs/encoding/r50k_base',
-  p50k_base: 'gpt-tokenizer/cjs/encoding/p50k_base',
-  p50k_edit: 'gpt-tokenizer/cjs/encoding/p50k_edit',
-  cl100k_base: 'gpt-tokenizer/cjs/encoding/cl100k_base',
-  o200k_base: 'gpt-tokenizer/cjs/encoding/o200k_base',
-  o200k_harmony: 'gpt-tokenizer/cjs/encoding/o200k_harmony',
-};
-
-const encodingApiCache = new Map<OpenAIEncoding, EncodingApi>();
-
-function getEncodingApi(encoding: OpenAIEncoding): EncodingApi {
-  const cached = encodingApiCache.get(encoding);
-  if (cached) return cached;
-
-  const modulePath = ENCODING_MODULES[encoding];
-  const mod = NODE_REQUIRE(modulePath) as { encode: EncodingApi['encode']; decode: EncodingApi['decode'] };
-
-  const api: EncodingApi = { encode: mod.encode, decode: mod.decode };
-  encodingApiCache.set(encoding, api);
-  return api;
-}
-
-function resolveEncoding(selector: EncodingSelector | undefined): OpenAIEncoding {
-  if (selector?.encoding) {
-    return selector.encoding;
-  }
-
-  const model = selector?.model?.trim();
-  if (model) {
-    const mapped =
-      (modelToEncodingMap as unknown as Record<string, OpenAIEncoding>)[model];
-    if (mapped) {
-      return mapped;
-    }
-  }
-
-  return DEFAULT_ENCODING as OpenAIEncoding;
-}
-
 /**
  * Resolve the OpenAI encoding that will be used for a given model/encoding selector.
  */
@@ -106,30 +43,29 @@ export function getOpenAIEncoding(
   return resolveEncoding(selector);
 }
 
-function toGptTokenizerEncodeOptions(
+/**
+ * Convert our SpecialTokenHandling to the format expected by BPETokenizer.
+ * Returns:
+ * - 'skip': skip special token handling entirely (encode as regular text)
+ * - 'all' or Set: allow these special tokens
+ * - undefined: throw on special tokens (default)
+ */
+function resolveAllowedSpecial(
   allowSpecial: SpecialTokenHandling | undefined
-): GptTokenizerEncodeOptions | undefined {
-  const mode: SpecialTokenHandling = allowSpecial ?? 'none_raise';
+): Set<string> | 'all' | 'skip' | undefined {
+  const mode = allowSpecial ?? 'none_raise';
 
   switch (mode) {
     case 'all':
-      return {
-        allowedSpecial: ALL_SPECIAL_TOKENS,
-        disallowedSpecial: new Set(),
-      };
+      // Allow all special tokens
+      return SPECIAL_TOKEN_SET;
     case 'none':
-      return {
-        allowedSpecial: new Set(),
-        disallowedSpecial: new Set(),
-      };
+      // Treat special tokens as regular text - skip detection entirely
+      return 'skip';
     case 'none_raise':
     default:
-      // Default behavior (tiktoken-style): raise on any special token.
-      // gpt-tokenizer defaults disallowedSpecial to ALL_SPECIAL_TOKENS, so we can omit,
-      // but return it explicitly for clarity.
-      return {
-        disallowedSpecial: ALL_SPECIAL_TOKENS,
-      };
+      // Throw on special tokens (default behavior)
+      return undefined;
   }
 }
 
@@ -140,9 +76,9 @@ function toGptTokenizerEncodeOptions(
  */
 export function encode(text: string, options?: EncodeOptions): number[] {
   const encoding = resolveEncoding(options);
-  const api = getEncodingApi(encoding);
-  const encodeOptions = toGptTokenizerEncodeOptions(options?.allowSpecial);
-  return api.encode(text, encodeOptions);
+  const api = getTokenizer(encoding);
+  const allowedSpecial = resolveAllowedSpecial(options?.allowSpecial);
+  return api.encode(text, allowedSpecial);
 }
 
 /**
@@ -153,6 +89,6 @@ export function decode(
   options?: Pick<EncodeOptions, 'encoding' | 'model'>
 ): string {
   const encoding = resolveEncoding(options);
-  const api = getEncodingApi(encoding);
+  const api = getTokenizer(encoding);
   return api.decode(tokens);
 }

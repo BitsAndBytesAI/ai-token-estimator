@@ -1,0 +1,5704 @@
+{
+  "generatedWith": "tiktoken 0.12.0",
+  "generatedAt": "2026-01-17T21:02:36.917484Z",
+  "encodeFixtures": [
+    {
+      "encoding": "r50k_base",
+      "text": "hello",
+      "tokens": [
+        31373
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "hello world",
+      "tokens": [
+        31373,
+        995
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "Hello, world!",
+      "tokens": [
+        15496,
+        11,
+        995,
+        0
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "tokens": [
+        464,
+        2068,
+        7586,
+        21831,
+        18045,
+        625,
+        262,
+        16931,
+        3290,
+        13
+      ],
+      "tokenCount": 10
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "12345",
+      "tokens": [
+        10163,
+        2231
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "3.14159",
+      "tokens": [
+        18,
+        13,
+        1415,
+        19707
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "foo@bar.com",
+      "tokens": [
+        21943,
+        31,
+        5657,
+        13,
+        785
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "https://example.com/path?query=value",
+      "tokens": [
+        5450,
+        1378,
+        20688,
+        13,
+        785,
+        14,
+        6978,
+        30,
+        22766,
+        28,
+        8367
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "  leading spaces",
+      "tokens": [
+        220,
+        3756,
+        9029
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "trailing spaces  ",
+      "tokens": [
+        9535,
+        4386,
+        9029,
+        220,
+        220
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "multiple   spaces",
+      "tokens": [
+        48101,
+        220,
+        220,
+        9029
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "tabs\there",
+      "tokens": [
+        8658,
+        82,
+        197,
+        1456
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "newline\nhere",
+      "tokens": [
+        3605,
+        1370,
+        198,
+        1456
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "carriage\rreturn",
+      "tokens": [
+        7718,
+        4087,
+        201,
+        7783
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "crlf\r\nending",
+      "tokens": [
+        6098,
+        1652,
+        201,
+        198,
+        1571
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text   ",
+      "tokens": [
+        5239,
+        220,
+        220,
+        220
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text\n",
+      "tokens": [
+        5239,
+        198
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text\n\n",
+      "tokens": [
+        5239,
+        628
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text   \n",
+      "tokens": [
+        5239,
+        220,
+        220,
+        220,
+        198
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text\n   ",
+      "tokens": [
+        5239,
+        198,
+        220,
+        220,
+        220
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "   \n   \n   ",
+      "tokens": [
+        220,
+        220,
+        220,
+        198,
+        220,
+        220,
+        220,
+        198,
+        220,
+        220,
+        220
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "word1    word2    word3",
+      "tokens": [
+        4775,
+        16,
+        220,
+        220,
+        220,
+        1573,
+        17,
+        220,
+        220,
+        220,
+        1573,
+        18
+      ],
+      "tokenCount": 12
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "line1\n\n\nline2",
+      "tokens": [
+        1370,
+        16,
+        628,
+        198,
+        1370,
+        17
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "mixed\r\n\r\nlines",
+      "tokens": [
+        76,
+        2966,
+        201,
+        198,
+        201,
+        198,
+        6615
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "r50k_base",
+      "text": " \t \n \r ",
+      "tokens": [
+        220,
+        197,
+        220,
+        198,
+        220,
+        201,
+        220
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text\t\t\ttabs",
+      "tokens": [
+        5239,
+        197,
+        197,
+        197,
+        8658,
+        82
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "a b  c   d    e",
+      "tokens": [
+        64,
+        275,
+        220,
+        269,
+        220,
+        220,
+        288,
+        220,
+        220,
+        220,
+        304
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "\n\n\nstart",
+      "tokens": [
+        628,
+        198,
+        9688
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "end\n\n\n",
+      "tokens": [
+        437,
+        628,
+        198
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "  \t  \n  \r  ",
+      "tokens": [
+        220,
+        220,
+        197,
+        220,
+        220,
+        198,
+        220,
+        220,
+        201,
+        220,
+        220
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "Hello 世界",
+      "tokens": [
+        15496,
+        220,
+        10310,
+        244,
+        45911,
+        234
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "Привет мир",
+      "tokens": [
+        140,
+        253,
+        21169,
+        18849,
+        38857,
+        16843,
+        20375,
+        12466,
+        120,
+        18849,
+        21169
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "مرحبا بالعالم",
+      "tokens": [
+        25405,
+        26897,
+        148,
+        255,
+        39848,
+        12919,
+        17550,
+        101,
+        23525,
+        44690,
+        23525,
+        25405
+      ],
+      "tokenCount": 12
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "שלום עולם",
+      "tokens": [
+        50227,
+        40010,
+        27072,
+        147,
+        251,
+        14360,
+        95,
+        27072,
+        40010,
+        147,
+        251
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "こんにちは世界",
+      "tokens": [
+        46036,
+        22174,
+        28618,
+        2515,
+        94,
+        31676,
+        10310,
+        244,
+        45911,
+        234
+      ],
+      "tokenCount": 10
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "안녕하세요 세계",
+      "tokens": [
+        168,
+        243,
+        230,
+        167,
+        227,
+        243,
+        47991,
+        246,
+        168,
+        226,
+        116,
+        168,
+        248,
+        242,
+        23821,
+        226,
+        116,
+        166,
+        111,
+        226
+      ],
+      "tokenCount": 20
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "Hello 👋",
+      "tokens": [
+        15496,
+        50169,
+        233
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "🎉🎊🎁",
+      "tokens": [
+        8582,
+        236,
+        231,
+        8582,
+        236,
+        232,
+        8582,
+        236,
+        223
+      ],
+      "tokenCount": 9
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "I ❤️ coding",
+      "tokens": [
+        40,
+        43074,
+        97,
+        37929,
+        19617
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "🇺🇸🇬🇧🇯🇵",
+      "tokens": [
+        8582,
+        229,
+        118,
+        8582,
+        229,
+        116,
+        8582,
+        229,
+        105,
+        8582,
+        229,
+        100,
+        8582,
+        229,
+        107,
+        8582,
+        229,
+        113
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "👨‍👩‍👧‍👦",
+      "tokens": [
+        41840,
+        101,
+        447,
+        235,
+        41840,
+        102,
+        447,
+        235,
+        41840,
+        100,
+        447,
+        235,
+        41840,
+        99
+      ],
+      "tokenCount": 14
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "function foo() { return 42; }",
+      "tokens": [
+        8818,
+        22944,
+        3419,
+        1391,
+        1441,
+        5433,
+        26,
+        1782
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "def hello():\n    print('world')",
+      "tokens": [
+        4299,
+        23748,
+        33529,
+        198,
+        220,
+        220,
+        220,
+        3601,
+        10786,
+        6894,
+        11537
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "SELECT * FROM users WHERE id = 1",
+      "tokens": [
+        46506,
+        1635,
+        16034,
+        2985,
+        33411,
+        4686,
+        796,
+        352
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "const x = { a: 1, b: 2 };",
+      "tokens": [
+        9979,
+        2124,
+        796,
+        1391,
+        257,
+        25,
+        352,
+        11,
+        275,
+        25,
+        362,
+        18083
+      ],
+      "tokenCount": 12
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "<|endoftext|>",
+      "tokens": [
+        27,
+        91,
+        437,
+        1659,
+        5239,
+        91,
+        29
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "<|im_start|>system<|im_sep|>",
+      "tokens": [
+        27,
+        91,
+        320,
+        62,
+        9688,
+        91,
+        29,
+        10057,
+        27,
+        91,
+        320,
+        62,
+        325,
+        79,
+        91,
+        29
+      ],
+      "tokenCount": 16
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "<|fim_prefix|>code<|fim_suffix|>",
+      "tokens": [
+        27,
+        91,
+        69,
+        320,
+        62,
+        40290,
+        91,
+        29,
+        8189,
+        27,
+        91,
+        69,
+        320,
+        62,
+        37333,
+        844,
+        91,
+        29
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "",
+      "tokens": [],
+      "tokenCount": 0
+    },
+    {
+      "encoding": "r50k_base",
+      "text": " ",
+      "tokens": [
+        220
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "a",
+      "tokens": [
+        64
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "aa",
+      "tokens": [
+        7252
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "aaa",
+      "tokens": [
+        46071
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "\n",
+      "tokens": [
+        198
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "\t",
+      "tokens": [
+        197
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "🎉",
+      "tokens": [
+        8582,
+        236,
+        231
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "tokens": [
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794
+      ],
+      "tokenCount": 25
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello ",
+      "tokens": [
+        31373,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        220
+      ],
+      "tokenCount": 21
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
+      "tokens": [
+        10163,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        30924,
+        3829
+      ],
+      "tokenCount": 49
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "User: Hello!\nAssistant: Hi there! How can I help you today? 👋",
+      "tokens": [
+        12982,
+        25,
+        18435,
+        0,
+        198,
+        48902,
+        25,
+        15902,
+        612,
+        0,
+        1374,
+        460,
+        314,
+        1037,
+        345,
+        1909,
+        30,
+        50169,
+        233
+      ],
+      "tokenCount": 19
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "Error: FileNotFoundError at line 42 in /path/to/file.py",
+      "tokens": [
+        12331,
+        25,
+        9220,
+        3673,
+        21077,
+        12331,
+        379,
+        1627,
+        5433,
+        287,
+        1220,
+        6978,
+        14,
+        1462,
+        14,
+        7753,
+        13,
+        9078
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "JSON: {\"name\": \"John\", \"age\": 30, \"city\": \"NYC\"}",
+      "tokens": [
+        40386,
+        25,
+        19779,
+        3672,
+        1298,
+        366,
+        7554,
+        1600,
+        366,
+        496,
+        1298,
+        1542,
+        11,
+        366,
+        19205,
+        1298,
+        366,
+        12805,
+        34,
+        20662
+      ],
+      "tokenCount": 20
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "hello",
+      "tokens": [
+        31373
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "hello world",
+      "tokens": [
+        31373,
+        995
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "Hello, world!",
+      "tokens": [
+        15496,
+        11,
+        995,
+        0
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "tokens": [
+        464,
+        2068,
+        7586,
+        21831,
+        18045,
+        625,
+        262,
+        16931,
+        3290,
+        13
+      ],
+      "tokenCount": 10
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "12345",
+      "tokens": [
+        10163,
+        2231
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "3.14159",
+      "tokens": [
+        18,
+        13,
+        1415,
+        19707
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "foo@bar.com",
+      "tokens": [
+        21943,
+        31,
+        5657,
+        13,
+        785
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "https://example.com/path?query=value",
+      "tokens": [
+        5450,
+        1378,
+        20688,
+        13,
+        785,
+        14,
+        6978,
+        30,
+        22766,
+        28,
+        8367
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "  leading spaces",
+      "tokens": [
+        220,
+        3756,
+        9029
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "trailing spaces  ",
+      "tokens": [
+        9535,
+        4386,
+        9029,
+        50257
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "multiple   spaces",
+      "tokens": [
+        48101,
+        50257,
+        9029
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "tabs\there",
+      "tokens": [
+        8658,
+        82,
+        197,
+        1456
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "newline\nhere",
+      "tokens": [
+        3605,
+        1370,
+        198,
+        1456
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "carriage\rreturn",
+      "tokens": [
+        7718,
+        4087,
+        201,
+        7783
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "crlf\r\nending",
+      "tokens": [
+        6098,
+        1652,
+        201,
+        198,
+        1571
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text   ",
+      "tokens": [
+        5239,
+        50258
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text\n",
+      "tokens": [
+        5239,
+        198
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text\n\n",
+      "tokens": [
+        5239,
+        628
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text   \n",
+      "tokens": [
+        5239,
+        50258,
+        198
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text\n   ",
+      "tokens": [
+        5239,
+        198,
+        50258
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "   \n   \n   ",
+      "tokens": [
+        50258,
+        198,
+        50258,
+        198,
+        50258
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "word1    word2    word3",
+      "tokens": [
+        4775,
+        16,
+        50258,
+        1573,
+        17,
+        50258,
+        1573,
+        18
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "line1\n\n\nline2",
+      "tokens": [
+        1370,
+        16,
+        628,
+        198,
+        1370,
+        17
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "mixed\r\n\r\nlines",
+      "tokens": [
+        76,
+        2966,
+        201,
+        198,
+        201,
+        198,
+        6615
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_base",
+      "text": " \t \n \r ",
+      "tokens": [
+        220,
+        197,
+        220,
+        198,
+        220,
+        201,
+        220
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text\t\t\ttabs",
+      "tokens": [
+        5239,
+        197,
+        197,
+        197,
+        8658,
+        82
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "a b  c   d    e",
+      "tokens": [
+        64,
+        275,
+        220,
+        269,
+        50257,
+        288,
+        50258,
+        304
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "\n\n\nstart",
+      "tokens": [
+        628,
+        198,
+        9688
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "end\n\n\n",
+      "tokens": [
+        437,
+        628,
+        198
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "  \t  \n  \r  ",
+      "tokens": [
+        50257,
+        197,
+        50257,
+        198,
+        50257,
+        201,
+        50257
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "Hello 世界",
+      "tokens": [
+        15496,
+        220,
+        10310,
+        244,
+        45911,
+        234
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "Привет мир",
+      "tokens": [
+        140,
+        253,
+        21169,
+        18849,
+        38857,
+        16843,
+        20375,
+        12466,
+        120,
+        18849,
+        21169
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "مرحبا بالعالم",
+      "tokens": [
+        25405,
+        26897,
+        148,
+        255,
+        39848,
+        12919,
+        17550,
+        101,
+        23525,
+        44690,
+        23525,
+        25405
+      ],
+      "tokenCount": 12
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "שלום עולם",
+      "tokens": [
+        50227,
+        40010,
+        27072,
+        147,
+        251,
+        14360,
+        95,
+        27072,
+        40010,
+        147,
+        251
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "こんにちは世界",
+      "tokens": [
+        46036,
+        22174,
+        28618,
+        2515,
+        94,
+        31676,
+        10310,
+        244,
+        45911,
+        234
+      ],
+      "tokenCount": 10
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "안녕하세요 세계",
+      "tokens": [
+        168,
+        243,
+        230,
+        167,
+        227,
+        243,
+        47991,
+        246,
+        168,
+        226,
+        116,
+        168,
+        248,
+        242,
+        23821,
+        226,
+        116,
+        166,
+        111,
+        226
+      ],
+      "tokenCount": 20
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "Hello 👋",
+      "tokens": [
+        15496,
+        50169,
+        233
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "🎉🎊🎁",
+      "tokens": [
+        8582,
+        236,
+        231,
+        8582,
+        236,
+        232,
+        8582,
+        236,
+        223
+      ],
+      "tokenCount": 9
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "I ❤️ coding",
+      "tokens": [
+        40,
+        43074,
+        97,
+        37929,
+        19617
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "🇺🇸🇬🇧🇯🇵",
+      "tokens": [
+        8582,
+        229,
+        118,
+        8582,
+        229,
+        116,
+        8582,
+        229,
+        105,
+        8582,
+        229,
+        100,
+        8582,
+        229,
+        107,
+        8582,
+        229,
+        113
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "👨‍👩‍👧‍👦",
+      "tokens": [
+        41840,
+        101,
+        447,
+        235,
+        41840,
+        102,
+        447,
+        235,
+        41840,
+        100,
+        447,
+        235,
+        41840,
+        99
+      ],
+      "tokenCount": 14
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "function foo() { return 42; }",
+      "tokens": [
+        8818,
+        22944,
+        3419,
+        1391,
+        1441,
+        5433,
+        26,
+        1782
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "def hello():\n    print('world')",
+      "tokens": [
+        4299,
+        23748,
+        33529,
+        198,
+        50258,
+        3601,
+        10786,
+        6894,
+        11537
+      ],
+      "tokenCount": 9
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "SELECT * FROM users WHERE id = 1",
+      "tokens": [
+        46506,
+        1635,
+        16034,
+        2985,
+        33411,
+        4686,
+        796,
+        352
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "const x = { a: 1, b: 2 };",
+      "tokens": [
+        9979,
+        2124,
+        796,
+        1391,
+        257,
+        25,
+        352,
+        11,
+        275,
+        25,
+        362,
+        18083
+      ],
+      "tokenCount": 12
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "<|endoftext|>",
+      "tokens": [
+        27,
+        91,
+        437,
+        1659,
+        5239,
+        91,
+        29
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "<|im_start|>system<|im_sep|>",
+      "tokens": [
+        27,
+        91,
+        320,
+        62,
+        9688,
+        91,
+        29,
+        10057,
+        27,
+        91,
+        320,
+        62,
+        325,
+        79,
+        91,
+        29
+      ],
+      "tokenCount": 16
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "<|fim_prefix|>code<|fim_suffix|>",
+      "tokens": [
+        27,
+        91,
+        69,
+        320,
+        62,
+        40290,
+        91,
+        29,
+        8189,
+        27,
+        91,
+        69,
+        320,
+        62,
+        37333,
+        844,
+        91,
+        29
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "",
+      "tokens": [],
+      "tokenCount": 0
+    },
+    {
+      "encoding": "p50k_base",
+      "text": " ",
+      "tokens": [
+        220
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "a",
+      "tokens": [
+        64
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "aa",
+      "tokens": [
+        7252
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "aaa",
+      "tokens": [
+        46071
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "\n",
+      "tokens": [
+        198
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "\t",
+      "tokens": [
+        197
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "🎉",
+      "tokens": [
+        8582,
+        236,
+        231
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "tokens": [
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794
+      ],
+      "tokenCount": 25
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello ",
+      "tokens": [
+        31373,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        220
+      ],
+      "tokenCount": 21
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
+      "tokens": [
+        10163,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        30924,
+        3829
+      ],
+      "tokenCount": 49
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "User: Hello!\nAssistant: Hi there! How can I help you today? 👋",
+      "tokens": [
+        12982,
+        25,
+        18435,
+        0,
+        198,
+        48902,
+        25,
+        15902,
+        612,
+        0,
+        1374,
+        460,
+        314,
+        1037,
+        345,
+        1909,
+        30,
+        50169,
+        233
+      ],
+      "tokenCount": 19
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "Error: FileNotFoundError at line 42 in /path/to/file.py",
+      "tokens": [
+        12331,
+        25,
+        9220,
+        3673,
+        21077,
+        12331,
+        379,
+        1627,
+        5433,
+        287,
+        1220,
+        6978,
+        14,
+        1462,
+        14,
+        7753,
+        13,
+        9078
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "JSON: {\"name\": \"John\", \"age\": 30, \"city\": \"NYC\"}",
+      "tokens": [
+        40386,
+        25,
+        19779,
+        3672,
+        1298,
+        366,
+        7554,
+        1600,
+        366,
+        496,
+        1298,
+        1542,
+        11,
+        366,
+        19205,
+        1298,
+        366,
+        12805,
+        34,
+        20662
+      ],
+      "tokenCount": 20
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "hello",
+      "tokens": [
+        31373
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "hello world",
+      "tokens": [
+        31373,
+        995
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "Hello, world!",
+      "tokens": [
+        15496,
+        11,
+        995,
+        0
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "tokens": [
+        464,
+        2068,
+        7586,
+        21831,
+        18045,
+        625,
+        262,
+        16931,
+        3290,
+        13
+      ],
+      "tokenCount": 10
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "12345",
+      "tokens": [
+        10163,
+        2231
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "3.14159",
+      "tokens": [
+        18,
+        13,
+        1415,
+        19707
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "foo@bar.com",
+      "tokens": [
+        21943,
+        31,
+        5657,
+        13,
+        785
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "https://example.com/path?query=value",
+      "tokens": [
+        5450,
+        1378,
+        20688,
+        13,
+        785,
+        14,
+        6978,
+        30,
+        22766,
+        28,
+        8367
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "  leading spaces",
+      "tokens": [
+        220,
+        3756,
+        9029
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "trailing spaces  ",
+      "tokens": [
+        9535,
+        4386,
+        9029,
+        50257
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "multiple   spaces",
+      "tokens": [
+        48101,
+        50257,
+        9029
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "tabs\there",
+      "tokens": [
+        8658,
+        82,
+        197,
+        1456
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "newline\nhere",
+      "tokens": [
+        3605,
+        1370,
+        198,
+        1456
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "carriage\rreturn",
+      "tokens": [
+        7718,
+        4087,
+        201,
+        7783
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "crlf\r\nending",
+      "tokens": [
+        6098,
+        1652,
+        201,
+        198,
+        1571
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text   ",
+      "tokens": [
+        5239,
+        50258
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text\n",
+      "tokens": [
+        5239,
+        198
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text\n\n",
+      "tokens": [
+        5239,
+        628
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text   \n",
+      "tokens": [
+        5239,
+        50258,
+        198
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text\n   ",
+      "tokens": [
+        5239,
+        198,
+        50258
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "   \n   \n   ",
+      "tokens": [
+        50258,
+        198,
+        50258,
+        198,
+        50258
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "word1    word2    word3",
+      "tokens": [
+        4775,
+        16,
+        50258,
+        1573,
+        17,
+        50258,
+        1573,
+        18
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "line1\n\n\nline2",
+      "tokens": [
+        1370,
+        16,
+        628,
+        198,
+        1370,
+        17
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "mixed\r\n\r\nlines",
+      "tokens": [
+        76,
+        2966,
+        201,
+        198,
+        201,
+        198,
+        6615
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": " \t \n \r ",
+      "tokens": [
+        220,
+        197,
+        220,
+        198,
+        220,
+        201,
+        220
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text\t\t\ttabs",
+      "tokens": [
+        5239,
+        197,
+        197,
+        197,
+        8658,
+        82
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "a b  c   d    e",
+      "tokens": [
+        64,
+        275,
+        220,
+        269,
+        50257,
+        288,
+        50258,
+        304
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "\n\n\nstart",
+      "tokens": [
+        628,
+        198,
+        9688
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "end\n\n\n",
+      "tokens": [
+        437,
+        628,
+        198
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "  \t  \n  \r  ",
+      "tokens": [
+        50257,
+        197,
+        50257,
+        198,
+        50257,
+        201,
+        50257
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "Hello 世界",
+      "tokens": [
+        15496,
+        220,
+        10310,
+        244,
+        45911,
+        234
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "Привет мир",
+      "tokens": [
+        140,
+        253,
+        21169,
+        18849,
+        38857,
+        16843,
+        20375,
+        12466,
+        120,
+        18849,
+        21169
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "مرحبا بالعالم",
+      "tokens": [
+        25405,
+        26897,
+        148,
+        255,
+        39848,
+        12919,
+        17550,
+        101,
+        23525,
+        44690,
+        23525,
+        25405
+      ],
+      "tokenCount": 12
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "שלום עולם",
+      "tokens": [
+        50227,
+        40010,
+        27072,
+        147,
+        251,
+        14360,
+        95,
+        27072,
+        40010,
+        147,
+        251
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "こんにちは世界",
+      "tokens": [
+        46036,
+        22174,
+        28618,
+        2515,
+        94,
+        31676,
+        10310,
+        244,
+        45911,
+        234
+      ],
+      "tokenCount": 10
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "안녕하세요 세계",
+      "tokens": [
+        168,
+        243,
+        230,
+        167,
+        227,
+        243,
+        47991,
+        246,
+        168,
+        226,
+        116,
+        168,
+        248,
+        242,
+        23821,
+        226,
+        116,
+        166,
+        111,
+        226
+      ],
+      "tokenCount": 20
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "Hello 👋",
+      "tokens": [
+        15496,
+        50169,
+        233
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "🎉🎊🎁",
+      "tokens": [
+        8582,
+        236,
+        231,
+        8582,
+        236,
+        232,
+        8582,
+        236,
+        223
+      ],
+      "tokenCount": 9
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "I ❤️ coding",
+      "tokens": [
+        40,
+        43074,
+        97,
+        37929,
+        19617
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "🇺🇸🇬🇧🇯🇵",
+      "tokens": [
+        8582,
+        229,
+        118,
+        8582,
+        229,
+        116,
+        8582,
+        229,
+        105,
+        8582,
+        229,
+        100,
+        8582,
+        229,
+        107,
+        8582,
+        229,
+        113
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "👨‍👩‍👧‍👦",
+      "tokens": [
+        41840,
+        101,
+        447,
+        235,
+        41840,
+        102,
+        447,
+        235,
+        41840,
+        100,
+        447,
+        235,
+        41840,
+        99
+      ],
+      "tokenCount": 14
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "function foo() { return 42; }",
+      "tokens": [
+        8818,
+        22944,
+        3419,
+        1391,
+        1441,
+        5433,
+        26,
+        1782
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "def hello():\n    print('world')",
+      "tokens": [
+        4299,
+        23748,
+        33529,
+        198,
+        50258,
+        3601,
+        10786,
+        6894,
+        11537
+      ],
+      "tokenCount": 9
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "SELECT * FROM users WHERE id = 1",
+      "tokens": [
+        46506,
+        1635,
+        16034,
+        2985,
+        33411,
+        4686,
+        796,
+        352
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "const x = { a: 1, b: 2 };",
+      "tokens": [
+        9979,
+        2124,
+        796,
+        1391,
+        257,
+        25,
+        352,
+        11,
+        275,
+        25,
+        362,
+        18083
+      ],
+      "tokenCount": 12
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "<|endoftext|>",
+      "tokens": [
+        27,
+        91,
+        437,
+        1659,
+        5239,
+        91,
+        29
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "<|im_start|>system<|im_sep|>",
+      "tokens": [
+        27,
+        91,
+        320,
+        62,
+        9688,
+        91,
+        29,
+        10057,
+        27,
+        91,
+        320,
+        62,
+        325,
+        79,
+        91,
+        29
+      ],
+      "tokenCount": 16
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "<|fim_prefix|>code<|fim_suffix|>",
+      "tokens": [
+        27,
+        91,
+        69,
+        320,
+        62,
+        40290,
+        91,
+        29,
+        8189,
+        27,
+        91,
+        69,
+        320,
+        62,
+        37333,
+        844,
+        91,
+        29
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "",
+      "tokens": [],
+      "tokenCount": 0
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": " ",
+      "tokens": [
+        220
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "a",
+      "tokens": [
+        64
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "aa",
+      "tokens": [
+        7252
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "aaa",
+      "tokens": [
+        46071
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "\n",
+      "tokens": [
+        198
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "\t",
+      "tokens": [
+        197
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "🎉",
+      "tokens": [
+        8582,
+        236,
+        231
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "tokens": [
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794,
+        24794
+      ],
+      "tokenCount": 25
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello ",
+      "tokens": [
+        31373,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        23748,
+        220
+      ],
+      "tokenCount": 21
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
+      "tokens": [
+        10163,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        3134,
+        4531,
+        486,
+        1954,
+        2231,
+        30924,
+        3829
+      ],
+      "tokenCount": 49
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "User: Hello!\nAssistant: Hi there! How can I help you today? 👋",
+      "tokens": [
+        12982,
+        25,
+        18435,
+        0,
+        198,
+        48902,
+        25,
+        15902,
+        612,
+        0,
+        1374,
+        460,
+        314,
+        1037,
+        345,
+        1909,
+        30,
+        50169,
+        233
+      ],
+      "tokenCount": 19
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "Error: FileNotFoundError at line 42 in /path/to/file.py",
+      "tokens": [
+        12331,
+        25,
+        9220,
+        3673,
+        21077,
+        12331,
+        379,
+        1627,
+        5433,
+        287,
+        1220,
+        6978,
+        14,
+        1462,
+        14,
+        7753,
+        13,
+        9078
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "JSON: {\"name\": \"John\", \"age\": 30, \"city\": \"NYC\"}",
+      "tokens": [
+        40386,
+        25,
+        19779,
+        3672,
+        1298,
+        366,
+        7554,
+        1600,
+        366,
+        496,
+        1298,
+        1542,
+        11,
+        366,
+        19205,
+        1298,
+        366,
+        12805,
+        34,
+        20662
+      ],
+      "tokenCount": 20
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "hello",
+      "tokens": [
+        15339
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "hello world",
+      "tokens": [
+        15339,
+        1917
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "Hello, world!",
+      "tokens": [
+        9906,
+        11,
+        1917,
+        0
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "tokens": [
+        791,
+        4062,
+        14198,
+        39935,
+        35308,
+        927,
+        279,
+        16053,
+        5679,
+        13
+      ],
+      "tokenCount": 10
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "12345",
+      "tokens": [
+        4513,
+        1774
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "3.14159",
+      "tokens": [
+        18,
+        13,
+        9335,
+        2946
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "foo@bar.com",
+      "tokens": [
+        8134,
+        31,
+        2308,
+        916
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "https://example.com/path?query=value",
+      "tokens": [
+        2485,
+        1129,
+        8858,
+        916,
+        52076,
+        30,
+        1663,
+        47638
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "  leading spaces",
+      "tokens": [
+        220,
+        6522,
+        12908
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "trailing spaces  ",
+      "tokens": [
+        376,
+        14612,
+        12908,
+        256
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "multiple   spaces",
+      "tokens": [
+        36773,
+        256,
+        12908
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "tabs\there",
+      "tokens": [
+        32093,
+        197,
+        6881
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "newline\nhere",
+      "tokens": [
+        90302,
+        198,
+        6881
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "carriage\rreturn",
+      "tokens": [
+        7063,
+        8950,
+        201,
+        693
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "crlf\r\nending",
+      "tokens": [
+        66,
+        2438,
+        69,
+        319,
+        2518
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "text   ",
+      "tokens": [
+        1342,
+        262
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "text\n",
+      "tokens": [
+        1342,
+        198
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "text\n\n",
+      "tokens": [
+        1342,
+        271
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "text   \n",
+      "tokens": [
+        1342,
+        5996
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "text\n   ",
+      "tokens": [
+        1342,
+        198,
+        262
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "   \n   \n   ",
+      "tokens": [
+        5996,
+        5996,
+        262
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "word1    word2    word3",
+      "tokens": [
+        1178,
+        16,
+        262,
+        3492,
+        17,
+        262,
+        3492,
+        18
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "line1\n\n\nline2",
+      "tokens": [
+        1074,
+        16,
+        1432,
+        1074,
+        17
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "mixed\r\n\r\nlines",
+      "tokens": [
+        57785,
+        881,
+        8128
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": " \t \n \r ",
+      "tokens": [
+        7163,
+        720,
+        220,
+        201,
+        220
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "text\t\t\ttabs",
+      "tokens": [
+        1342,
+        298,
+        3324,
+        3518
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "a b  c   d    e",
+      "tokens": [
+        64,
+        293,
+        220,
+        272,
+        256,
+        294,
+        262,
+        384
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "\n\n\nstart",
+      "tokens": [
+        1432,
+        2527
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "end\n\n\n",
+      "tokens": [
+        408,
+        1432
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "  \t  \n  \r  ",
+      "tokens": [
+        19827,
+        2355,
+        256,
+        201,
+        256
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "Hello 世界",
+      "tokens": [
+        9906,
+        220,
+        3574,
+        244,
+        98220
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "Привет мир",
+      "tokens": [
+        54745,
+        28089,
+        8341,
+        11562,
+        78746
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "مرحبا بالعالم",
+      "tokens": [
+        10386,
+        11318,
+        30925,
+        22071,
+        5821,
+        28946,
+        32482,
+        24102,
+        32482,
+        10386
+      ],
+      "tokenCount": 10
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "שלום עולם",
+      "tokens": [
+        59511,
+        50391,
+        37769,
+        251,
+        17732,
+        95,
+        37769,
+        250,
+        147,
+        251
+      ],
+      "tokenCount": 10
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "こんにちは世界",
+      "tokens": [
+        90115,
+        3574,
+        244,
+        98220
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "안녕하세요 세계",
+      "tokens": [
+        31495,
+        230,
+        75265,
+        243,
+        92245,
+        28867,
+        116,
+        22783,
+        226
+      ],
+      "tokenCount": 9
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "Hello 👋",
+      "tokens": [
+        9906,
+        62904,
+        233
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "🎉🎊🎁",
+      "tokens": [
+        9468,
+        236,
+        231,
+        9468,
+        236,
+        232,
+        9468,
+        236,
+        223
+      ],
+      "tokenCount": 9
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "I ❤️ coding",
+      "tokens": [
+        40,
+        71570,
+        31643,
+        11058
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "🇺🇸🇬🇧🇯🇵",
+      "tokens": [
+        9468,
+        229,
+        118,
+        9468,
+        229,
+        116,
+        9468,
+        229,
+        105,
+        9468,
+        229,
+        100,
+        9468,
+        229,
+        107,
+        9468,
+        229,
+        113
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "👨‍👩‍👧‍👦",
+      "tokens": [
+        9468,
+        239,
+        101,
+        378,
+        235,
+        9468,
+        239,
+        102,
+        378,
+        235,
+        9468,
+        239,
+        100,
+        378,
+        235,
+        9468,
+        239,
+        99
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "function foo() { return 42; }",
+      "tokens": [
+        1723,
+        15586,
+        368,
+        314,
+        471,
+        220,
+        2983,
+        26,
+        335
+      ],
+      "tokenCount": 9
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "def hello():\n    print('world')",
+      "tokens": [
+        755,
+        24748,
+        4019,
+        262,
+        1194,
+        493,
+        14957,
+        873
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "SELECT * FROM users WHERE id = 1",
+      "tokens": [
+        4963,
+        353,
+        4393,
+        3932,
+        5401,
+        887,
+        284,
+        220,
+        16
+      ],
+      "tokenCount": 9
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "const x = { a: 1, b: 2 };",
+      "tokens": [
+        1040,
+        865,
+        284,
+        314,
+        264,
+        25,
+        220,
+        16,
+        11,
+        293,
+        25,
+        220,
+        17,
+        20667
+      ],
+      "tokenCount": 14
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "<|endoftext|>",
+      "tokens": [
+        27,
+        91,
+        8862,
+        728,
+        428,
+        91,
+        29
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "<|im_start|>system<|im_sep|>",
+      "tokens": [
+        27,
+        91,
+        318,
+        5011,
+        91,
+        29,
+        9125,
+        27,
+        91,
+        318,
+        55875,
+        91,
+        29
+      ],
+      "tokenCount": 13
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "<|fim_prefix|>code<|fim_suffix|>",
+      "tokens": [
+        27,
+        91,
+        69,
+        318,
+        14301,
+        91,
+        29,
+        1889,
+        27,
+        91,
+        69,
+        318,
+        38251,
+        91,
+        29
+      ],
+      "tokenCount": 15
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "",
+      "tokens": [],
+      "tokenCount": 0
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": " ",
+      "tokens": [
+        220
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "a",
+      "tokens": [
+        64
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "aa",
+      "tokens": [
+        5418
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "aaa",
+      "tokens": [
+        33746
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "\n",
+      "tokens": [
+        198
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "\t",
+      "tokens": [
+        197
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "🎉",
+      "tokens": [
+        9468,
+        236,
+        231
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "tokens": [
+        70540,
+        70540,
+        70540,
+        70540,
+        70540,
+        70540,
+        70540,
+        70540,
+        70540,
+        70540,
+        70540,
+        70540,
+        29558
+      ],
+      "tokenCount": 13
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello ",
+      "tokens": [
+        15339,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        24748,
+        220
+      ],
+      "tokenCount": 21
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
+      "tokens": [
+        4513,
+        10961,
+        16474,
+        11531,
+        12901,
+        17458,
+        19319,
+        11727,
+        19282,
+        21381,
+        4513,
+        10961,
+        16474,
+        11531,
+        12901,
+        17458,
+        19319,
+        11727,
+        19282,
+        21381,
+        4513,
+        10961,
+        16474,
+        11531,
+        12901,
+        17458,
+        19319,
+        11727,
+        19282,
+        21381,
+        4513,
+        10961,
+        16474,
+        15
+      ],
+      "tokenCount": 34
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "User: Hello!\nAssistant: Hi there! How can I help you today? 👋",
+      "tokens": [
+        1502,
+        25,
+        22691,
+        4999,
+        72803,
+        25,
+        21694,
+        1070,
+        0,
+        2650,
+        649,
+        358,
+        1520,
+        499,
+        3432,
+        30,
+        62904,
+        233
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "Error: FileNotFoundError at line 42 in /path/to/file.py",
+      "tokens": [
+        1480,
+        25,
+        96941,
+        520,
+        1584,
+        220,
+        2983,
+        304,
+        611,
+        2398,
+        33529,
+        24849,
+        7345
+      ],
+      "tokenCount": 13
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "JSON: {\"name\": \"John\", \"age\": 30, \"city\": \"NYC\"}",
+      "tokens": [
+        5483,
+        25,
+        5324,
+        609,
+        794,
+        330,
+        13379,
+        498,
+        330,
+        425,
+        794,
+        220,
+        966,
+        11,
+        330,
+        9103,
+        794,
+        330,
+        23923,
+        34,
+        9388
+      ],
+      "tokenCount": 21
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "hello",
+      "tokens": [
+        24912
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "hello world",
+      "tokens": [
+        24912,
+        2375
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "Hello, world!",
+      "tokens": [
+        13225,
+        11,
+        2375,
+        0
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "tokens": [
+        976,
+        4853,
+        19705,
+        68347,
+        65613,
+        1072,
+        290,
+        29082,
+        6446,
+        13
+      ],
+      "tokenCount": 10
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "12345",
+      "tokens": [
+        7633,
+        2548
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "3.14159",
+      "tokens": [
+        18,
+        13,
+        16926,
+        4621
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "foo@bar.com",
+      "tokens": [
+        16660,
+        31,
+        2990,
+        1136
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "https://example.com/path?query=value",
+      "tokens": [
+        4172,
+        1684,
+        18582,
+        1136,
+        119244,
+        30,
+        2975,
+        111733
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "  leading spaces",
+      "tokens": [
+        220,
+        8117,
+        18608
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "trailing spaces  ",
+      "tokens": [
+        371,
+        24408,
+        18608,
+        256
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "multiple   spaces",
+      "tokens": [
+        76466,
+        256,
+        18608
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "tabs\there",
+      "tokens": [
+        68999,
+        197,
+        19992
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "newline\nhere",
+      "tokens": [
+        191140,
+        198,
+        19992
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "carriage\rreturn",
+      "tokens": [
+        6830,
+        13436,
+        201,
+        1034
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "crlf\r\nending",
+      "tokens": [
+        798,
+        12632,
+        370,
+        3258
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text   ",
+      "tokens": [
+        919,
+        271
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text\n",
+      "tokens": [
+        919,
+        198
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text\n\n",
+      "tokens": [
+        919,
+        279
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text   \n",
+      "tokens": [
+        919,
+        10190
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text\n   ",
+      "tokens": [
+        919,
+        198,
+        271
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "   \n   \n   ",
+      "tokens": [
+        10190,
+        10190,
+        271
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "word1    word2    word3",
+      "tokens": [
+        1801,
+        16,
+        271,
+        2195,
+        17,
+        271,
+        2195,
+        18
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "line1\n\n\nline2",
+      "tokens": [
+        1137,
+        16,
+        2499,
+        1137,
+        17
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "mixed\r\n\r\nlines",
+      "tokens": [
+        136877,
+        1414,
+        10105
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": " \t \n \r ",
+      "tokens": [
+        14593,
+        793,
+        220,
+        201,
+        220
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text\t\t\ttabs",
+      "tokens": [
+        919,
+        335,
+        6264,
+        6071
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "a b  c   d    e",
+      "tokens": [
+        64,
+        287,
+        220,
+        274,
+        256,
+        272,
+        271,
+        319
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "\n\n\nstart",
+      "tokens": [
+        2499,
+        5236
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "end\n\n\n",
+      "tokens": [
+        419,
+        2499
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "  \t  \n  \r  ",
+      "tokens": [
+        45469,
+        4066,
+        256,
+        201,
+        256
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "Hello 世界",
+      "tokens": [
+        13225,
+        185558
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "Привет мир",
+      "tokens": [
+        23881,
+        131903,
+        37934
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "مرحبا بالعالم",
+      "tokens": [
+        158894,
+        26537,
+        101462,
+        12773
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "שלום עולם",
+      "tokens": [
+        106154,
+        143896
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "こんにちは世界",
+      "tokens": [
+        95839,
+        28428
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "안녕하세요 세계",
+      "tokens": [
+        14307,
+        171731,
+        75755
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "Hello 👋",
+      "tokens": [
+        13225,
+        61138,
+        233
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "🎉🎊🎁",
+      "tokens": [
+        71344,
+        231,
+        71344,
+        232,
+        71344,
+        223
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "I ❤️ coding",
+      "tokens": [
+        40,
+        122205,
+        22458
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "🇺🇸🇬🇧🇯🇵",
+      "tokens": [
+        55506,
+        118,
+        55506,
+        116,
+        55506,
+        105,
+        55506,
+        100,
+        55506,
+        107,
+        55506,
+        113
+      ],
+      "tokenCount": 12
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "👨‍👩‍👧‍👦",
+      "tokens": [
+        28823,
+        101,
+        2524,
+        28823,
+        102,
+        2524,
+        28823,
+        100,
+        2524,
+        28823,
+        99
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "function foo() { return 42; }",
+      "tokens": [
+        2706,
+        30551,
+        416,
+        354,
+        622,
+        220,
+        4689,
+        26,
+        388
+      ],
+      "tokenCount": 9
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "def hello():\n    print('world')",
+      "tokens": [
+        1314,
+        40617,
+        8595,
+        271,
+        2123,
+        706,
+        24169,
+        1542
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "SELECT * FROM users WHERE id = 1",
+      "tokens": [
+        9974,
+        425,
+        8519,
+        5385,
+        10979,
+        1211,
+        314,
+        220,
+        16
+      ],
+      "tokenCount": 9
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "const x = { a: 1, b: 2 };",
+      "tokens": [
+        1671,
+        1215,
+        314,
+        354,
+        261,
+        25,
+        220,
+        16,
+        11,
+        287,
+        25,
+        220,
+        17,
+        47821
+      ],
+      "tokenCount": 14
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "<|endoftext|>",
+      "tokens": [
+        27,
+        91,
+        419,
+        1440,
+        919,
+        91,
+        29
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "<|im_start|>system<|im_sep|>",
+      "tokens": [
+        27,
+        91,
+        321,
+        10949,
+        91,
+        29,
+        17360,
+        27,
+        91,
+        321,
+        145582,
+        91,
+        29
+      ],
+      "tokenCount": 13
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "<|fim_prefix|>code<|fim_suffix|>",
+      "tokens": [
+        27,
+        91,
+        103473,
+        33197,
+        91,
+        29,
+        3056,
+        27,
+        91,
+        103473,
+        87556,
+        91,
+        29
+      ],
+      "tokenCount": 13
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "",
+      "tokens": [],
+      "tokenCount": 0
+    },
+    {
+      "encoding": "o200k_base",
+      "text": " ",
+      "tokens": [
+        220
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "a",
+      "tokens": [
+        64
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "aa",
+      "tokens": [
+        3545
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "aaa",
+      "tokens": [
+        55894
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "\n",
+      "tokens": [
+        198
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "\t",
+      "tokens": [
+        197
+      ],
+      "tokenCount": 1
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "🎉",
+      "tokens": [
+        71344,
+        231
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "tokens": [
+        117525,
+        117525,
+        117525,
+        117525,
+        117525,
+        117525,
+        117525,
+        117525,
+        117525,
+        117525,
+        117525,
+        117525,
+        45037
+      ],
+      "tokenCount": 13
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello ",
+      "tokens": [
+        24912,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        40617,
+        220
+      ],
+      "tokenCount": 21
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890",
+      "tokens": [
+        7633,
+        19354,
+        29338,
+        19267,
+        22901,
+        30833,
+        35616,
+        20771,
+        34904,
+        38518,
+        7633,
+        19354,
+        29338,
+        19267,
+        22901,
+        30833,
+        35616,
+        20771,
+        34904,
+        38518,
+        7633,
+        19354,
+        29338,
+        19267,
+        22901,
+        30833,
+        35616,
+        20771,
+        34904,
+        38518,
+        7633,
+        19354,
+        29338,
+        15
+      ],
+      "tokenCount": 34
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "User: Hello!\nAssistant: Hi there! How can I help you today? 👋",
+      "tokens": [
+        1844,
+        25,
+        32949,
+        4175,
+        91655,
+        25,
+        19260,
+        1354,
+        0,
+        3253,
+        665,
+        357,
+        1652,
+        481,
+        4044,
+        30,
+        61138,
+        233
+      ],
+      "tokenCount": 18
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "Error: FileNotFoundError at line 42 in /path/to/file.py",
+      "tokens": [
+        2255,
+        25,
+        5262,
+        2874,
+        7818,
+        2255,
+        540,
+        2543,
+        220,
+        4689,
+        306,
+        820,
+        4189,
+        72231,
+        51766,
+        17311
+      ],
+      "tokenCount": 16
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "JSON: {\"name\": \"John\", \"age\": 30, \"city\": \"NYC\"}",
+      "tokens": [
+        8259,
+        25,
+        10494,
+        897,
+        1243,
+        392,
+        21020,
+        672,
+        392,
+        477,
+        1243,
+        220,
+        1130,
+        11,
+        392,
+        17500,
+        1243,
+        392,
+        24202,
+        34,
+        18583
+      ],
+      "tokenCount": 21
+    }
+  ],
+  "chatCompletionFixtures": [
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful, pattern-following assistant that translates corporate jargon into plain English."
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 24,
+        "messageTokens": 21,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 18,
+            "overhead": 3,
+            "total": 21
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "name": "example_user",
+            "content": "New synergies will help drive top-line growth."
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 20,
+        "messageTokens": 17,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 13,
+            "overhead": 4,
+            "total": 17
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "name": "example_assistant",
+            "content": "Things working well together will increase revenue."
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 19,
+        "messageTokens": 16,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 12,
+            "overhead": 4,
+            "total": 16
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "name": "example_user",
+            "content": "Let's circle back when we have more bandwidth to touch base on opportunities for increased leverage."
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 27,
+        "messageTokens": 24,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 20,
+            "overhead": 4,
+            "total": 24
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "name": "example_assistant",
+            "content": "Let's talk later when we're less busy about how to do better."
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 24,
+        "messageTokens": 21,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 17,
+            "overhead": 4,
+            "total": 21
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "This late pivot means we don't have time to boil the ocean for the client deliverable."
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 25,
+        "messageTokens": 22,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 19,
+            "overhead": 3,
+            "total": 22
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 8,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello world"
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 9,
+        "messageTokens": 6,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "hello"
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 8,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "hello:"
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 9,
+        "messageTokens": 6,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "# Important: you're the best robot"
+          },
+          {
+            "role": "user",
+            "content": "hello robot"
+          },
+          {
+            "role": "assistant",
+            "content": "hello world"
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 26,
+        "messageTokens": 23,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 8,
+            "overhead": 3,
+            "total": 11
+          },
+          {
+            "role": "user",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          },
+          {
+            "role": "assistant",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "functions": [
+          {
+            "name": "foo",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 31,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 23,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "functions": [
+          {
+            "name": "foo",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ],
+        "function_call": "none"
+      },
+      "expected": {
+        "totalTokens": 32,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 23,
+        "functionCallTokens": 1,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "functions": [
+          {
+            "name": "foo",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ],
+        "function_call": "auto"
+      },
+      "expected": {
+        "totalTokens": 31,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 23,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "functions": [
+          {
+            "name": "foo",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ],
+        "function_call": {
+          "name": "foo"
+        }
+      },
+      "expected": {
+        "totalTokens": 36,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 23,
+        "functionCallTokens": 5,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "functions": [
+          {
+            "name": "foo",
+            "description": "Do a foo",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 35,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 27,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "functions": [
+          {
+            "name": "bing_bong",
+            "description": "Do a bing bong",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "foo": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 45,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 37,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "functions": [
+          {
+            "name": "bing_bong",
+            "description": "Do a bing bong",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "foo": {
+                  "type": "string"
+                },
+                "bar": {
+                  "type": "number",
+                  "description": "A number"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 52,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 44,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "functions": [
+          {
+            "name": "bing_bong",
+            "description": "Do a bing bong",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "foo": {
+                  "type": "object",
+                  "properties": {
+                    "bar": {
+                      "type": "string",
+                      "enum": [
+                        "a",
+                        "b",
+                        "c"
+                      ]
+                    },
+                    "baz": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 64,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 56,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello world"
+          },
+          {
+            "role": "function",
+            "name": "do_stuff",
+            "content": "{}"
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 16,
+        "messageTokens": 13,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          },
+          {
+            "role": "function",
+            "stringTokens": 5,
+            "overhead": 2,
+            "total": 7
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello world"
+          },
+          {
+            "role": "function",
+            "name": "do_stuff",
+            "content": "{\"foo\": \"bar\", \"baz\": 1.5}"
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 29,
+        "messageTokens": 26,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          },
+          {
+            "role": "function",
+            "stringTokens": 18,
+            "overhead": 2,
+            "total": 20
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "function",
+            "name": "dance_the_tango",
+            "content": "{\"a\": { \"b\" : { \"c\": false}}}"
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 25,
+        "messageTokens": 22,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "function",
+            "stringTokens": 20,
+            "overhead": 2,
+            "total": 22
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "",
+            "function_call": {
+              "name": "do_stuff",
+              "arguments": "{\"foo\": \"bar\", \"baz\": 1.5}"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 27,
+        "messageTokens": 24,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "assistant",
+            "stringTokens": 18,
+            "overhead": 6,
+            "total": 24
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "",
+            "function_call": {
+              "name": "do_stuff",
+              "arguments": "{\"foo\":\"bar\", \"baz\":\n\n 1.5}"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 26,
+        "messageTokens": 23,
+        "completionOverheadTokens": 3,
+        "functionTokens": 0,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "assistant",
+            "stringTokens": 17,
+            "overhead": 6,
+            "total": 23
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "Hello"
+          },
+          {
+            "role": "user",
+            "content": "Hi there"
+          }
+        ],
+        "functions": [
+          {
+            "name": "do_stuff",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 36,
+        "messageTokens": 12,
+        "completionOverheadTokens": 3,
+        "functionTokens": 21,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          },
+          {
+            "role": "user",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "Hello:"
+          },
+          {
+            "role": "user",
+            "content": "Hi there"
+          }
+        ],
+        "functions": [
+          {
+            "name": "do_stuff",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 36,
+        "messageTokens": 12,
+        "completionOverheadTokens": 3,
+        "functionTokens": 21,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          },
+          {
+            "role": "user",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "Hello:"
+          },
+          {
+            "role": "system",
+            "content": "Hello"
+          },
+          {
+            "role": "user",
+            "content": "Hi there"
+          }
+        ],
+        "functions": [
+          {
+            "name": "do_stuff",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 41,
+        "messageTokens": 17,
+        "completionOverheadTokens": 3,
+        "functionTokens": 21,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          },
+          {
+            "role": "system",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          },
+          {
+            "role": "user",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "Hello:"
+          },
+          {
+            "role": "system",
+            "content": "Hello"
+          },
+          {
+            "role": "user",
+            "content": "Hi there"
+          }
+        ],
+        "functions": [
+          {
+            "name": "do_stuff",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          {
+            "name": "do_other_stuff",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 51,
+        "messageTokens": 17,
+        "completionOverheadTokens": 3,
+        "functionTokens": 31,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          },
+          {
+            "role": "system",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          },
+          {
+            "role": "user",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "Hello:"
+          },
+          {
+            "role": "system",
+            "content": "Hello"
+          },
+          {
+            "role": "user",
+            "content": "Hi there"
+          }
+        ],
+        "functions": [
+          {
+            "name": "do_stuff",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          {
+            "name": "do_other_stuff",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ],
+        "function_call": {
+          "name": "do_stuff"
+        }
+      },
+      "expected": {
+        "totalTokens": 58,
+        "messageTokens": 17,
+        "completionOverheadTokens": 3,
+        "functionTokens": 31,
+        "functionCallTokens": 7,
+        "messageBreakdown": [
+          {
+            "role": "system",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          },
+          {
+            "role": "system",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          },
+          {
+            "role": "user",
+            "stringTokens": 3,
+            "overhead": 3,
+            "total": 6
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "functions": [
+          {
+            "name": "get_recipe",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "ingredients",
+                "instructions",
+                "time_to_cook"
+              ],
+              "properties": {
+                "ingredients": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "unit",
+                      "amount"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "unit": {
+                        "type": "string",
+                        "enum": [
+                          "grams",
+                          "ml",
+                          "cups",
+                          "pieces",
+                          "teaspoons"
+                        ]
+                      },
+                      "amount": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "instructions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Steps to prepare the recipe (no numbering)"
+                },
+                "time_to_cook": {
+                  "type": "number",
+                  "description": "Total time to prepare the recipe in minutes"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 105,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 97,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "functions": [
+          {
+            "name": "function",
+            "description": "description",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "quality": {
+                  "type": "object",
+                  "properties": {
+                    "pros": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Write 3 points why this text is well written"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 45,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 37,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "hello"
+          }
+        ],
+        "functions": [
+          {
+            "name": "function",
+            "description": "desctiption1",
+            "parameters": {
+              "type": "object",
+              "description": "desctiption2",
+              "properties": {
+                "mainField": {
+                  "type": "string",
+                  "description": "description3"
+                },
+                "field number one": {
+                  "type": "object",
+                  "description": "description4",
+                  "properties": {
+                    "yesNoField": {
+                      "type": "string",
+                      "description": "description5",
+                      "enum": [
+                        "Yes",
+                        "No"
+                      ]
+                    },
+                    "howIsInteresting": {
+                      "type": "string",
+                      "description": "description6"
+                    },
+                    "scoreInteresting": {
+                      "type": "number",
+                      "description": "description7"
+                    },
+                    "isInteresting": {
+                      "type": "string",
+                      "description": "description8",
+                      "enum": [
+                        "Yes",
+                        "No"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "totalTokens": 93,
+        "messageTokens": 5,
+        "completionOverheadTokens": 3,
+        "functionTokens": 85,
+        "functionCallTokens": 0,
+        "messageBreakdown": [
+          {
+            "role": "user",
+            "stringTokens": 2,
+            "overhead": 3,
+            "total": 5
+          }
+        ]
+      }
+    }
+  ]
+}
