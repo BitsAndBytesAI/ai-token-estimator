@@ -45,10 +45,14 @@ export function getOpenAIEncoding(
 
 /**
  * Convert our SpecialTokenHandling to the format expected by BPETokenizer.
+ * Returns:
+ * - 'skip': skip special token handling entirely (encode as regular text)
+ * - 'all' or Set: allow these special tokens
+ * - undefined: throw on special tokens (default)
  */
 function resolveAllowedSpecial(
   allowSpecial: SpecialTokenHandling | undefined
-): Set<string> | 'all' | undefined {
+): Set<string> | 'all' | 'skip' | undefined {
   const mode = allowSpecial ?? 'none_raise';
 
   switch (mode) {
@@ -56,13 +60,11 @@ function resolveAllowedSpecial(
       // Allow all special tokens
       return SPECIAL_TOKEN_SET;
     case 'none':
-      // Treat special tokens as regular text (empty allowed set, no throw)
-      // Return undefined to skip special token handling entirely
-      return new Set();
+      // Treat special tokens as regular text - skip detection entirely
+      return 'skip';
     case 'none_raise':
     default:
       // Throw on special tokens (default behavior)
-      // Return undefined to use default behavior in tokenizer
       return undefined;
   }
 }

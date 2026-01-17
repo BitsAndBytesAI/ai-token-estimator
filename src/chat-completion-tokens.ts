@@ -8,10 +8,10 @@
 
 import {
   isChatModel,
-  isKnownModel,
   isAnthropicModel,
   isGoogleModel,
 } from './mappings/chat-models.js';
+import { isKnownModel } from './mappings/model-to-encoding.js';
 import {
   MESSAGE_TOKEN_OVERHEAD,
   MESSAGE_NAME_TOKEN_OVERHEAD,

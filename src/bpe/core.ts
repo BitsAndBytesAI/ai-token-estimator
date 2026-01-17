@@ -8,64 +8,15 @@
 import type { TokenizerConfig, TokenVocabulary } from './types.js';
 
 /**
- * Check if a byte array represents valid UTF-8.
+ * Convert bytes to a latin-1 string (each byte becomes a char code).
+ * This matches how the vocabulary stores token bytes.
  */
-function isValidUtf8(arr: Uint8Array): boolean {
-  let i = 0;
-  while (i < arr.length) {
-    const byte = arr[i];
-
-    if (byte <= 0x7f) {
-      // Single byte (ASCII)
-      i++;
-    } else if ((byte & 0xe0) === 0xc0) {
-      // Two-byte sequence
-      if (i + 1 >= arr.length) return false;
-      if ((arr[i + 1] & 0xc0) !== 0x80) return false;
-      // Check for overlong encoding
-      if (byte < 0xc2) return false;
-      i += 2;
-    } else if ((byte & 0xf0) === 0xe0) {
-      // Three-byte sequence
-      if (i + 2 >= arr.length) return false;
-      if ((arr[i + 1] & 0xc0) !== 0x80) return false;
-      if ((arr[i + 2] & 0xc0) !== 0x80) return false;
-      // Check for overlong encoding and surrogate range
-      const codePoint =
-        ((byte & 0x0f) << 12) |
-        ((arr[i + 1] & 0x3f) << 6) |
-        (arr[i + 2] & 0x3f);
-      if (codePoint < 0x800) return false;
-      if (codePoint >= 0xd800 && codePoint <= 0xdfff) return false;
-      i += 3;
-    } else if ((byte & 0xf8) === 0xf0) {
-      // Four-byte sequence
-      if (i + 3 >= arr.length) return false;
-      if ((arr[i + 1] & 0xc0) !== 0x80) return false;
-      if ((arr[i + 2] & 0xc0) !== 0x80) return false;
-      if ((arr[i + 3] & 0xc0) !== 0x80) return false;
-      // Check for overlong encoding and valid range
-      const codePoint =
-        ((byte & 0x07) << 18) |
-        ((arr[i + 1] & 0x3f) << 12) |
-        ((arr[i + 2] & 0x3f) << 6) |
-        (arr[i + 3] & 0x3f);
-      if (codePoint < 0x10000) return false;
-      if (codePoint > 0x10ffff) return false;
-      i += 4;
-    } else {
-      return false;
-    }
+function bytesToLatin1(arr: Uint8Array): string {
+  let str = '';
+  for (let i = 0; i < arr.length; i++) {
+    str += String.fromCharCode(arr[i]);
   }
-  return true;
-}
-
-/**
- * Try to convert bytes to a string, returning undefined if invalid UTF-8.
- */
-function bytesToString(arr: Uint8Array): string | undefined {
-  if (!isValidUtf8(arr)) return undefined;
-  return new TextDecoder('utf-8', { fatal: true }).decode(arr);
+  return str;
 }
 
 /**
@@ -77,19 +28,6 @@ function stringToBytes(str: string): Uint8Array {
     bytes[i] = str.charCodeAt(i);
   }
   return bytes;
-}
-
-/**
- * Compare two byte arrays lexicographically.
- */
-function compareBytes(a: Uint8Array, b: Uint8Array): number {
-  const minLen = Math.min(a.length, b.length);
-  for (let i = 0; i < minLen; i++) {
-    if (a[i] !== b[i]) {
-      return a[i] - b[i];
-    }
-  }
-  return a.length - b.length;
 }
 
 /**
@@ -105,8 +43,6 @@ export class BPETokenizer {
   private readonly encoder: Map<string, number>;
   // Decoder: rank → token bytes
   private readonly decoder: Map<number, Uint8Array>;
-  // Non-UTF8 tokens sorted for binary search
-  private readonly nonUtf8Tokens: Array<{ bytes: Uint8Array; rank: number }>;
 
   // LRU cache for merge results
   private readonly tokenCache: Map<string, number[]>;
@@ -140,7 +76,6 @@ export class BPETokenizer {
     // Build encoder and decoder from vocabulary
     this.encoder = new Map();
     this.decoder = new Map();
-    this.nonUtf8Tokens = [];
 
     this.buildVocabulary(config.vocabDecoder);
   }
@@ -152,39 +87,42 @@ export class BPETokenizer {
     for (let rank = 0; rank < vocab.length; rank++) {
       const entry = vocab[rank];
       let bytes: Uint8Array;
+      let key: string;
 
       if (typeof entry === 'string') {
-        // UTF-8 valid token stored as string
+        // Token stored as latin-1 string (each char is a byte)
         bytes = stringToBytes(entry);
-        this.encoder.set(entry, rank);
+        key = entry;
       } else {
-        // Non-UTF8 token stored as byte array
+        // Token stored as byte array
         bytes = new Uint8Array(entry);
-        // Try to convert to string for encoder lookup
-        const str = bytesToString(bytes);
-        if (str !== undefined) {
-          this.encoder.set(str, rank);
-        } else {
-          // Store for binary search
-          this.nonUtf8Tokens.push({ bytes, rank });
-        }
+        key = bytesToLatin1(bytes);
       }
 
+      this.encoder.set(key, rank);
       this.decoder.set(rank, bytes);
     }
-
-    // Sort non-UTF8 tokens for binary search
-    this.nonUtf8Tokens.sort((a, b) => compareBytes(a.bytes, b.bytes));
   }
 
   /**
    * Encode text into token IDs.
+   *
+   * @param text - The text to encode
+   * @param allowedSpecial - Controls special token handling:
+   *   - 'skip': Skip special token detection entirely (encode as regular text)
+   *   - 'all': Allow all special tokens
+   *   - Set<string>: Allow only the specified special tokens
+   *   - undefined: Throw on any special token (default)
    */
-  encodeText(text: string, allowedSpecial?: Set<string> | 'all'): number[] {
+  encodeText(text: string, allowedSpecial?: Set<string> | 'all' | 'skip'): number[] {
     if (!text) return [];
 
+    // Skip special token handling if requested (treat special tokens as regular text)
+    if (allowedSpecial === 'skip') {
+      return this.encodeOrdinary(text);
+    }
+
     const tokens: number[] = [];
-    let remaining = text;
 
     // Process special tokens if regex exists
     if (this.specialTokenRegex && this.specialTokenMap.size > 0) {
@@ -201,7 +139,7 @@ export class BPETokenizer {
         }
       }
     } else {
-      tokens.push(...this.encodeOrdinary(remaining));
+      tokens.push(...this.encodeOrdinary(text));
     }
 
     return tokens;
@@ -380,37 +318,9 @@ export class BPETokenizer {
    * Look up the rank for a byte sequence.
    */
   private lookupByteRank(bytes: Uint8Array): number | undefined {
-    // Try string lookup first (most tokens are UTF-8 valid)
-    const str = bytesToString(bytes);
-    if (str !== undefined) {
-      return this.encoder.get(str);
-    }
-
-    // Binary search for non-UTF8 tokens
-    return this.searchNonUtf8Tokens(bytes);
-  }
-
-  /**
-   * Binary search for non-UTF8 tokens.
-   */
-  private searchNonUtf8Tokens(bytes: Uint8Array): number | undefined {
-    let left = 0;
-    let right = this.nonUtf8Tokens.length - 1;
-
-    while (left <= right) {
-      const mid = (left + right) >>> 1;
-      const cmp = compareBytes(this.nonUtf8Tokens[mid].bytes, bytes);
-
-      if (cmp === 0) {
-        return this.nonUtf8Tokens[mid].rank;
-      } else if (cmp < 0) {
-        left = mid + 1;
-      } else {
-        right = mid - 1;
-      }
-    }
-
-    return undefined;
+    // Convert to latin-1 string (matches how vocab stores tokens)
+    const str = bytesToLatin1(bytes);
+    return this.encoder.get(str);
   }
 
   /**

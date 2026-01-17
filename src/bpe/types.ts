@@ -85,6 +85,6 @@ export interface DecodeOptions {
  * Encoding API returned by getTokenizer().
  */
 export interface EncodingApi {
-  encode: (text: string, allowedSpecial?: Set<string> | 'all') => number[];
+  encode: (text: string, allowedSpecial?: Set<string> | 'all' | 'skip') => number[];
   decode: (tokens: Iterable<number>) => string;
 }

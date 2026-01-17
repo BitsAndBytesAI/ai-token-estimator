@@ -5,6 +5,8 @@
  */
 
 import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { BPETokenizer } from './core.js';
 import { getSpecialTokenMap } from './special-tokens.js';
 import { getTokenSplitRegex } from '../encodings/regex.js';
@@ -19,11 +21,12 @@ import type {
 // Setup require for sync loading
 // __filename exists in CJS, import.meta.url exists in ESM
 declare const __filename: string | undefined;
-const requireBase =
+const currentFile =
   typeof __filename === 'string' && __filename.length > 0
     ? __filename
-    : import.meta.url;
-const nodeRequire = createRequire(requireBase);
+    : fileURLToPath(import.meta.url);
+const currentDir = dirname(currentFile);
+const nodeRequire = createRequire(currentFile);
 
 // Re-export types
 export type {
@@ -83,29 +86,31 @@ async function loadVocabulary(encoding: OpenAIEncoding): Promise<TokenVocabulary
 }
 
 /**
- * Module paths for each encoding vocabulary.
+ * Get the absolute path to an encoding vocabulary module.
  */
-const ENCODING_MODULES: Record<OpenAIEncoding, string> = {
-  r50k_base: '../encodings/generated/r50k_base.js',
-  p50k_base: '../encodings/generated/p50k_base.js',
-  p50k_edit: '../encodings/generated/p50k_edit.js',
-  cl100k_base: '../encodings/generated/cl100k_base.js',
-  o200k_base: '../encodings/generated/o200k_base.js',
-  o200k_harmony: '../encodings/generated/o200k_harmony.js',
-};
+function getEncodingPath(encoding: OpenAIEncoding, ext: string): string {
+  return join(currentDir, '..', 'encodings', 'generated', `${encoding}${ext}`);
+}
 
 /**
  * Synchronously load vocabulary for an encoding.
  * Uses createRequire for sync imports in both CJS and ESM.
+ * Tries .ts first (for development/test), then .js (for production).
  */
 function loadVocabularySync(encoding: OpenAIEncoding): TokenVocabulary {
-  const modulePath = ENCODING_MODULES[encoding];
-  if (!modulePath) {
-    throw new Error(`Unknown encoding: ${encoding}`);
+  // Try .ts first (vitest/tsx), then .js (compiled production)
+  const extensions = ['.ts', '.js'];
+  for (const ext of extensions) {
+    try {
+      const modulePath = getEncodingPath(encoding, ext);
+      const mod = nodeRequire(modulePath) as { VOCAB: TokenVocabulary };
+      return mod.VOCAB;
+    } catch {
+      // Try next extension
+    }
   }
 
-  const mod = nodeRequire(modulePath) as { VOCAB: TokenVocabulary };
-  return mod.VOCAB;
+  throw new Error(`Could not load vocabulary for encoding: ${encoding}`);
 }
 
 /**
@@ -134,7 +139,7 @@ export async function getTokenizerAsync(encoding: OpenAIEncoding): Promise<Encod
   }
 
   return {
-    encode: (text: string, allowedSpecial?: Set<string> | 'all') =>
+    encode: (text: string, allowedSpecial?: Set<string> | 'all' | 'skip') =>
       tokenizer!.encodeText(text, allowedSpecial),
     decode: (tokens: Iterable<number>) => tokenizer!.decodeTokens(tokens),
   };
@@ -153,7 +158,7 @@ export function getTokenizer(encoding: OpenAIEncoding): EncodingApi {
   }
 
   return {
-    encode: (text: string, allowedSpecial?: Set<string> | 'all') =>
+    encode: (text: string, allowedSpecial?: Set<string> | 'all' | 'skip') =>
       tokenizer!.encodeText(text, allowedSpecial),
     decode: (tokens: Iterable<number>) => tokenizer!.decodeTokens(tokens),
   };

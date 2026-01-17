@@ -1,9 +1,83 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { countChatCompletionTokens } from '../src/index.js';
 import type {
   ChatMessage,
+  FunctionDefinition,
   ChatCompletionTokenCountInput,
 } from '../src/index.js';
+
+// Load tiktoken golden fixtures
+const fixturesPath = join(__dirname, 'fixtures', 'tiktoken-golden.json');
+const fixtures = JSON.parse(readFileSync(fixturesPath, 'utf-8'));
+
+interface ChatCompletionFixture {
+  input: {
+    messages: ChatMessage[];
+    functions?: FunctionDefinition[];
+    function_call?: 'auto' | 'none' | { name: string };
+  };
+  expected: {
+    totalTokens: number;
+    messageTokens: number;
+    completionOverheadTokens: number;
+    functionTokens: number;
+    functionCallTokens: number;
+  };
+}
+
+// =============================================================================
+// Tiktoken Golden Tests
+// =============================================================================
+
+describe('countChatCompletionTokens - tiktoken parity', () => {
+  const chatFixtures: ChatCompletionFixture[] = fixtures.chatCompletionFixtures;
+  const model = 'gpt-4o';
+
+  it(`has ${chatFixtures.length} golden test cases from tiktoken`, () => {
+    expect(chatFixtures.length).toBeGreaterThan(0);
+  });
+
+  chatFixtures.forEach((fixture, index) => {
+    const { messages, functions, function_call } = fixture.input;
+
+    // Generate descriptive test name
+    const parts: string[] = [];
+    if (messages.length === 1) {
+      const msg = messages[0];
+      parts.push(`${msg.role} message`);
+      if (msg.name) parts.push(`with name`);
+      if (msg.function_call) parts.push(`with function_call`);
+    } else {
+      parts.push(`${messages.length} messages`);
+    }
+    if (functions && functions.length > 0) {
+      parts.push(`+ ${functions.length} function(s)`);
+    }
+    if (function_call && function_call !== 'auto') {
+      const fcStr = typeof function_call === 'string'
+        ? function_call
+        : `{name: ${function_call.name}}`;
+      parts.push(`[function_call: ${fcStr}]`);
+    }
+    const testName = `[${index}] ${parts.join(' ')} => ${fixture.expected.totalTokens} tokens`;
+
+    it(testName, () => {
+      const result = countChatCompletionTokens({
+        messages: messages as ChatMessage[],
+        functions: functions as FunctionDefinition[] | undefined,
+        function_call: function_call,
+        model,
+      });
+      expect(result.totalTokens).toBe(fixture.expected.totalTokens);
+      expect(result.messageTokens).toBe(fixture.expected.messageTokens);
+      expect(result.completionOverheadTokens).toBe(fixture.expected.completionOverheadTokens);
+      expect(result.functionTokens).toBe(fixture.expected.functionTokens);
+      expect(result.functionCallTokens).toBe(fixture.expected.functionCallTokens);
+    });
+  });
+});
 
 // =============================================================================
 // Validation / Error Tests
