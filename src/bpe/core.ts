@@ -43,7 +43,7 @@ export class BPETokenizer {
   // Decoder: rank → token bytes
   private readonly decoder: Map<number, Uint8Array>;
 
-  // LRU cache for BPE merge results (Map iteration order = insertion order)
+  // LRU cache for BPE merge results (Map iteration order tracks recency)
   private readonly tokenCache: Map<string, number[]>;
   private cacheCapacity: number;
 
@@ -366,7 +366,7 @@ export class BPETokenizer {
 
     // Evict LRU entries (first in iteration order = oldest)
     if (this.tokenCache.size >= this.cacheCapacity) {
-      const toRemove = Math.floor(this.cacheCapacity / 2);
+      const toRemove = Math.max(1, Math.floor(this.cacheCapacity / 2));
       let removed = 0;
       for (const k of this.tokenCache.keys()) {
         if (removed >= toRemove) break;
