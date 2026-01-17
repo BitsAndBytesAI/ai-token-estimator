@@ -43,7 +43,7 @@ export class BPETokenizer {
   // Decoder: rank → token bytes
   private readonly decoder: Map<number, Uint8Array>;
 
-  // Cache for BPE merge results (evicts half when full, not true LRU)
+  // LRU cache for BPE merge results (Map iteration order = insertion order)
   private readonly tokenCache: Map<string, number[]>;
   private cacheCapacity: number;
 
@@ -189,7 +189,8 @@ export class BPETokenizer {
         searchFrom = lastIndex;
       } else {
         // Not a special token, continue searching after this '<|'
-        searchFrom = startDelim + 1;
+        // Safe to skip by 2 since '<|' is 2 chars and next '<|' can't overlap
+        searchFrom = startDelim + 2;
       }
     }
 
@@ -216,8 +217,8 @@ export class BPETokenizer {
     if (!matches) return tokens;
 
     for (const piece of matches) {
-      // Check cache first
-      const cached = this.tokenCache.get(piece);
+      // Check cache first (with LRU touch)
+      const cached = this.getFromCache(piece);
       if (cached) {
         tokens.push(...cached);
         continue;
@@ -345,17 +346,32 @@ export class BPETokenizer {
   }
 
   /**
-   * Add an entry to the cache, evicting if necessary.
+   * Get from cache with LRU touch (moves entry to most-recently-used position).
+   */
+  private getFromCache(key: string): number[] | undefined {
+    const value = this.tokenCache.get(key);
+    if (value !== undefined) {
+      // Touch: delete and re-add to move to end (most recently used)
+      this.tokenCache.delete(key);
+      this.tokenCache.set(key, value);
+    }
+    return value;
+  }
+
+  /**
+   * Add an entry to the cache, evicting LRU entries if necessary.
    */
   private addToCache(key: string, value: number[]): void {
     if (this.cacheCapacity <= 0) return;
 
-    // Simple eviction: clear half the cache when full
+    // Evict LRU entries (first in iteration order = oldest)
     if (this.tokenCache.size >= this.cacheCapacity) {
-      const entries = Array.from(this.tokenCache.keys());
-      const toRemove = Math.floor(entries.length / 2);
-      for (let i = 0; i < toRemove; i++) {
-        this.tokenCache.delete(entries[i]);
+      const toRemove = Math.floor(this.cacheCapacity / 2);
+      let removed = 0;
+      for (const k of this.tokenCache.keys()) {
+        if (removed >= toRemove) break;
+        this.tokenCache.delete(k);
+        removed++;
       }
     }
 

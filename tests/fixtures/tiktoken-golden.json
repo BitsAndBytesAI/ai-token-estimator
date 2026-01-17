@@ -1,6 +1,6 @@
 {
   "generatedWith": "tiktoken 0.12.0",
-  "generatedAt": "2026-01-17T20:02:09.900342Z",
+  "generatedAt": "2026-01-17T21:02:36.917484Z",
   "encodeFixtures": [
     {
       "encoding": "r50k_base",
@@ -174,6 +174,206 @@
         1571
       ],
       "tokenCount": 5
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text   ",
+      "tokens": [
+        5239,
+        220,
+        220,
+        220
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text\n",
+      "tokens": [
+        5239,
+        198
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text\n\n",
+      "tokens": [
+        5239,
+        628
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text   \n",
+      "tokens": [
+        5239,
+        220,
+        220,
+        220,
+        198
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text\n   ",
+      "tokens": [
+        5239,
+        198,
+        220,
+        220,
+        220
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "   \n   \n   ",
+      "tokens": [
+        220,
+        220,
+        220,
+        198,
+        220,
+        220,
+        220,
+        198,
+        220,
+        220,
+        220
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "word1    word2    word3",
+      "tokens": [
+        4775,
+        16,
+        220,
+        220,
+        220,
+        1573,
+        17,
+        220,
+        220,
+        220,
+        1573,
+        18
+      ],
+      "tokenCount": 12
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "line1\n\n\nline2",
+      "tokens": [
+        1370,
+        16,
+        628,
+        198,
+        1370,
+        17
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "mixed\r\n\r\nlines",
+      "tokens": [
+        76,
+        2966,
+        201,
+        198,
+        201,
+        198,
+        6615
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "r50k_base",
+      "text": " \t \n \r ",
+      "tokens": [
+        220,
+        197,
+        220,
+        198,
+        220,
+        201,
+        220
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "text\t\t\ttabs",
+      "tokens": [
+        5239,
+        197,
+        197,
+        197,
+        8658,
+        82
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "a b  c   d    e",
+      "tokens": [
+        64,
+        275,
+        220,
+        269,
+        220,
+        220,
+        288,
+        220,
+        220,
+        220,
+        304
+      ],
+      "tokenCount": 11
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "\n\n\nstart",
+      "tokens": [
+        628,
+        198,
+        9688
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "end\n\n\n",
+      "tokens": [
+        437,
+        628,
+        198
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "r50k_base",
+      "text": "  \t  \n  \r  ",
+      "tokens": [
+        220,
+        220,
+        197,
+        220,
+        220,
+        198,
+        220,
+        220,
+        201,
+        220,
+        220
+      ],
+      "tokenCount": 11
     },
     {
       "encoding": "r50k_base",
@@ -928,6 +1128,183 @@
         1571
       ],
       "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text   ",
+      "tokens": [
+        5239,
+        50258
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text\n",
+      "tokens": [
+        5239,
+        198
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text\n\n",
+      "tokens": [
+        5239,
+        628
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text   \n",
+      "tokens": [
+        5239,
+        50258,
+        198
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text\n   ",
+      "tokens": [
+        5239,
+        198,
+        50258
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "   \n   \n   ",
+      "tokens": [
+        50258,
+        198,
+        50258,
+        198,
+        50258
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "word1    word2    word3",
+      "tokens": [
+        4775,
+        16,
+        50258,
+        1573,
+        17,
+        50258,
+        1573,
+        18
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "line1\n\n\nline2",
+      "tokens": [
+        1370,
+        16,
+        628,
+        198,
+        1370,
+        17
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "mixed\r\n\r\nlines",
+      "tokens": [
+        76,
+        2966,
+        201,
+        198,
+        201,
+        198,
+        6615
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_base",
+      "text": " \t \n \r ",
+      "tokens": [
+        220,
+        197,
+        220,
+        198,
+        220,
+        201,
+        220
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "text\t\t\ttabs",
+      "tokens": [
+        5239,
+        197,
+        197,
+        197,
+        8658,
+        82
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "a b  c   d    e",
+      "tokens": [
+        64,
+        275,
+        220,
+        269,
+        50257,
+        288,
+        50258,
+        304
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "\n\n\nstart",
+      "tokens": [
+        628,
+        198,
+        9688
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "end\n\n\n",
+      "tokens": [
+        437,
+        628,
+        198
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_base",
+      "text": "  \t  \n  \r  ",
+      "tokens": [
+        50257,
+        197,
+        50257,
+        198,
+        50257,
+        201,
+        50257
+      ],
+      "tokenCount": 7
     },
     {
       "encoding": "p50k_base",
@@ -1680,6 +2057,183 @@
         1571
       ],
       "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text   ",
+      "tokens": [
+        5239,
+        50258
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text\n",
+      "tokens": [
+        5239,
+        198
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text\n\n",
+      "tokens": [
+        5239,
+        628
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text   \n",
+      "tokens": [
+        5239,
+        50258,
+        198
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text\n   ",
+      "tokens": [
+        5239,
+        198,
+        50258
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "   \n   \n   ",
+      "tokens": [
+        50258,
+        198,
+        50258,
+        198,
+        50258
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "word1    word2    word3",
+      "tokens": [
+        4775,
+        16,
+        50258,
+        1573,
+        17,
+        50258,
+        1573,
+        18
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "line1\n\n\nline2",
+      "tokens": [
+        1370,
+        16,
+        628,
+        198,
+        1370,
+        17
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "mixed\r\n\r\nlines",
+      "tokens": [
+        76,
+        2966,
+        201,
+        198,
+        201,
+        198,
+        6615
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": " \t \n \r ",
+      "tokens": [
+        220,
+        197,
+        220,
+        198,
+        220,
+        201,
+        220
+      ],
+      "tokenCount": 7
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "text\t\t\ttabs",
+      "tokens": [
+        5239,
+        197,
+        197,
+        197,
+        8658,
+        82
+      ],
+      "tokenCount": 6
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "a b  c   d    e",
+      "tokens": [
+        64,
+        275,
+        220,
+        269,
+        50257,
+        288,
+        50258,
+        304
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "\n\n\nstart",
+      "tokens": [
+        628,
+        198,
+        9688
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "end\n\n\n",
+      "tokens": [
+        437,
+        628,
+        198
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "p50k_edit",
+      "text": "  \t  \n  \r  ",
+      "tokens": [
+        50257,
+        197,
+        50257,
+        198,
+        50257,
+        201,
+        50257
+      ],
+      "tokenCount": 7
     },
     {
       "encoding": "p50k_edit",
@@ -2429,6 +2983,167 @@
     },
     {
       "encoding": "cl100k_base",
+      "text": "text   ",
+      "tokens": [
+        1342,
+        262
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "text\n",
+      "tokens": [
+        1342,
+        198
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "text\n\n",
+      "tokens": [
+        1342,
+        271
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "text   \n",
+      "tokens": [
+        1342,
+        5996
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "text\n   ",
+      "tokens": [
+        1342,
+        198,
+        262
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "   \n   \n   ",
+      "tokens": [
+        5996,
+        5996,
+        262
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "word1    word2    word3",
+      "tokens": [
+        1178,
+        16,
+        262,
+        3492,
+        17,
+        262,
+        3492,
+        18
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "line1\n\n\nline2",
+      "tokens": [
+        1074,
+        16,
+        1432,
+        1074,
+        17
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "mixed\r\n\r\nlines",
+      "tokens": [
+        57785,
+        881,
+        8128
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": " \t \n \r ",
+      "tokens": [
+        7163,
+        720,
+        220,
+        201,
+        220
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "text\t\t\ttabs",
+      "tokens": [
+        1342,
+        298,
+        3324,
+        3518
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "a b  c   d    e",
+      "tokens": [
+        64,
+        293,
+        220,
+        272,
+        256,
+        294,
+        262,
+        384
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "\n\n\nstart",
+      "tokens": [
+        1432,
+        2527
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "end\n\n\n",
+      "tokens": [
+        408,
+        1432
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "cl100k_base",
+      "text": "  \t  \n  \r  ",
+      "tokens": [
+        19827,
+        2355,
+        256,
+        201,
+        256
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "cl100k_base",
       "text": "Hello 世界",
       "tokens": [
         9906,
@@ -3112,6 +3827,167 @@
         3258
       ],
       "tokenCount": 4
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text   ",
+      "tokens": [
+        919,
+        271
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text\n",
+      "tokens": [
+        919,
+        198
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text\n\n",
+      "tokens": [
+        919,
+        279
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text   \n",
+      "tokens": [
+        919,
+        10190
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text\n   ",
+      "tokens": [
+        919,
+        198,
+        271
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "   \n   \n   ",
+      "tokens": [
+        10190,
+        10190,
+        271
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "word1    word2    word3",
+      "tokens": [
+        1801,
+        16,
+        271,
+        2195,
+        17,
+        271,
+        2195,
+        18
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "line1\n\n\nline2",
+      "tokens": [
+        1137,
+        16,
+        2499,
+        1137,
+        17
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "mixed\r\n\r\nlines",
+      "tokens": [
+        136877,
+        1414,
+        10105
+      ],
+      "tokenCount": 3
+    },
+    {
+      "encoding": "o200k_base",
+      "text": " \t \n \r ",
+      "tokens": [
+        14593,
+        793,
+        220,
+        201,
+        220
+      ],
+      "tokenCount": 5
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "text\t\t\ttabs",
+      "tokens": [
+        919,
+        335,
+        6264,
+        6071
+      ],
+      "tokenCount": 4
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "a b  c   d    e",
+      "tokens": [
+        64,
+        287,
+        220,
+        274,
+        256,
+        272,
+        271,
+        319
+      ],
+      "tokenCount": 8
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "\n\n\nstart",
+      "tokens": [
+        2499,
+        5236
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "end\n\n\n",
+      "tokens": [
+        419,
+        2499
+      ],
+      "tokenCount": 2
+    },
+    {
+      "encoding": "o200k_base",
+      "text": "  \t  \n  \r  ",
+      "tokens": [
+        45469,
+        4066,
+        256,
+        201,
+        256
+      ],
+      "tokenCount": 5
     },
     {
       "encoding": "o200k_base",

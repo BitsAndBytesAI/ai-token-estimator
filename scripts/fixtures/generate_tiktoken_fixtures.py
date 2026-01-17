@@ -52,6 +52,23 @@ def generate_encode_fixtures() -> list[dict[str, Any]]:
         "carriage\rreturn",
         "crlf\r\nending",
 
+        # Adversarial whitespace/newline cases (test regex-end behavior)
+        "text   ",  # Trailing multiple spaces
+        "text\n",  # Trailing newline
+        "text\n\n",  # Trailing multiple newlines
+        "text   \n",  # Trailing spaces then newline
+        "text\n   ",  # Trailing newline then spaces
+        "   \n   \n   ",  # Only whitespace with mixed spaces/newlines
+        "word1    word2    word3",  # Long internal whitespace runs
+        "line1\n\n\nline2",  # Multiple consecutive newlines
+        "mixed\r\n\r\nlines",  # Multiple CRLF
+        " \t \n \r ",  # Mixed whitespace characters
+        "text\t\t\ttabs",  # Multiple tabs
+        "a b  c   d    e",  # Progressively longer spaces
+        "\n\n\nstart",  # Leading multiple newlines
+        "end\n\n\n",  # Trailing multiple newlines
+        "  \t  \n  \r  ",  # Whitespace soup
+
         # Unicode
         "Hello 世界",
         "Привет мир",
