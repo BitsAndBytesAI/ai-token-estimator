@@ -61,7 +61,7 @@ console.log(countTokens({ text: 'Hello, world!', model: 'gpt-5.1' }));
 
 ## Exact OpenAI tokenization (BPE)
 
-This package includes **exact tokenization for OpenAI models** using a tiktoken-compatible BPE tokenizer (via `gpt-tokenizer`).
+This package includes **exact tokenization for OpenAI models** using a native tiktoken-compatible BPE tokenizer.
 
 Notes:
 - Encodings are **lazy-loaded on first use** (one-time cost per encoding).
@@ -239,7 +239,7 @@ const result = countTokens({ text: 'Hello, world!', model: 'gpt-5.1' });
 
 ### `countChatCompletionTokens(input: ChatCompletionTokenCountInput): ChatCompletionTokenCountOutput`
 
-Counts tokens for an **OpenAI chat completion request**, including messages, function definitions, and function_call controls. Achieves exact parity with `gpt-tokenizer`'s `computeChatCompletionTokenCount` for normal text inputs.
+Counts tokens for an **OpenAI chat completion request**, including messages, function definitions, and function_call controls. Achieves exact parity with OpenAI's actual token counting for normal text inputs.
 
 **Important limitations:**
 - **Legacy functions API only** — supports `functions` and `function_call` parameters

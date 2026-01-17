@@ -1,8 +1,7 @@
 /**
  * Function definition formatting for token counting.
  *
- * Ported from gpt-tokenizer's functionCalling.ts for exact parity.
- * @see https://github.com/niieani/gpt-tokenizer/blob/main/src/functionCalling.ts
+ * Formats function definitions as TypeScript namespace strings for tokenization.
  */
 
 import type {
@@ -81,7 +80,6 @@ export function formatObjectProperties(
 
 /**
  * Format function definitions as TypeScript namespace.
- * Direct port from gpt-tokenizer for exact parity.
  */
 export function formatFunctionDefinitions(
   functions: FunctionDefinition[]
