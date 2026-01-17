@@ -43,7 +43,7 @@ export class BPETokenizer {
   // Decoder: rank → token bytes
   private readonly decoder: Map<number, Uint8Array>;
 
-  // LRU cache for merge results
+  // Cache for BPE merge results (evicts half when full, not true LRU)
   private readonly tokenCache: Map<string, number[]>;
   private cacheCapacity: number;
 

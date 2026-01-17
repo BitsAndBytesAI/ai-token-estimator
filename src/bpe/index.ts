@@ -42,6 +42,10 @@ export { isChatModel, isAnthropicModel, isGoogleModel } from '../mappings/chat-m
 /**
  * Static vocabulary map - no filesystem loading needed.
  * This ensures the tokenizer works correctly in bundled/dist builds.
+ *
+ * Trade-off: All vocabs are bundled into the main entry (~6.4MB total).
+ * If startup time or memory becomes a concern, consider shipping vocab
+ * modules as separate files and loading them per-encoding on demand.
  */
 const VOCAB_BY_ENCODING: Record<OpenAIEncoding, TokenVocabulary> = {
   r50k_base: R50K_BASE_VOCAB,
