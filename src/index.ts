@@ -6,7 +6,7 @@ export {
   DEFAULT_MODELS,
   LAST_UPDATED,
 } from './models.js';
-export { encode, decode } from './openai-bpe.js';
+export { encode, decode, getOpenAIEncoding } from './openai-bpe.js';
 export { countTokens } from './token-counter.js';
 export { countChatCompletionTokens } from './chat-completion-tokens.js';
 export { countAnthropicInputTokens } from './providers/anthropic.js';

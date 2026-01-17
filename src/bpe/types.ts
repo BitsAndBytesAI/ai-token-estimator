@@ -26,8 +26,12 @@ export type SpecialTokenHandling =
 
 /**
  * Vocabulary data: array where index = token rank, value = token bytes.
- * - string: UTF-8 valid token
- * - number[]: byte array for non-UTF8 tokens
+ *
+ * Token bytes are stored as latin-1 encoded strings, where each character
+ * code (0-255) represents one byte. This matches tiktoken's internal format.
+ *
+ * - string: latin-1 byte string (charCodeAt(i) gives byte value at position i)
+ * - number[]: byte array (legacy format, converted to latin-1 string on load)
  */
 export type TokenVocabulary = readonly (string | readonly number[])[];
 

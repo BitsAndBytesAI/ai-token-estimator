@@ -4,29 +4,24 @@
  * Provides encode/decode functionality compatible with OpenAI's tiktoken.
  */
 
-import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { BPETokenizer } from './core.js';
 import { getSpecialTokenMap } from './special-tokens.js';
 import { getTokenSplitRegex } from '../encodings/regex.js';
 import { resolveModelEncoding, DEFAULT_ENCODING } from '../mappings/model-to-encoding.js';
+import {
+  R50K_BASE_VOCAB,
+  P50K_BASE_VOCAB,
+  P50K_EDIT_VOCAB,
+  CL100K_BASE_VOCAB,
+  O200K_BASE_VOCAB,
+  O200K_HARMONY_VOCAB,
+} from '../encodings/generated/index.js';
 import type {
   OpenAIEncoding,
   EncodingApi,
   TokenizerConfig,
   TokenVocabulary,
 } from './types.js';
-
-// Setup require for sync loading
-// __filename exists in CJS, import.meta.url exists in ESM
-declare const __filename: string | undefined;
-const currentFile =
-  typeof __filename === 'string' && __filename.length > 0
-    ? __filename
-    : fileURLToPath(import.meta.url);
-const currentDir = dirname(currentFile);
-const nodeRequire = createRequire(currentFile);
 
 // Re-export types
 export type {
@@ -45,72 +40,32 @@ export { resolveModelEncoding, isKnownModel, DEFAULT_ENCODING } from '../mapping
 export { isChatModel, isAnthropicModel, isGoogleModel } from '../mappings/chat-models.js';
 
 /**
+ * Static vocabulary map - no filesystem loading needed.
+ * This ensures the tokenizer works correctly in bundled/dist builds.
+ */
+const VOCAB_BY_ENCODING: Record<OpenAIEncoding, TokenVocabulary> = {
+  r50k_base: R50K_BASE_VOCAB,
+  p50k_base: P50K_BASE_VOCAB,
+  p50k_edit: P50K_EDIT_VOCAB,
+  cl100k_base: CL100K_BASE_VOCAB,
+  o200k_base: O200K_BASE_VOCAB,
+  o200k_harmony: O200K_HARMONY_VOCAB,
+};
+
+/**
  * Cache for loaded tokenizers.
  */
 const tokenizerCache = new Map<OpenAIEncoding, BPETokenizer>();
 
 /**
- * Lazily load vocabulary for an encoding.
+ * Get vocabulary for an encoding (sync, from static imports).
  */
-async function loadVocabulary(encoding: OpenAIEncoding): Promise<TokenVocabulary> {
-  switch (encoding) {
-    case 'r50k_base': {
-      const { VOCAB } = await import('../encodings/generated/r50k_base.js');
-      return VOCAB;
-    }
-    case 'p50k_base': {
-      const { VOCAB } = await import('../encodings/generated/p50k_base.js');
-      return VOCAB;
-    }
-    case 'p50k_edit': {
-      const { VOCAB } = await import('../encodings/generated/p50k_edit.js');
-      return VOCAB;
-    }
-    case 'cl100k_base': {
-      const { VOCAB } = await import('../encodings/generated/cl100k_base.js');
-      return VOCAB;
-    }
-    case 'o200k_base': {
-      const { VOCAB } = await import('../encodings/generated/o200k_base.js');
-      return VOCAB;
-    }
-    case 'o200k_harmony': {
-      const { VOCAB } = await import('../encodings/generated/o200k_harmony.js');
-      return VOCAB;
-    }
-    default: {
-      const _exhaustive: never = encoding;
-      throw new Error(`Unknown encoding: ${_exhaustive}`);
-    }
+function getVocabulary(encoding: OpenAIEncoding): TokenVocabulary {
+  const vocab = VOCAB_BY_ENCODING[encoding];
+  if (!vocab) {
+    throw new Error(`Unknown encoding: ${encoding}`);
   }
-}
-
-/**
- * Get the absolute path to an encoding vocabulary module.
- */
-function getEncodingPath(encoding: OpenAIEncoding, ext: string): string {
-  return join(currentDir, '..', 'encodings', 'generated', `${encoding}${ext}`);
-}
-
-/**
- * Synchronously load vocabulary for an encoding.
- * Uses createRequire for sync imports in both CJS and ESM.
- * Tries .ts first (for development/test), then .js (for production).
- */
-function loadVocabularySync(encoding: OpenAIEncoding): TokenVocabulary {
-  // Try .ts first (vitest/tsx), then .js (compiled production)
-  const extensions = ['.ts', '.js'];
-  for (const ext of extensions) {
-    try {
-      const modulePath = getEncodingPath(encoding, ext);
-      const mod = nodeRequire(modulePath) as { VOCAB: TokenVocabulary };
-      return mod.VOCAB;
-    } catch {
-      // Try next extension
-    }
-  }
-
-  throw new Error(`Could not load vocabulary for encoding: ${encoding}`);
+  return vocab;
 }
 
 /**
@@ -127,13 +82,13 @@ function createTokenizer(encoding: OpenAIEncoding, vocab: TokenVocabulary): BPET
 }
 
 /**
- * Get a tokenizer for an encoding (async, lazy loading).
+ * Get a tokenizer for an encoding (async version for backwards compatibility).
  */
 export async function getTokenizerAsync(encoding: OpenAIEncoding): Promise<EncodingApi> {
   let tokenizer = tokenizerCache.get(encoding);
 
   if (!tokenizer) {
-    const vocab = await loadVocabulary(encoding);
+    const vocab = getVocabulary(encoding);
     tokenizer = createTokenizer(encoding, vocab);
     tokenizerCache.set(encoding, tokenizer);
   }
@@ -146,13 +101,13 @@ export async function getTokenizerAsync(encoding: OpenAIEncoding): Promise<Encod
 }
 
 /**
- * Get the tokenizer for an encoding (sync, lazy-loads on first use).
+ * Get the tokenizer for an encoding (sync).
  */
 export function getTokenizer(encoding: OpenAIEncoding): EncodingApi {
   let tokenizer = tokenizerCache.get(encoding);
 
   if (!tokenizer) {
-    const vocab = loadVocabularySync(encoding);
+    const vocab = getVocabulary(encoding);
     tokenizer = createTokenizer(encoding, vocab);
     tokenizerCache.set(encoding, tokenizer);
   }
@@ -166,10 +121,12 @@ export function getTokenizer(encoding: OpenAIEncoding): EncodingApi {
 
 /**
  * Preload a tokenizer for sync access later.
+ * Note: With static imports, this is now essentially a no-op that just
+ * ensures the tokenizer is cached. Kept for API compatibility.
  */
 export async function preloadTokenizer(encoding: OpenAIEncoding): Promise<void> {
   if (!tokenizerCache.has(encoding)) {
-    const vocab = await loadVocabulary(encoding);
+    const vocab = getVocabulary(encoding);
     const tokenizer = createTokenizer(encoding, vocab);
     tokenizerCache.set(encoding, tokenizer);
   }

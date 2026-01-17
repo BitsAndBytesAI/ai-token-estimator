@@ -94,3 +94,18 @@ describe('OpenAI BPE tokenizer - model mapping', () => {
     expect(byModel).toEqual(byEncoding);
   });
 });
+
+describe('OpenAI BPE tokenizer - decode error handling', () => {
+  it('throws on invalid/unknown token IDs', () => {
+    // Use a token ID that's way out of range for any vocab
+    expect(() => decode([999999999], { encoding: 'cl100k_base' })).toThrow(
+      'Invalid token ID: 999999999'
+    );
+  });
+
+  it('throws on negative token IDs', () => {
+    expect(() => decode([-1], { encoding: 'o200k_base' })).toThrow(
+      'Invalid token ID: -1'
+    );
+  });
+});

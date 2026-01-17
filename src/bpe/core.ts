@@ -37,7 +37,6 @@ export class BPETokenizer {
   private readonly tokenSplitRegex: RegExp;
   private readonly specialTokenMap: Map<string, number>;
   private readonly specialTokenDecoder: Map<number, string>;
-  private readonly specialTokenRegex: RegExp | null;
 
   // Encoder: token bytes (as latin1 string) → rank
   private readonly encoder: Map<string, number>;
@@ -61,16 +60,6 @@ export class BPETokenizer {
     this.specialTokenDecoder = new Map();
     for (const [token, rank] of this.specialTokenMap) {
       this.specialTokenDecoder.set(rank, token);
-    }
-
-    // Build special token regex
-    if (this.specialTokenMap.size > 0) {
-      const escaped = Array.from(this.specialTokenMap.keys())
-        .map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-        .join('|');
-      this.specialTokenRegex = new RegExp(escaped, 'g');
-    } else {
-      this.specialTokenRegex = null;
     }
 
     // Build encoder and decoder from vocabulary
@@ -124,8 +113,8 @@ export class BPETokenizer {
 
     const tokens: number[] = [];
 
-    // Process special tokens if regex exists
-    if (this.specialTokenRegex && this.specialTokenMap.size > 0) {
+    // Process special tokens if any are defined
+    if (this.specialTokenMap.size > 0) {
       const parts = this.splitOnSpecialTokens(text, allowedSpecial);
 
       for (const part of parts) {
@@ -146,48 +135,62 @@ export class BPETokenizer {
   }
 
   /**
-   * Split text on special tokens.
+   * Split text on special tokens using deterministic scan.
+   * All special tokens follow the pattern <|...|>, so we scan for these delimiters
+   * instead of using a giant regex alternation (which scales poorly for o200k_harmony).
    */
   private splitOnSpecialTokens(
     text: string,
     allowedSpecial?: Set<string> | 'all'
   ): Array<{ text: string; isSpecial: boolean }> {
     const parts: Array<{ text: string; isSpecial: boolean }> = [];
-
-    if (!this.specialTokenRegex) {
-      return [{ text, isSpecial: false }];
-    }
-
-    // Reset regex state
-    this.specialTokenRegex.lastIndex = 0;
-
     let lastIndex = 0;
-    let match: RegExpExecArray | null;
+    let searchFrom = 0;
 
-    while ((match = this.specialTokenRegex.exec(text)) !== null) {
-      const specialToken = match[0];
-
-      // Check if this special token is allowed
-      const isAllowed =
-        allowedSpecial === 'all' || allowedSpecial?.has(specialToken);
-
-      if (!isAllowed) {
-        // Default behavior: throw on special tokens
-        throw new Error(
-          `Encountered special token "${specialToken}" which is not allowed. ` +
-            'Use allowedSpecial to permit encoding special tokens.'
-        );
+    while (searchFrom < text.length) {
+      // Find the next potential special token start
+      const startDelim = text.indexOf('<|', searchFrom);
+      if (startDelim === -1) {
+        break;
       }
 
-      // Add text before the special token
-      if (match.index > lastIndex) {
-        parts.push({ text: text.slice(lastIndex, match.index), isSpecial: false });
+      // Find the closing delimiter
+      const endDelim = text.indexOf('|>', startDelim + 2);
+      if (endDelim === -1) {
+        // No closing delimiter, no more special tokens possible
+        break;
       }
 
-      // Add the special token
-      parts.push({ text: specialToken, isSpecial: true });
+      // Extract the potential special token (including delimiters)
+      const potentialToken = text.slice(startDelim, endDelim + 2);
 
-      lastIndex = match.index + specialToken.length;
+      // Check if this is actually a special token in our map
+      if (this.specialTokenMap.has(potentialToken)) {
+        // Check if this special token is allowed
+        const isAllowed =
+          allowedSpecial === 'all' || allowedSpecial?.has(potentialToken);
+
+        if (!isAllowed) {
+          throw new Error(
+            `Encountered special token "${potentialToken}" which is not allowed. ` +
+              'Use allowedSpecial to permit encoding special tokens.'
+          );
+        }
+
+        // Add text before the special token
+        if (startDelim > lastIndex) {
+          parts.push({ text: text.slice(lastIndex, startDelim), isSpecial: false });
+        }
+
+        // Add the special token
+        parts.push({ text: potentialToken, isSpecial: true });
+
+        lastIndex = endDelim + 2;
+        searchFrom = lastIndex;
+      } else {
+        // Not a special token, continue searching after this '<|'
+        searchFrom = startDelim + 1;
+      }
     }
 
     // Add remaining text
@@ -220,8 +223,13 @@ export class BPETokenizer {
         continue;
       }
 
+      // Convert to UTF-8 bytes then to latin-1 key for vocab lookup
+      const pieceBytes = this.textEncoder.encode(piece);
+      const key = bytesToLatin1(pieceBytes);
+
       // Try direct lookup first (most tokens are single entries)
-      const directRank = this.encoder.get(piece);
+      // This avoids O(n²) BPE merges for common whole-piece tokens
+      const directRank = this.encoder.get(key);
       if (directRank !== undefined) {
         tokens.push(directRank);
         this.addToCache(piece, [directRank]);
@@ -229,7 +237,6 @@ export class BPETokenizer {
       }
 
       // Need to do BPE merge
-      const pieceBytes = this.textEncoder.encode(piece);
       const pieceTokens = this.mergeBytePairs(pieceBytes);
       tokens.push(...pieceTokens);
       this.addToCache(piece, pieceTokens);
@@ -374,6 +381,10 @@ export class BPETokenizer {
       const tokenBytes = this.decoder.get(token);
       if (tokenBytes) {
         bytes.push(...tokenBytes);
+      } else {
+        throw new Error(
+          `Invalid token ID: ${token}. Token not found in vocabulary or special tokens.`
+        );
       }
     }
 

@@ -33,8 +33,9 @@
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:dist": "node scripts/test-dist.mjs",
     "lint": "eslint src tests",
-    "prepublishOnly": "npm run lint && npm run test && npm run build",
+    "prepublishOnly": "npm run lint && npm run test && npm run build && npm run test:dist",
     "update-pricing": "tsx scripts/update-pricing.ts",
     "benchmark:tokenizer": "tsx benchmark/tokenizer.ts"
   },
