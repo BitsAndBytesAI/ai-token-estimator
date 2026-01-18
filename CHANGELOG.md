@@ -1,5 +1,11 @@
 # ai-token-estimator
 
+## 1.3.0
+
+### Minor Changes
+
+- 0e17221: Add a pure TypeScript SentencePiece tokenizer (Unigram + SentencePiece-style BPE + HF `tokenizer.json` JSON-BPE), removing the `sentencepiece`/`sentencepiece-js` dependency while keeping the public API compatible.
+
 ## 1.2.0
 
 ### Minor Changes
