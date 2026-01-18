@@ -8,6 +8,14 @@ export interface ModelConfig {
   charsPerToken: number;
   /** Cost in USD per 1 million input tokens */
   inputCostPerMillion: number;
+  /** Cost in USD per 1 million output tokens (optional - extracted when available) */
+  outputCostPerMillion?: number;
+  /** Cost in USD per 1 million cached input tokens (optional - primarily OpenAI) */
+  cachedInputCostPerMillion?: number;
+  /** Cost in USD per 1 million batch input tokens (optional - primarily OpenAI) */
+  batchInputCostPerMillion?: number;
+  /** Cost in USD per 1 million batch output tokens (optional - primarily OpenAI) */
+  batchOutputCostPerMillion?: number;
 }
 
 export type TokenizerMode =

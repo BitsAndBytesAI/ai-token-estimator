@@ -1,6 +1,12 @@
 export { estimate } from './estimator.js';
 export { estimateAsync } from './estimator-async.js';
 export {
+  estimateCost,
+  estimateCostFromText,
+  estimateCostFromTextAsync,
+  getTotalCost,
+} from './cost.js';
+export {
   getModelConfig,
   getAvailableModels,
   DEFAULT_MODELS,
@@ -44,6 +50,12 @@ export type {
 } from './types.js';
 export type { EncodeOptions, OpenAIEncoding, SpecialTokenHandling } from './openai-bpe.js';
 export type { TokenCountInput, TokenCountOutput } from './token-counter.js';
+export type {
+  EstimateCostInput,
+  CostEstimate,
+  EstimateCostFromTextOptions,
+  EstimateCostFromTextAsyncOptions,
+} from './cost.js';
 export type { AnthropicCountTokensParams } from './providers/anthropic.js';
 export type { GeminiCountTokensParams } from './providers/gemini.js';
 export type { GemmaSentencePieceCountTokensParams } from './providers/gemma-sentencepiece.js';
