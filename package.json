@@ -1,6 +1,6 @@
 {
   "name": "ai-token-estimator",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Estimate and count tokens (incl. exact OpenAI BPE) and input costs for LLM API calls",
   "type": "module",
   "main": "./dist/index.cjs",
