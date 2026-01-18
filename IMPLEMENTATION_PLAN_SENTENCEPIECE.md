@@ -2333,12 +2333,12 @@ function buildHFNormalizer(normalizer: any): TextNormalizer | null {
   if (!normalizer) return null;
 
   // NOTE: This is the tokenizer.json normalizer pipeline, NOT SentencePiece normalizer_spec.
-  // Implement a minimal but extensible subset:
+  // MVP (full parity for common HF tokenizers) supports:
   // - Sequence
   // - Lowercase
   // - NFKC
   // - Strip
-  // - Replace
+  // - Replace (Pattern.String + Pattern.Regex)
   //
   // Throw on unsupported normalizers to avoid silent mismatches.
 
@@ -2376,16 +2376,104 @@ function buildHFNormalizer(normalizer: any): TextNormalizer | null {
   }
 
   if (normalizer.type === 'Replace') {
-    const pattern = normalizer.pattern?.String ?? normalizer.pattern ?? '';
+    const compiled = compileHFReplacePattern(normalizer.pattern);
     const content = normalizer.content ?? '';
-    const re = new RegExp(pattern, 'gu');
-    return { normalize: (t: string) => t.replace(re, content) };
+
+    if (compiled.type === 'string') {
+      // Literal substring replacement (NOT a regex). Use split/join for broad compatibility.
+      return { normalize: (t: string) => t.split(compiled.value).join(content) };
+    }
+
+    // Regex replacement.
+    // NOTE: HuggingFace tokenizers uses Rust `regex` semantics. For MVP we:
+    // - Support patterns representable in both Rust regex and JS RegExp (Unicode mode).
+    // - Translate/validate common constructs so behavior matches for typical tokenizer.json files.
+    // - Throw on unsupported patterns (rather than silently produce wrong tokenization).
+    const jsReplacement = translateRustReplacementToJs(content);
+    return { normalize: (t: string) => t.replace(compiled.value, jsReplacement) };
   }
 
   throw new UnsupportedTokenizerError(
     `Unsupported tokenizer.json normalizer: "${normalizer.type}". ` +
     'Add support in buildHFNormalizer() or provide a supported tokenizer.json.'
   );
+}
+
+type HFPattern =
+  | { String: string }
+  | { Regex: string }
+  | string; // Some configs may serialize bare strings; treat as String literal.
+
+type CompiledReplacePattern =
+  | { type: 'string'; value: string }
+  | { type: 'regex'; value: RegExp };
+
+function compileHFReplacePattern(pattern: HFPattern): CompiledReplacePattern {
+  if (typeof pattern === 'string') return { type: 'string', value: pattern };
+  if (pattern && typeof pattern === 'object' && typeof (pattern as any).String === 'string') {
+    return { type: 'string', value: (pattern as any).String };
+  }
+  if (pattern && typeof pattern === 'object' && typeof (pattern as any).Regex === 'string') {
+    const raw = (pattern as any).Regex;
+    return { type: 'regex', value: compileHFRustRegexToJs(raw) };
+  }
+  throw new UnsupportedTokenizerError('Replace normalizer missing supported pattern (String or Regex)');
+}
+
+function compileHFRustRegexToJs(raw: string): RegExp {
+  // MVP regex feature support:
+  // - Pattern form: { Regex: string }
+  // - No lookaround, no backreferences (Rust regex doesn't support them either)
+  // - Optional leading flag group: (?i), (?m), (?s) (combined allowed: (?im))
+  // - Unicode-aware \\w/\\d rewrites for parity with Rust regex defaults
+  //
+  // Anything outside this subset must throw to prevent silent mismatches.
+
+  if (raw.includes('(?=') || raw.includes('(?!') || raw.includes('(?<=') || raw.includes('(?<!')) {
+    throw new UnsupportedTokenizerError('Unsupported Regex pattern: lookaround is not supported');
+  }
+  if (/\\[1-9]/.test(raw) || /\\k<[^>]+>/.test(raw)) {
+    throw new UnsupportedTokenizerError('Unsupported Regex pattern: backreferences are not supported');
+  }
+
+  // Named capture group syntax: Rust uses (?P<name>...), JS uses (?<name>...)
+  let pattern = raw.replace(/\(\?P</g, '(?<');
+
+  // Extract a leading flag group like (?im) or (?i)
+  let flags = 'gu';
+  const leadingFlags = pattern.match(/^\(\?([ims]+)\)/);
+  if (leadingFlags) {
+    const f = leadingFlags[1];
+    if (f.includes('i')) flags += 'i';
+    if (f.includes('m')) flags += 'm';
+    if (f.includes('s')) flags += 's';
+    pattern = pattern.slice(leadingFlags[0].length);
+  }
+
+  // Rust regex uses Unicode character classes for \\w/\\d by default; JS does not.
+  pattern = pattern
+    .replace(/\\w/g, '[\\p{L}\\p{N}_]')
+    .replace(/\\W/g, '[^\\p{L}\\p{N}_]')
+    .replace(/\\d/g, '\\\\p{Nd}')
+    .replace(/\\D/g, '\\\\P{Nd}');
+
+  try {
+    return new RegExp(pattern, flags);
+  } catch (err: any) {
+    throw new UnsupportedTokenizerError(
+      `Invalid/unsupported Regex pattern for Replace normalizer: ${String(err?.message ?? err)}`
+    );
+  }
+}
+
+function translateRustReplacementToJs(replacement: string): string {
+  // Rust regex replacement supports `$name` for named capture groups.
+  // JS uses `$<name>`. Translate for parity.
+  //
+  // This is intentionally conservative:
+  // - Leaves `$1..$99` intact (compatible)
+  // - Leaves `$$` intact (both treat as literal `$`)
+  return replacement.replace(/\$([A-Za-z_][A-Za-z0-9_]*)/g, '$<$1>');
 }
 ```
 
