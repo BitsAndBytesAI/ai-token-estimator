@@ -26,9 +26,7 @@
     "LICENSE",
     "README.md"
   ],
-  "dependencies": {
-    "sentencepiece-js": "^1.1.0"
-  },
+  "dependencies": {},
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "test": "vitest run",
