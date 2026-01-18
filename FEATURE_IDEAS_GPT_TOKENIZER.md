@@ -1,43 +1,42 @@
-# gpt-tokenizer Feature List (Ordered by User/Customer Value)
+# gpt-tokenizer Feature List (Re-sorted by Status + Next Priorities)
 #
 # Source: `gpt-tokenizer` README on npm (`https://www.npmjs.com/package/gpt-tokenizer`).
 #
-# Listed below are **features `gpt-tokenizer` has** (not implementation proposals), ordered from **highest user value** → **least impactful**
-# for a token estimation / budgeting workflow.
+# Listed below are **features `gpt-tokenizer` has** (not implementation proposals), re-sorted for this branch by:
+# 1) what is already completed in `ai-token-estimator`, then
+# 2) what we should build next for highest user impact.
 #
 # Status legend:
 # - ✅ Completed in `ai-token-estimator`
+# - 🟨 Partially completed (usable, but missing notable `gpt-tokenizer` parity)
 # - ⏳ Planned / not implemented yet
 #
 
-## Core Functionality (Highest Value)
+## Completed (Ship/Marketing Now)
 
 1. ✅ **BPE tokenizer encoder/decoder (tiktoken port)**: `encode`, `decode` (exact tokenization vs heuristic estimation).
-2. ⏳ **Chat completion token counting**: `countChatCompletionTokens` (accounts for chat overhead + function/tool definitions/pinned calls).
-3. ⏳ **Built-in cost estimation**: `estimateCost` (supports multiple pricing categories such as main API vs batch API and cached token categories when available).
-4. ⏳ **Fast token-limit check without full encode**: `isWithinTokenLimit` (returns `false` when exceeded; otherwise returns token count).
-5. ⏳ **Chat-aware tokenization**: `encodeChat` (tokenize chat payloads correctly for specific models).
-
-## Developer Experience (High Value)
-
-6. ⏳ **Synchronous load + sync API** (usable without `async/await` contexts).
-7. ⏳ **Browser-first distribution options**:
-   - Works in the browser out-of-the-box
-   - UMD bundles per encoding via unpkg (e.g., `GPTTokenizer_o200k_base` global).
-8. ⏳ **Explicit encoding support + model→encoding mapping**:
+2. ✅ **Chat completion token counting**: `countChatCompletionTokens` (chat overhead + legacy functions API).
+3. 🟨 **Built-in cost estimation**: `estimateCost` (we support basic input cost estimation today via `estimate(...)`; missing richer categories for full parity).
+4. ✅ **Explicit encoding support + model→encoding mapping**:
    - Encodings: `r50k_base`, `p50k_base`, `p50k_edit`, `cl100k_base`, `o200k_base`, `o200k_harmony`
-   - Example notes: o-series models use `o200k_base`; `gpt-oss-*` uses `o200k_harmony`; `gpt-4*`/`gpt-3.5*` use `cl100k_base`.
+   - Model→encoding mapping via `getOpenAIEncoding(...)`.
+5. ✅ **Synchronous load + sync API** (sync tokenization + estimation APIs).
 
-## Advanced/Streaming Features (Medium Value)
+## Next (Highest Impact to Build)
+
+6. ⏳ **Finish `estimateCost` parity**: output token costs, cached token categories, batch pricing categories (and an explicit `estimateCost(...)` API).
+7. ⏳ **Fast token-limit check without full encode**: `isWithinTokenLimit` (early-exit counting; returns `false` when exceeded, else token count).
+8. ⏳ **Chat-aware tokenization**: `encodeChat` (tokenize chat payloads correctly for specific models).
+
+## Later (Valuable, but Lower ROI vs Above)
 
 9. ⏳ **Generator-based APIs**: `encodeGenerator`, `encodeChatGenerator`, `decodeGenerator`.
 10. ⏳ **Async stream decoding**: `decodeAsyncGenerator` / `decodeGenerator` with any iterable input.
-11. ⏳ **Performance/footprint focus (benchmarked)**:
+11. ⏳ **Browser-first distribution options**:
+    - Works in the browser out-of-the-box
+    - UMD bundles per encoding via unpkg (e.g., `GPTTokenizer_o200k_base` global).
+12. ⏳ **Performance/footprint focus (benchmarked)**:
     - Claims fastest encoding/decoding and low memory footprint
     - Notes internal perf optimizations (e.g., eliminating transitive arrays).
-
-## Technical/Nice-to-Have (Lower Value)
-
-12. ⏳ **No global cache** (explicitly avoids accidental memory leaks).
-13. ⏳ **Playground**: hosted interactive playground (`https://gpt-tokenizer.dev/`).
-
+13. ⏳ **No global cache** (explicitly avoids accidental memory leaks).
+14. ⏳ **Playground**: hosted interactive playground (`https://gpt-tokenizer.dev/`).
