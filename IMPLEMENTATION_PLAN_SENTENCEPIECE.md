@@ -6,7 +6,7 @@ Replace the `sentencepiece-js` WASM-based dependency with a pure TypeScript impl
 - Smaller bundle size (no WASM)
 - Browser-native execution
 - Full control over the tokenization logic
-- Support for user-supplied models and official model downloads
+- Support for user-supplied models and optional downloads from default sources
 
 ## Requirements Summary
 
@@ -42,9 +42,9 @@ Replace the `sentencepiece-js` WASM-based dependency with a pure TypeScript impl
    const tokenizer = getSentencePieceTokenizer({ modelData: modelBytes });
    ```
 
-2. **Official download helper** (convenience, compliant):
+2. **Download helper** (convenience, fetches from default sources):
    ```typescript
-   // Downloads from official source, verifies SHA-256, caches on disk
+   // Downloads from default source, verifies SHA-256, caches on disk
    const modelPath = await ensureSentencePieceModel({
      tokenizer: 'gemma',
      cacheDir: './models',  // or SENTENCEPIECE_MODEL_CACHE_DIR env var
@@ -512,6 +512,7 @@ export interface NormalizerSpec {
   addDummyPrefix: boolean;
   removeExtraWhitespaces: boolean;
   escapeWhitespaces: boolean;
+  whitespaceReplacement: string;    // Metaspace replacement char (default: '▁')
 }
 
 export interface SelfTestData {
@@ -691,13 +692,12 @@ function applyPrecompiledCharsmap(
 import { parsePrecompiledCharsmap, applyPrecompiledCharsmap } from './precompiled.js';
 import type { NormalizerSpec } from '../protobuf/schema.js';
 
-const WHITESPACE_TOKEN = '\u2581'; // ▁
-
 export class Normalizer {
   private readonly precompiledCharmap: PrecompiledCharmap | null;
   private readonly addDummyPrefix: boolean;
   private readonly removeExtraWhitespaces: boolean;
   private readonly escapeWhitespaces: boolean;
+  private readonly whitespaceReplacement: string;
 
   constructor(spec: NormalizerSpec) {
     // Parse precompiled charmap if present (CRITICAL for parity)
@@ -710,6 +710,8 @@ export class Normalizer {
     this.addDummyPrefix = spec.addDummyPrefix ?? true;
     this.removeExtraWhitespaces = spec.removeExtraWhitespaces ?? true;
     this.escapeWhitespaces = spec.escapeWhitespaces ?? true;
+    // Metaspace replacement character (default: ▁ U+2581)
+    this.whitespaceReplacement = spec.whitespaceReplacement ?? '\u2581';
   }
 
   normalize(text: string): string {
@@ -733,9 +735,9 @@ export class Normalizer {
       result = ' ' + result;
     }
 
-    // 4. Escape whitespaces (replace ' ' with ▁)
+    // 4. Escape whitespaces (replace ' ' with configured replacement)
     if (this.escapeWhitespaces) {
-      result = result.replace(/ /g, WHITESPACE_TOKEN);
+      result = result.replace(/ /g, this.whitespaceReplacement);
     }
 
     return result;
@@ -745,8 +747,8 @@ export class Normalizer {
   denormalize(text: string): string {
     let result = text;
 
-    // Replace ▁ with space
-    result = result.replace(new RegExp(WHITESPACE_TOKEN, 'g'), ' ');
+    // Replace configured whitespace token with space
+    result = result.replace(new RegExp(escapeRegExp(this.whitespaceReplacement), 'g'), ' ');
 
     // Remove dummy prefix
     if (this.addDummyPrefix && result.startsWith(' ')) {
@@ -755,6 +757,11 @@ export class Normalizer {
 
     return result;
   }
+}
+
+// Helper to escape special regex characters in replacement string
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 ```
 
@@ -1112,11 +1119,17 @@ interface HFBPEModel {
   merges: string[];               // ["a b", "ab c", ...] - merge rules in priority order
   unk_token?: string;
   byte_fallback?: boolean;
+  continuing_subword_prefix?: string;  // e.g., "##" for BERT-style, prepended to non-first tokens
+  end_of_word_suffix?: string;         // e.g., "</w>" for GPT-style, appended to last token
 }
 
 // Example merges array (earlier = higher priority):
 // ["Ġ t", "Ġt he", "Ġthe Ġ", "i n", "e r", ...]
 // Meaning: "Ġ" + "t" → "Ġt" has highest priority
+
+// Subword prefix/suffix examples:
+// - BERT: continuing_subword_prefix="##" → "playing" = ["play", "##ing"]
+// - Some models: end_of_word_suffix="</w>" → "word" = ["wor", "d</w>"]
 ```
 
 #### JSON-BPE Encoder Implementation
@@ -1137,16 +1150,25 @@ export class JsonBPEEncoder {
   private readonly mergeRules: Map<string, MergeRule>; // "left right" → rule
   private readonly byteFallback: boolean;
   private readonly unkId: number;
+  private readonly continuingSubwordPrefix: string | null;
+  private readonly endOfWordSuffix: string | null;
 
   constructor(
     vocab: Record<string, number>,
     merges: string[],
-    options: { byteFallback?: boolean; unkId?: number } = {}
+    options: {
+      byteFallback?: boolean;
+      unkId?: number;
+      continuingSubwordPrefix?: string;
+      endOfWordSuffix?: string;
+    } = {}
   ) {
     this.vocab = new Map(Object.entries(vocab));
     this.vocabReverse = new Map(Object.entries(vocab).map(([k, v]) => [v, k]));
     this.byteFallback = options.byteFallback ?? false;
     this.unkId = options.unkId ?? 0;
+    this.continuingSubwordPrefix = options.continuingSubwordPrefix ?? null;
+    this.endOfWordSuffix = options.endOfWordSuffix ?? null;
 
     // Parse merges into lookup map
     this.mergeRules = new Map();
@@ -1191,8 +1213,33 @@ export class JsonBPEEncoder {
       }
     }
 
-    // Step 3: Convert tokens to IDs
+    // Step 3: Apply subword prefix/suffix transformations
+    tokens = this.applySubwordTransforms(tokens);
+
+    // Step 4: Convert tokens to IDs
     return tokens.map(t => this.vocab.get(t) ?? this.unkId);
+  }
+
+  private applySubwordTransforms(tokens: string[]): string[] {
+    if (!this.continuingSubwordPrefix && !this.endOfWordSuffix) {
+      return tokens;  // No transformations needed
+    }
+
+    return tokens.map((token, index) => {
+      let transformed = token;
+
+      // For tokens at index > 0: prepend continuing_subword_prefix
+      if (this.continuingSubwordPrefix && index > 0) {
+        transformed = this.continuingSubwordPrefix + transformed;
+      }
+
+      // For the last token: append end_of_word_suffix
+      if (this.endOfWordSuffix && index === tokens.length - 1) {
+        transformed = transformed + this.endOfWordSuffix;
+      }
+
+      return transformed;
+    });
   }
 
   private splitIntoInitialTokens(text: string): string[] {
@@ -1578,6 +1625,8 @@ interface HFTokenizerConfig {
     merges?: string[];
     unk_token?: string;
     byte_fallback?: boolean;
+    continuing_subword_prefix?: string;  // BPE: prepended to non-first tokens
+    end_of_word_suffix?: string;         // BPE: appended to last token
   };
   normalizer?: any;
   pre_tokenizer?: any;
@@ -1603,6 +1652,8 @@ export interface ParsedJsonTokenizer {
   merges?: string[];
   unkToken?: string;
   byteFallback?: boolean;
+  continuingSubwordPrefix?: string;  // e.g., "##" for BERT-style
+  endOfWordSuffix?: string;          // e.g., "</w>" for GPT-style
 }
 
 export function parseHFTokenizerJson(json: string | HFTokenizerConfig): ParsedJsonTokenizer {
@@ -1643,39 +1694,13 @@ export function parseHFTokenizerJson(json: string | HFTokenizerConfig): ParsedJs
       merges: config.model.merges ?? [],
       unkToken: config.model.unk_token,
       byteFallback: config.model.byte_fallback ?? false,
+      continuingSubwordPrefix: config.model.continuing_subword_prefix,
+      endOfWordSuffix: config.model.end_of_word_suffix,
     };
   }
 
   throw new UnsupportedTokenizerError(`Unexpected model type: ${config.model.type}`);
 }
-
-  // Add special tokens from added_tokens
-  for (const token of config.added_tokens ?? []) {
-    if (pieces[token.id]) {
-      pieces[token.id].type = token.special ? 3 : 1; // CONTROL or NORMAL
-    }
-  }
-
-  // Build trainer spec
-  const trainerSpec: TrainerSpec = {
-    modelType,
-    vocabSize: pieces.length,
-    byteFallback: config.model.byte_fallback ?? false,
-    splitDigits: false,
-    treatWhitespaceAsSuffix: false,
-    unkId: findTokenId(pieces, config.model.unk_token ?? '<unk>'),
-    bosId: findTokenId(pieces, '<s>'),
-    eosId: findTokenId(pieces, '</s>'),
-    padId: findTokenId(pieces, '<pad>'),
-    unkPiece: config.model.unk_token ?? '<unk>',
-    bosPiece: '<s>',
-    eosPiece: '</s>',
-    padPiece: '<pad>',
-    maxSentencepieceLength: 16,
-  };
-
-  // Build normalizer spec from config
-  const normalizerSpec = buildNormalizerSpec(config.normalizer, config.pre_tokenizer);
 
 // Helper functions
 
@@ -1704,6 +1729,7 @@ function buildTrainerSpec(config: HFTokenizerConfig, vocabSize: number, modelTyp
 function buildNormalizerSpec(normalizer: any, preTokenizer: any): NormalizerSpec {
   let addDummyPrefix = true;
   let escapeWhitespaces = true;
+  let whitespaceReplacement = '\u2581'; // Default: ▁
 
   // Extract metaspace settings
   const metaspace = preTokenizer?.type === 'Metaspace' ? preTokenizer
@@ -1711,6 +1737,8 @@ function buildNormalizerSpec(normalizer: any, preTokenizer: any): NormalizerSpec
 
   if (metaspace) {
     addDummyPrefix = metaspace.add_prefix_space ?? true;
+    // Metaspace replacement character (default: ▁ U+2581)
+    whitespaceReplacement = metaspace.replacement ?? '\u2581';
   }
 
   return {
@@ -1719,6 +1747,7 @@ function buildNormalizerSpec(normalizer: any, preTokenizer: any): NormalizerSpec
     addDummyPrefix,
     removeExtraWhitespaces: false,
     escapeWhitespaces,
+    whitespaceReplacement,
   };
 }
 ```
@@ -2425,12 +2454,15 @@ if (hasErrors) {
 console.log('✓ All registry hashes present and valid.');
 ```
 
-```json
-// package.json
+**Required package.json changes** (to be applied during implementation):
+
+```diff
+// package.json scripts section
 {
   "scripts": {
-    "prepublishOnly": "npm run build && npm run test && npm run verify:hashes",
-    "verify:hashes": "tsx scripts/verify-registry-hashes.ts"
++   "verify:hashes": "tsx scripts/verify-registry-hashes.ts",
+-   "prepublishOnly": "npm run lint && npm run test && npm run build && npm run test:dist",
++   "prepublishOnly": "npm run lint && npm run test && npm run build && npm run test:dist && npm run verify:hashes",
   }
 }
 ```
