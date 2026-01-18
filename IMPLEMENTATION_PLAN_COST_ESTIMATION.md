@@ -149,7 +149,7 @@ export function estimateCostFromTextAsync(options: {
   outputTokens?: number;         // Manual override (takes precedence over outputText)
   cachedInputTokens?: number;
   mode?: 'standard' | 'batch';
-} & Omit<EstimateAsyncInput, 'text'>  // Forward all provider options from EstimateAsyncInput
+} & Omit<EstimateAsyncInput, 'text' | 'model'>  // Forward all provider options from EstimateAsyncInput
 ): Promise<CostEstimate>;
 
 /**
@@ -806,6 +806,24 @@ const estimate = await estimateCostFromTextAsync({
   outputText: modelResponse,
   tokenizer: 'anthropic_count_tokens',
   anthropic: { apiKey: process.env.ANTHROPIC_API_KEY },
+});
+
+// Use Gemini's API for exact token counts
+const geminiEstimate = await estimateCostFromTextAsync({
+  model: 'gemini-1.5-pro',
+  inputText: longPrompt,
+  outputText: modelResponse,
+  tokenizer: 'gemini_count_tokens',
+  gemini: { apiKey: process.env.GEMINI_API_KEY },
+});
+
+// Use local Gemma model for token counting (modelPath, not apiKey)
+const gemmaEstimate = await estimateCostFromTextAsync({
+  model: 'gemma-7b',
+  inputText: longPrompt,
+  outputText: modelResponse,
+  tokenizer: 'gemma_sentencepiece',
+  gemma: { modelPath: '/path/to/gemma/tokenizer.model' },
 });
 ```
 
