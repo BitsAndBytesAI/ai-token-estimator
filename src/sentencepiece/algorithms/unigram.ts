@@ -112,11 +112,11 @@ export class UnigramEncoder {
       this.vocabReverse.set(id, piece);
 
       if (type === SentencePieceType.UNKNOWN) {
-        unkScore = score;
+        unkScore = Math.fround(score);
       } else if (type === SentencePieceType.BYTE) {
         const match = piece.match(/^<0x([0-9A-Fa-f]{2})>$/);
         if (match) {
-          this.byteScores.set(parseInt(match[1], 16), { id, score });
+          this.byteScores.set(parseInt(match[1], 16), { id, score: Math.fround(score) });
         }
       } else if (type === SentencePieceType.CONTROL) {
         // CONTROL tokens (<pad>, <s>, </s>, etc.) are NEVER matched from input text.
@@ -128,7 +128,7 @@ export class UnigramEncoder {
         specialTokens.push({ id, content: piece, special: true });
       } else if (type === SentencePieceType.NORMAL) {
         // Add to trie for Viterbi
-        this.trie.insert(piece, id, score);
+        this.trie.insert(piece, id, Math.fround(score));
       }
       // UNUSED pieces are skipped
     }
@@ -189,13 +189,15 @@ export class UnigramEncoder {
       const candidates = this.trie.findPrefixes(codePoints, i);
 
       for (const { id, score, length } of candidates) {
-        const newScore = best[i].score + score;
+        const newScore = Math.fround(best[i].score + score);
         const endIdx = i + length;
-        // Tie-break: on equal scores, prefer later start position (larger prevIdx)
-        // This produces "longer earlier piece" segmentations matching most Python cases.
-        // Use epsilon comparison for floating-point score equality.
-        const scoreDiff = newScore - best[endIdx].score;
-        if (scoreDiff > 1e-9 || (Math.abs(scoreDiff) <= 1e-9 && i > best[endIdx].prevIdx)) {
+        // SentencePiece uses strict `>` in Viterbi, but in practice we observe exact
+        // float32 ties at EOS for some models (e.g., T5 "????"). For those EOS ties,
+        // prefer the later start position so the final token is as short as possible.
+        if (
+          newScore > best[endIdx].score ||
+          (endIdx === n && newScore === best[endIdx].score && i > best[endIdx].prevIdx)
+        ) {
           best[endIdx] = { score: newScore, prevIdx: i, tokenId: id };
         }
       }
@@ -208,10 +210,12 @@ export class UnigramEncoder {
         if (this.byteFallback) {
           const byteTokens = this.getByteTokensForChar(char);
           if (byteTokens) {
-            const newScore = best[i].score + byteTokens.totalScore;
-            // Same tie-break rule: prefer larger prevIdx on equal scores
-            const scoreDiff = newScore - best[i + 1].score;
-            if (scoreDiff > 1e-9 || (Math.abs(scoreDiff) <= 1e-9 && i > best[i + 1].prevIdx)) {
+            const newScore = Math.fround(best[i].score + byteTokens.totalScore);
+            // Same EOS tie behavior as main Viterbi update.
+            if (
+              newScore > best[i + 1].score ||
+              (i + 1 === n && newScore === best[i + 1].score && i > best[i + 1].prevIdx)
+            ) {
               // Store as special marker; we'll expand during backtrack
               best[i + 1] = { score: newScore, prevIdx: i, tokenId: -2 }; // -2 = byte fallback
             }
@@ -239,10 +243,12 @@ export class UnigramEncoder {
         }
 
         // Emit single UNK for the entire unknown span
-        const newScore = best[i].score + this.unkScore;
-        // Same tie-break rule: prefer larger prevIdx on equal scores
-        const scoreDiff = newScore - best[endUnk].score;
-        if (scoreDiff > 1e-9 || (Math.abs(scoreDiff) <= 1e-9 && i > best[endUnk].prevIdx)) {
+        const newScore = Math.fround(best[i].score + this.unkScore);
+        // Same EOS tie behavior as main Viterbi update.
+        if (
+          newScore > best[endUnk].score ||
+          (endUnk === n && newScore === best[endUnk].score && i > best[endUnk].prevIdx)
+        ) {
           best[endUnk] = { score: newScore, prevIdx: i, tokenId: this.unkId };
         }
       }
@@ -281,7 +287,7 @@ export class UnigramEncoder {
       const byteInfo = this.byteScores.get(byte);
       if (!byteInfo) return null;
       ids.push(byteInfo.id);
-      totalScore += byteInfo.score;
+      totalScore = Math.fround(totalScore + byteInfo.score);
     }
 
     return { ids, totalScore };

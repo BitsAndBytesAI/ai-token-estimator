@@ -157,25 +157,32 @@ export class DoubleArrayTrie {
    * Returns array of {length, replacement} for each matching prefix.
    */
   commonPrefixSearch(utf8Bytes: Uint8Array): Array<{ length: number; replacement: string }> {
+    return this.commonPrefixSearchAt(utf8Bytes, 0);
+  }
+
+  /**
+   * Like commonPrefixSearch(), but starts matching at `start` without slicing.
+   */
+  commonPrefixSearchAt(utf8Bytes: Uint8Array, start: number): Array<{ length: number; replacement: string }> {
     const results: Array<{ length: number; replacement: string }> = [];
 
-    if (!this.isValid || utf8Bytes.length === 0) {
+    if (!this.isValid || utf8Bytes.length === 0 || start >= utf8Bytes.length) {
       return results;
     }
 
-    let nodePos = 0;
+    let nodePos = 0 >>> 0;
 
     // Get initial offset from first node
     const firstNode = this.trie[0];
-    nodePos ^= this.getOffset(firstNode);
+    nodePos = (nodePos ^ this.getOffset(firstNode)) >>> 0;
 
-    for (let i = 0; i < utf8Bytes.length; i++) {
+    for (let i = start; i < utf8Bytes.length; i++) {
       const byte = utf8Bytes[i];
 
       // XOR with the byte value
-      nodePos ^= byte;
+      nodePos = (nodePos ^ byte) >>> 0;
 
-      if (nodePos < 0 || nodePos >= this.trieLength) {
+      if (nodePos >= this.trieLength) {
         break;
       }
 
@@ -187,16 +194,16 @@ export class DoubleArrayTrie {
       }
 
       // XOR with the offset for next iteration
-      nodePos ^= this.getOffset(unit);
+      nodePos = (nodePos ^ this.getOffset(unit)) >>> 0;
 
       // Check if this node has a leaf (output)
       if (this.hasLeaf(unit)) {
         // Value is stored at the new nodePos (after XOR with offset)
-        if (nodePos >= 0 && nodePos < this.trieLength) {
+        if (nodePos < this.trieLength) {
           const leafUnit = this.trie[nodePos];
           const value = this.getValue(leafUnit);
           const replacement = this.getStringAt(value);
-          results.push({ length: i + 1, replacement });
+          results.push({ length: i - start + 1, replacement });
         }
       }
     }
@@ -274,7 +281,26 @@ export function parsePrecompiledCharsmap(data: Uint8Array): PrecompiledCharmap {
     return { doubleArrayTrie: daTrie };
   }
 
-  // Fall back to empty trie (should not happen for valid SentencePiece models)
+  // Fall back to HuggingFace spm_precompiled format (older tokenizers format)
+  // - Bytes 0-3: u32 trie offset
+  // - Bytes 4..offset: normalized string table (null-separated)
+  // - Bytes offset..end: trie bytes
+  try {
+    const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    const trieOffset = view.getUint32(0, true);
+    if (trieOffset > 4 && trieOffset < data.length) {
+      const stringTable = parseStringTable(data.subarray(4, trieOffset));
+      const trieData = data.subarray(trieOffset);
+      const trie = parseTrieNode(trieData, 0, stringTable);
+      if (trie.children.size > 0) {
+        return { trie };
+      }
+    }
+  } catch {
+    // ignore and fall through
+  }
+
+  // No usable trie found
   return { trie: new CharMapTrie() };
 }
 
@@ -442,19 +468,24 @@ export function applyPrecompiledCharsmap(text: string, charmap: PrecompiledCharm
 function applyDoubleArrayCharmap(text: string, trie: DoubleArrayTrie): string {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
+  const replacementCache = new Map<string, Uint8Array>();
   const utf8Bytes = encoder.encode(text);
   const resultBytes: number[] = [];
 
   let pos = 0;
   while (pos < utf8Bytes.length) {
     // Try longest-match prefix search from current position
-    const matches = trie.commonPrefixSearch(utf8Bytes.subarray(pos));
+    const matches = trie.commonPrefixSearchAt(utf8Bytes, pos);
 
     if (matches.length > 0) {
       // Use the longest match (last in the array)
       const longest = matches[matches.length - 1];
       // Append the replacement (as UTF-8 bytes)
-      const replacementBytes = encoder.encode(longest.replacement);
+      let replacementBytes = replacementCache.get(longest.replacement);
+      if (!replacementBytes) {
+        replacementBytes = encoder.encode(longest.replacement);
+        replacementCache.set(longest.replacement, replacementBytes);
+      }
       for (const b of replacementBytes) {
         resultBytes.push(b);
       }
