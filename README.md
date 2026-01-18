@@ -4,17 +4,18 @@
 [![CI](https://github.com/BitsAndBytesAI/ai-token-estimator/actions/workflows/ci.yml/badge.svg)](https://github.com/BitsAndBytesAI/ai-token-estimator/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/ai-token-estimator.svg)](https://github.com/BitsAndBytesAI/ai-token-estimator/blob/main/LICENSE)
 
-The best way to estimate **tokens + input cost** for LLM calls — with **exact tokenization** for OpenAI (tiktoken-compatible BPE) and SentencePiece models (T5, ALBERT, XLNet, Gemma, LLaMA, and more).
+The best way to estimate **tokens + input cost** for LLM calls — with **exact OpenAI tokenization** (tiktoken-compatible BPE), a pure TypeScript **SentencePiece tokenizer** (T5, ALBERT, XLNet, Gemma, LLaMA 2, and more), and optional provider-backed token counting for Anthropic + Gemini.
 
 > **Zero external dependencies** — pure TypeScript implementation of both BPE and SentencePiece tokenizers.
 
 ## Features
 
 - **Exact OpenAI tokenization** (tiktoken-compatible BPE): `encode()` / `decode()` / `openai_exact`
+- **OpenAI chat completion token counting** (legacy `functions` API): `countChatCompletionTokens()` with optional per-message breakdown
 - **Pure TypeScript SentencePiece tokenizer** (no native dependencies):
   - Supports `.model` files (protobuf format)
-  - Supports `tokenizer.json` files (HuggingFace format)
-  - Unigram and BPE algorithms
+  - Supports `tokenizer.json` files (HuggingFace format, validated configs)
+  - Unigram + SentencePiece-style BPE, plus merges-based JSON-BPE (when represented in `tokenizer.json`)
   - Works in Node.js and browsers
 - **Official provider token counting** (async):
   - Anthropic `POST /v1/messages/count_tokens` (`anthropic_count_tokens`)
@@ -61,14 +62,49 @@ console.log(countTokens({ text: 'Hello, world!', model: 'gpt-5.1' }));
 // { tokens: 4, exact: true, encoding: 'o200k_base' }
 ```
 
+## Quick Recipes
+
+### OpenAI chat completion tokens (legacy functions API)
+
+```ts
+import { countChatCompletionTokens } from 'ai-token-estimator';
+
+const { totalTokens } = countChatCompletionTokens({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Hello!' }],
+});
+```
+
+### Local SentencePiece token counting
+
+```ts
+import { countSentencePieceTokensAsync } from 'ai-token-estimator';
+
+const tokens = await countSentencePieceTokensAsync('Hello!', {
+  modelPath: './path/to/spiece.model',
+});
+```
+
+### Provider-backed counts (server-side)
+
+```ts
+import { estimateAsync } from 'ai-token-estimator';
+
+const out = await estimateAsync({
+  model: 'claude-sonnet-4.5',
+  text: 'Hello!',
+  tokenizer: 'anthropic_count_tokens',
+});
+```
+
 ## Exact OpenAI tokenization (BPE)
 
-This package includes **exact tokenization for OpenAI models** using a native tiktoken-compatible BPE tokenizer.
+This package includes **exact tokenization for OpenAI models** using a built-in tiktoken-compatible BPE tokenizer.
 
 Notes:
-- Encodings are **lazy-loaded on first use** (one-time cost per encoding).
 - Exact tokenization is **slower** than heuristic estimation; `estimate()` defaults to `'heuristic'` to keep existing behavior fast.
-- `encode` / `decode` and `estimate({ tokenizer: 'openai_exact' })` require **Node.js** (uses `node:module` under the hood).
+- For distribution/build compatibility, all OpenAI vocabularies are bundled (trade-off: larger bundle size).
+- Pure TypeScript implementation: works in Node.js and browsers (no native deps, no WASM).
 
 ```ts
 import { encode, decode } from 'ai-token-estimator';
@@ -84,9 +120,9 @@ console.log(roundTrip); // "Hello, world!"
 Supported encodings:
 `r50k_base`, `p50k_base`, `p50k_edit`, `cl100k_base`, `o200k_base`, `o200k_harmony`
 
-## SentencePiece Tokenizer (T5, ALBERT, XLNet, Gemma, LLaMA, etc.)
+## SentencePiece Tokenizer (T5, ALBERT, XLNet, Gemma, LLaMA 2, etc.)
 
-This package includes a **pure TypeScript SentencePiece tokenizer** with zero native dependencies. It supports models that use Unigram or BPE algorithms, including T5, ALBERT, XLNet, Gemma, LLaMA, and many HuggingFace models.
+This package includes a **pure TypeScript SentencePiece tokenizer** with zero native dependencies. It supports models that use Unigram or SentencePiece-style BPE tokenization (plus validated `tokenizer.json` configurations), including T5, ALBERT, XLNet, Gemma, LLaMA 2, and many HuggingFace models.
 
 ### Basic Usage
 
@@ -124,6 +160,9 @@ const tokenizer2 = getSentencePieceTokenizer({ modelData });
 | **SentencePiece Protobuf** | `.model` | Native SentencePiece format (T5, ALBERT, XLNet, Gemma) |
 | **HuggingFace JSON** | `tokenizer.json` | HuggingFace tokenizers format (many models) |
 
+Notes:
+- `tokenizer.json` support is intentionally scoped to validated configs (Unigram and merges-based BPE with Metaspace-style whitespace handling). If a tokenizer JSON uses ByteLevel/byte-fallback pipelines (GPT-2-style), this library will throw a helpful error.
+
 ```typescript
 // Load .model file (protobuf)
 const tokenizer = await loadSentencePieceTokenizer({
@@ -132,29 +171,35 @@ const tokenizer = await loadSentencePieceTokenizer({
 
 // Load tokenizer.json (HuggingFace format)
 const tokenizer = await loadSentencePieceTokenizer({
-  modelPath: './llama-2/tokenizer.json',
+  modelPath: './my-hf-model/tokenizer.json',
   format: 'json'  // optional, auto-detected from extension
 });
 ```
 
 ### Model Download Helper
 
-For convenience, you can automatically download models from HuggingFace:
+For convenience, you can automatically download known models (opt-in network access):
 
 ```typescript
 import { ensureSentencePieceModel, MODEL_REGISTRY } from 'ai-token-estimator';
 
-// Download a known model (cached locally)
-const modelPath = await ensureSentencePieceModel('t5-base', {
-  cacheDir: './models'  // optional, defaults to node_modules/.cache
+// Download a known model (cached locally). No network calls unless allowDownload: true.
+const modelPath = await ensureSentencePieceModel({
+  tokenizer: 't5-base',
+  allowDownload: true,
+  cacheDir: './models', // optional; default: ~/.cache/sentencepiece (or SENTENCEPIECE_MODEL_CACHE_DIR)
 });
 
 const tokenizer = await loadSentencePieceTokenizer({ modelPath });
 
-// Available pre-configured models
+// Available pre-configured models (registry can be extended)
 console.log(Object.keys(MODEL_REGISTRY));
-// ['t5-base', 't5-small', 't5-large', 'albert-base-v2', 'xlnet-base-cased', ...]
+// ['t5-base', 'albert-base-v2', 'xlnet-base-cased', 'gemma', 'llama2', ...]
 ```
+
+Notes:
+- Downloads are disabled by default (`allowDownload: false`) to avoid surprise network calls.
+- Some registry entries may be gated and require HuggingFace authentication (`HF_TOKEN` / `HUGGINGFACE_HUB_TOKEN` or `authToken` option).
 
 ### Convenience Functions
 
@@ -176,7 +221,8 @@ const count = await countSentencePieceTokensAsync('Hello!', { modelPath: './mode
 | Algorithm | Description | Models |
 |-----------|-------------|--------|
 | **Unigram** | Probabilistic subword segmentation | T5, ALBERT, XLNet, mT5 |
-| **BPE** | Byte-Pair Encoding | GPT-2, RoBERTa, LLaMA, Gemma |
+| **SentencePiece BPE** | Score-based BPE used in `.model` files | Gemma, LLaMA 2 (and other SP-BPE models) |
+| **JSON-BPE (merges-based)** | BPE defined by `vocab` + `merges[]` in `tokenizer.json` | Some HuggingFace tokenizers (validated configs) |
 
 The algorithm is automatically detected from the model file.
 
@@ -288,7 +334,7 @@ import { estimateAsync } from 'ai-token-estimator';
 
 const out = await estimateAsync({
   text: 'Hello, Claude',
-  model: 'claude-sonnet-4-5',
+  model: 'claude-sonnet-4.5',
   tokenizer: 'anthropic_count_tokens',
   fallbackToHeuristicOnError: true,
   anthropic: {
@@ -549,16 +595,20 @@ interface DataOptions {
 }
 ```
 
-#### `ensureSentencePieceModel(name: KnownTokenizer, options?: DownloadOptions): Promise<string>`
+#### `ensureSentencePieceModel(options: DownloadOptions): Promise<string>`
 
 Downloads a known tokenizer model from HuggingFace and returns the local path.
 
 ```typescript
-type KnownTokenizer = 't5-base' | 't5-small' | 't5-large' | 'albert-base-v2' | 'xlnet-base-cased' | ...;
+type KnownTokenizer = keyof typeof MODEL_REGISTRY; // e.g. 't5-base', 'albert-base-v2', 'xlnet-base-cased', ...
 
 interface DownloadOptions {
-  cacheDir?: string;     // Cache directory (default: node_modules/.cache/sentencepiece-models)
-  forceDownload?: boolean;  // Re-download even if cached
+  tokenizer: KnownTokenizer;
+  cacheDir?: string;         // Cache directory (default: ~/.cache/sentencepiece or SENTENCEPIECE_MODEL_CACHE_DIR)
+  allowDownload?: boolean;   // Default: false (no surprise network calls)
+  verifyHash?: boolean;      // Default: true (when registry hash is present)
+  authToken?: string;        // HuggingFace auth token (or HF_TOKEN / HUGGINGFACE_HUB_TOKEN env vars)
+  customUrl?: string;        // Optional mirror/override URL (hash still verified)
 }
 ```
 
