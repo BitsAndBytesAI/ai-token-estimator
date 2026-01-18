@@ -209,4 +209,28 @@ describe('estimateAsync - extended cost fields', () => {
     expect(result.estimatedTotalCost).toBe(result.estimatedInputCost);
     expect(result.estimatedOutputCost).toBeUndefined();
   });
+
+  it('throws for invalid cachedInputTokens (greater than input tokens)', async () => {
+    await expect(estimateAsync({
+      text: 'Hello',
+      model: 'gpt-4o',
+      cachedInputTokens: 1000, // Way more than the ~1-2 tokens in "Hello"
+    })).rejects.toThrow(/cannot exceed inputTokens/);
+  });
+
+  it('throws for negative outputTokens', async () => {
+    await expect(estimateAsync({
+      text: 'Hello',
+      model: 'gpt-4o',
+      outputTokens: -100,
+    })).rejects.toThrow(/non-negative integer/);
+  });
+
+  it('throws for batch mode without batch pricing', async () => {
+    await expect(estimateAsync({
+      text: 'Hello',
+      model: 'claude-sonnet-4', // Claude doesn't have batch pricing
+      mode: 'batch',
+    })).rejects.toThrow(/Batch input pricing not available/);
+  });
 });

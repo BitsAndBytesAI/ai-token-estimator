@@ -1,7 +1,7 @@
 import { getModelConfig } from './models.js';
 import { countTokens } from './token-counter.js';
 import { estimateAsync } from './estimator-async.js';
-import type { EstimateAsyncInput, ModelConfig } from './types.js';
+import type { EstimateAsyncInput } from './types.js';
 
 // =============================================================================
 // Types

@@ -152,8 +152,8 @@ async function fetchProviderPricing(
 
   const prompt =
     provider === 'openai'
-      ? `From the OpenAI pricing page, extract ONLY token-based pricing for the Standard API tier (NOT Batch). Include models from the "Text tokens" -> Standard table and the "Legacy models" -> Standard table. For each model return: model name/ID and input cost per 1 million tokens in USD. Do not include per-image pricing, subscription plans, or non-token pricing.`
-      : `Extract all LLM model names and their API pricing. For each model, get: model name/ID and input cost per million tokens in USD. Only include text/chat models (not image or video generation models).`;
+      ? `From the OpenAI pricing page, extract ONLY token-based pricing for the Standard API tier (NOT Batch). Include models from the "Text tokens" -> Standard table and the "Legacy models" -> Standard table. For each model return: model name/ID, input cost per 1 million tokens in USD, and output cost per 1 million tokens in USD. Do not include per-image pricing, subscription plans, or non-token pricing.`
+      : `Extract all LLM model names and their API pricing. For each model, get: model name/ID, input cost per million tokens in USD, and output cost per million tokens in USD. Only include text/chat models (not image or video generation models).`;
 
   const result = await firecrawl.extract([url], {
     prompt,
@@ -174,9 +174,9 @@ async function fetchProviderPricing(
       continue;
     }
 
-    // Validate price is reasonable (between $0.01 and $500 per million)
+    // Validate price is reasonable (> $0 and <= $500 per million)
     const price = extracted.input_cost_per_million;
-    if (price < 0.01 || price > 500) {
+    if (price <= 0 || price > 500) {
       console.warn(
         `Warning: Skipping ${normalizedName} with suspicious price: $${price}/M`
       );
@@ -190,7 +190,7 @@ async function fetchProviderPricing(
 
     // Include output pricing if available and valid
     const outputPrice = extracted.output_cost_per_million;
-    if (outputPrice !== undefined && outputPrice >= 0.01 && outputPrice <= 1000) {
+    if (outputPrice !== undefined && outputPrice > 0 && outputPrice <= 1000) {
       config.outputCostPerMillion = outputPrice;
     }
 
@@ -236,21 +236,21 @@ async function fetchOpenAIExtendedPricing(
 
       // Add cached input pricing if valid
       const cached = extracted.cached_input_cost_per_million;
-      if (cached !== undefined && cached >= 0.01 && cached <= 500) {
+      if (cached !== undefined && cached > 0 && cached <= 500) {
         existing.cachedInputCostPerMillion = cached;
         updated = true;
       }
 
       // Add batch input pricing if valid
       const batchInput = extracted.batch_input_cost_per_million;
-      if (batchInput !== undefined && batchInput >= 0.01 && batchInput <= 500) {
+      if (batchInput !== undefined && batchInput > 0 && batchInput <= 500) {
         existing.batchInputCostPerMillion = batchInput;
         updated = true;
       }
 
       // Add batch output pricing if valid
       const batchOutput = extracted.batch_output_cost_per_million;
-      if (batchOutput !== undefined && batchOutput >= 0.01 && batchOutput <= 1000) {
+      if (batchOutput !== undefined && batchOutput > 0 && batchOutput <= 1000) {
         existing.batchOutputCostPerMillion = batchOutput;
         updated = true;
       }

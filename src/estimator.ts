@@ -126,9 +126,18 @@ export function estimate(input: EstimateInput): EstimateOutput {
       estimatedOutputCost = costResult.costs.output > 0 ? costResult.costs.output : undefined;
       estimatedCachedInputCost = costResult.costs.cachedInput > 0 ? costResult.costs.cachedInput : undefined;
       estimatedTotalCost = costResult.costs.total;
-    } catch {
-      // If estimateCost throws (e.g., missing pricing), fall back to input-only cost
-      estimatedTotalCost = estimatedInputCost;
+    } catch (error) {
+      // Only fallback for missing output/cached pricing; rethrow for batch errors and invalid args
+      const message = error instanceof Error ? error.message : '';
+      const isMissingPricing = message.includes('pricing not available');
+      const isBatchError = message.includes('Batch');
+      if (isMissingPricing && !isBatchError) {
+        // Missing output/cached pricing → fall back to input-only cost
+        estimatedTotalCost = estimatedInputCost;
+      } else {
+        // Invalid arguments, batch errors, etc. → rethrow
+        throw error;
+      }
     }
   }
 

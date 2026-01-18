@@ -257,10 +257,6 @@ describe('estimate - extended cost fields', () => {
   });
 
   it('calculates cached input cost when cachedInputTokens provided', () => {
-    // First count the tokens to know the input count
-    const baseResult = estimate({ text: 'a'.repeat(40), model: 'gpt-4o' });
-    const inputTokens = baseResult.estimatedTokens; // Should be 10 with exact tokenizer
-
     const result = estimate({
       text: 'a'.repeat(40),
       model: 'gpt-4o',
@@ -298,5 +294,29 @@ describe('estimate - extended cost fields', () => {
     // Should fall back to input-only cost when estimateCost throws
     expect(result.estimatedTotalCost).toBe(result.estimatedInputCost);
     expect(result.estimatedOutputCost).toBeUndefined();
+  });
+
+  it('throws for invalid cachedInputTokens (greater than input tokens)', () => {
+    expect(() => estimate({
+      text: 'Hello',
+      model: 'gpt-4o',
+      cachedInputTokens: 1000, // Way more than the ~1-2 tokens in "Hello"
+    })).toThrow(/cannot exceed inputTokens/);
+  });
+
+  it('throws for negative outputTokens', () => {
+    expect(() => estimate({
+      text: 'Hello',
+      model: 'gpt-4o',
+      outputTokens: -100,
+    })).toThrow(/non-negative integer/);
+  });
+
+  it('throws for batch mode without batch pricing', () => {
+    expect(() => estimate({
+      text: 'Hello',
+      model: 'claude-sonnet-4', // Claude doesn't have batch pricing
+      mode: 'batch',
+    })).toThrow(/Batch input pricing not available/);
   });
 });
