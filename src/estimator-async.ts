@@ -146,17 +146,10 @@ export async function estimateAsync(input: EstimateAsyncInput): Promise<Estimate
       estimatedCachedInputCost = costResult.costs.cachedInput > 0 ? costResult.costs.cachedInput : undefined;
       estimatedTotalCost = costResult.costs.total;
     } catch (error) {
-      // Only fallback for missing output/cached pricing; rethrow for batch errors and invalid args
-      const message = error instanceof Error ? error.message : '';
-      const isMissingPricing = message.includes('pricing not available');
-      const isBatchError = message.includes('Batch');
-      if (isMissingPricing && !isBatchError) {
-        // Missing output/cached pricing → fall back to input-only cost
-        estimatedTotalCost = estimatedInputCost;
-      } else {
-        // Invalid arguments, batch errors, etc. → rethrow
-        throw error;
-      }
+      // When user explicitly provides cost inputs (outputTokens, cachedInputTokens, mode),
+      // they expect accurate cost estimation - don't silently fall back to input-only cost.
+      // Rethrow all estimateCost errors so callers know pricing is unavailable.
+      throw error;
     }
   }
 

@@ -203,8 +203,9 @@ export function estimateCost(options: EstimateCostInput): CostEstimate {
         total: inputCost + outputCost,
       },
       rates: {
-        inputPerMillion: config.inputCostPerMillion,
-        outputPerMillion: config.outputCostPerMillion,
+        // In batch mode, inputPerMillion/outputPerMillion reflect the batch rates used
+        inputPerMillion: config.batchInputCostPerMillion!,
+        outputPerMillion: config.batchOutputCostPerMillion,
         batchInputPerMillion: config.batchInputCostPerMillion,
         batchOutputPerMillion: config.batchOutputCostPerMillion,
       },

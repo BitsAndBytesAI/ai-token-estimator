@@ -239,6 +239,21 @@ describe('estimateCost', () => {
       expect(result.rates.batchOutputPerMillion).toBe(5.0);
     });
 
+    it('reports inputPerMillion/outputPerMillion as batch rates in batch mode', () => {
+      mockModelConfig(FULL_PRICING_MODEL);
+
+      const result = estimateCost({
+        model: 'test-model',
+        inputTokens: 1000,
+        outputTokens: 500,
+        mode: 'batch',
+      });
+
+      // In batch mode, inputPerMillion/outputPerMillion should reflect batch rates
+      expect(result.rates.inputPerMillion).toBe(1.25);  // batch rate, not standard 2.5
+      expect(result.rates.outputPerMillion).toBe(5.0);  // batch rate, not standard 10.0
+    });
+
     it('throws when batch rates missing', () => {
       mockModelConfig(INPUT_OUTPUT_ONLY_MODEL);
 

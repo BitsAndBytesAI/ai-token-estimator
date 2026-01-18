@@ -410,11 +410,17 @@ interface EstimateInput {
   model: string;          // Model ID (e.g., 'gpt-4o', 'claude-opus-4.5')
   rounding?: 'ceil' | 'round' | 'floor';  // Rounding strategy (default: 'ceil')
   tokenizer?: 'heuristic' | 'openai_exact' | 'auto'; // Token counting strategy (default: 'heuristic')
+
+  // Extended cost estimation (optional)
+  outputTokens?: number;        // Output tokens for cost calculation
+  cachedInputTokens?: number;   // Cached input tokens (OpenAI only, must be <= estimatedTokens)
+  mode?: 'standard' | 'batch';  // Pricing mode (default: 'standard')
 }
 ```
 
 Note:
 - Provider-backed modes (`anthropic_count_tokens`, `gemini_count_tokens`, `gemma_sentencepiece`) are only supported in `estimateAsync()`.
+- When `outputTokens`, `cachedInputTokens`, or `mode` is provided, the model must have the corresponding pricing available or an error is thrown.
 
 **Returns:**
 
@@ -423,10 +429,16 @@ interface EstimateOutput {
   model: string;           // The model used
   characterCount: number;  // Number of Unicode code points
   estimatedTokens: number; // Estimated token count (integer)
-  estimatedInputCost: number; // Estimated cost in USD
+  estimatedInputCost: number; // Estimated input cost in USD
   charsPerToken: number;   // The ratio used for this model
   tokenizerMode?: 'heuristic' | 'openai_exact' | 'auto'; // Which strategy was used
   encodingUsed?: string;   // OpenAI encoding when using exact tokenization
+
+  // Extended cost fields (when cost inputs are provided)
+  outputTokens?: number;           // Echoed from input
+  estimatedOutputCost?: number;    // Output token cost in USD
+  estimatedCachedInputCost?: number; // Cached input cost in USD
+  estimatedTotalCost: number;      // Total cost (input + output + cached)
 }
 ```
 
@@ -555,14 +567,96 @@ Returns the configuration for a specific model. Throws if the model is not found
 
 ```typescript
 interface ModelConfig {
-  charsPerToken: number;      // Characters per token ratio
-  inputCostPerMillion: number; // USD per 1M input tokens
+  charsPerToken: number;           // Characters per token ratio
+  inputCostPerMillion: number;     // USD per 1M input tokens
+  outputCostPerMillion?: number;   // USD per 1M output tokens (when available)
+  cachedInputCostPerMillion?: number;  // USD per 1M cached input tokens (OpenAI)
+  batchInputCostPerMillion?: number;   // USD per 1M batch input tokens (OpenAI)
+  batchOutputCostPerMillion?: number;  // USD per 1M batch output tokens (OpenAI)
 }
 ```
 
 ### `DEFAULT_MODELS`
 
 Read-only object containing all model configurations. Frozen to prevent runtime mutation.
+
+### Cost Estimation API
+
+#### `estimateCost(options): CostEstimate`
+
+Calculate cost from explicit token counts. Provides detailed cost breakdown for input, output, cached, and batch pricing.
+
+```typescript
+import { estimateCost } from 'ai-token-estimator';
+
+const result = estimateCost({
+  model: 'gpt-4o',
+  inputTokens: 1_000_000,
+  outputTokens: 500_000,
+  cachedInputTokens: 200_000,  // optional
+  mode: 'standard',            // or 'batch'
+});
+
+console.log(result);
+// {
+//   model: 'gpt-4o',
+//   mode: 'standard',
+//   tokens: { input: 1000000, cachedInput: 200000, nonCachedInput: 800000, output: 500000 },
+//   costs: { input: 2.0, cachedInput: 0.25, output: 5.0, total: 7.25 },
+//   rates: { inputPerMillion: 2.5, outputPerMillion: 10.0, cachedInputPerMillion: 1.25, ... }
+// }
+```
+
+Throws if:
+- Model is unknown
+- Token counts are negative or non-integer
+- `cachedInputTokens > inputTokens`
+- Required pricing is missing (output/cached/batch)
+- `mode: 'batch'` with `cachedInputTokens > 0`
+
+#### `estimateCostFromText(options): CostEstimate`
+
+Sync version that counts input tokens from text. Uses heuristic/exact tokenization based on model.
+
+```typescript
+import { estimateCostFromText } from 'ai-token-estimator';
+
+const result = estimateCostFromText({
+  model: 'gpt-4o',
+  inputText: 'Hello, world!',
+  outputText: 'Hi there!',     // optional: auto-count output tokens
+  outputTokens: 100,           // or: explicit output count (takes precedence)
+  cachedInputTokens: 0,
+  mode: 'standard',
+});
+```
+
+#### `estimateCostFromTextAsync(options): Promise<CostEstimate>`
+
+Async version that supports provider-backed tokenizers for accurate counts.
+
+```typescript
+import { estimateCostFromTextAsync } from 'ai-token-estimator';
+
+const result = await estimateCostFromTextAsync({
+  model: 'claude-sonnet-4',
+  inputText: 'Hello, world!',
+  outputText: 'Hi there!',
+  tokenizer: 'anthropic_count_tokens',
+  anthropic: { apiKey: process.env.ANTHROPIC_API_KEY },
+});
+```
+
+#### `getTotalCost(model, inputTokens, outputTokens?): number`
+
+Quick helper to get total cost for a model.
+
+```typescript
+import { getTotalCost } from 'ai-token-estimator';
+
+const cost = getTotalCost('gpt-4o', 1_000_000, 500_000);
+// 7.5 (USD)
+```
 
 ### SentencePiece API
 

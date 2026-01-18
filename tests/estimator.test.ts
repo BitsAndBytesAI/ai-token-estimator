@@ -283,17 +283,14 @@ describe('estimate - extended cost fields', () => {
     expect(batchResult.estimatedTotalCost).toBeLessThan(standardResult.estimatedInputCost);
   });
 
-  it('falls back to input-only cost when pricing unavailable', () => {
-    // Claude doesn't have output pricing in models.ts, so outputTokens should gracefully fail
-    const result = estimate({
+  it('throws when output pricing unavailable for cost inputs', () => {
+    // When user provides outputTokens, they expect accurate output cost estimation
+    // Claude doesn't have output pricing, so this should throw
+    expect(() => estimate({
       text: 'Hello, world!',
       model: 'claude-sonnet-4',
       outputTokens: 100,
-    });
-
-    // Should fall back to input-only cost when estimateCost throws
-    expect(result.estimatedTotalCost).toBe(result.estimatedInputCost);
-    expect(result.estimatedOutputCost).toBeUndefined();
+    })).toThrow(/Output pricing not available/);
   });
 
   it('throws for invalid cachedInputTokens (greater than input tokens)', () => {
