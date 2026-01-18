@@ -235,3 +235,85 @@ describe('DEFAULT_MODELS', () => {
     }).toThrow();
   });
 });
+
+describe('estimate - extended cost fields', () => {
+  it('returns estimatedTotalCost equal to estimatedInputCost when no cost inputs', () => {
+    const result = estimate({ text: 'Hello, world!', model: 'gpt-4o' });
+    expect(result.estimatedTotalCost).toBe(result.estimatedInputCost);
+    expect(result.estimatedOutputCost).toBeUndefined();
+    expect(result.estimatedCachedInputCost).toBeUndefined();
+  });
+
+  it('calculates output cost when outputTokens provided', () => {
+    const result = estimate({
+      text: 'Hello',
+      model: 'gpt-4o',
+      outputTokens: 1_000_000,
+    });
+
+    expect(result.outputTokens).toBe(1_000_000);
+    expect(result.estimatedOutputCost).toBeCloseTo(10.0, 6); // $10/M output
+    expect(result.estimatedTotalCost).toBeCloseTo(result.estimatedInputCost + 10.0, 6);
+  });
+
+  it('calculates cached input cost when cachedInputTokens provided', () => {
+    const result = estimate({
+      text: 'a'.repeat(40),
+      model: 'gpt-4o',
+      cachedInputTokens: 5,
+    });
+
+    expect(result.estimatedCachedInputCost).toBeGreaterThan(0);
+    expect(result.estimatedTotalCost).toBeLessThan(result.estimatedInputCost + (result.estimatedCachedInputCost || 0));
+  });
+
+  it('uses batch rates when mode=batch', () => {
+    const standardResult = estimate({
+      text: 'a'.repeat(40),
+      model: 'gpt-4o',
+    });
+
+    const batchResult = estimate({
+      text: 'a'.repeat(40),
+      model: 'gpt-4o',
+      mode: 'batch',
+    });
+
+    // Batch input rate is $1.25/M vs standard $2.50/M, so batch should be cheaper
+    expect(batchResult.estimatedTotalCost).toBeLessThan(standardResult.estimatedInputCost);
+  });
+
+  it('throws when output pricing unavailable for cost inputs', () => {
+    // When user provides outputTokens, they expect accurate output cost estimation
+    // Claude doesn't have output pricing, so this should throw
+    expect(() => estimate({
+      text: 'Hello, world!',
+      model: 'claude-sonnet-4',
+      outputTokens: 100,
+    })).toThrow(/Output pricing not available/);
+  });
+
+  it('throws for invalid cachedInputTokens (greater than input tokens)', () => {
+    expect(() => estimate({
+      text: 'Hello',
+      model: 'gpt-4o',
+      cachedInputTokens: 1000, // Way more than the ~1-2 tokens in "Hello"
+    })).toThrow(/cannot exceed inputTokens/);
+  });
+
+  it('throws for negative outputTokens', () => {
+    expect(() => estimate({
+      text: 'Hello',
+      model: 'gpt-4o',
+      outputTokens: -100,
+    })).toThrow(/non-negative integer/);
+  });
+
+  it('throws for batch mode without batch pricing', () => {
+    expect(() => estimate({
+      text: 'Hello',
+      model: 'claude-sonnet-4', // Claude doesn't have batch pricing
+      mode: 'batch',
+    })).toThrow(/Batch input pricing not available/);
+  });
+});

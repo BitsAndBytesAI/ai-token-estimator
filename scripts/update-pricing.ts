@@ -25,7 +25,7 @@ const PROVIDER_URLS = {
   google: 'https://ai.google.dev/gemini-api/docs/pricing',
 } as const;
 
-// Schema for Firecrawl extract
+// Schema for Firecrawl extract - standard pricing (all providers)
 const PRICING_SCHEMA = {
   type: 'object',
   properties: {
@@ -44,6 +44,26 @@ const PRICING_SCHEMA = {
   },
 } as const;
 
+// Schema for OpenAI-specific pricing (cached + batch)
+const OPENAI_EXTENDED_SCHEMA = {
+  type: 'object',
+  properties: {
+    models: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          model_name: { type: 'string' },
+          cached_input_cost_per_million: { type: 'number' },
+          batch_input_cost_per_million: { type: 'number' },
+          batch_output_cost_per_million: { type: 'number' },
+        },
+        required: ['model_name'],
+      },
+    },
+  },
+} as const;
+
 // Chars per token by provider (these don't change)
 const CHARS_PER_TOKEN: Record<string, number> = {
   openai: 4,
@@ -57,9 +77,20 @@ interface ExtractedModel {
   output_cost_per_million?: number;
 }
 
+interface ExtractedOpenAIExtended {
+  model_name: string;
+  cached_input_cost_per_million?: number;
+  batch_input_cost_per_million?: number;
+  batch_output_cost_per_million?: number;
+}
+
 interface ModelConfig {
   charsPerToken: number;
   inputCostPerMillion: number;
+  outputCostPerMillion?: number;
+  cachedInputCostPerMillion?: number;
+  batchInputCostPerMillion?: number;
+  batchOutputCostPerMillion?: number;
 }
 
 /**
@@ -121,8 +152,8 @@ async function fetchProviderPricing(
 
   const prompt =
     provider === 'openai'
-      ? `From the OpenAI pricing page, extract ONLY token-based pricing for the Standard API tier (NOT Batch). Include models from the "Text tokens" -> Standard table and the "Legacy models" -> Standard table. For each model return: model name/ID and input cost per 1 million tokens in USD. Do not include per-image pricing, subscription plans, or non-token pricing.`
-      : `Extract all LLM model names and their API pricing. For each model, get: model name/ID and input cost per million tokens in USD. Only include text/chat models (not image or video generation models).`;
+      ? `From the OpenAI pricing page, extract ONLY token-based pricing for the Standard API tier (NOT Batch). Include models from the "Text tokens" -> Standard table and the "Legacy models" -> Standard table. For each model return: model name/ID, input cost per 1 million tokens in USD, and output cost per 1 million tokens in USD. Do not include per-image pricing, subscription plans, or non-token pricing.`
+      : `Extract all LLM model names and their API pricing. For each model, get: model name/ID, input cost per million tokens in USD, and output cost per million tokens in USD. Only include text/chat models (not image or video generation models).`;
 
   const result = await firecrawl.extract([url], {
     prompt,
@@ -143,23 +174,94 @@ async function fetchProviderPricing(
       continue;
     }
 
-    // Validate price is reasonable (between $0.01 and $500 per million)
+    // Validate price is reasonable (> $0 and <= $500 per million)
     const price = extracted.input_cost_per_million;
-    if (price < 0.01 || price > 500) {
+    if (price <= 0 || price > 500) {
       console.warn(
         `Warning: Skipping ${normalizedName} with suspicious price: $${price}/M`
       );
       continue;
     }
 
-    models.set(normalizedName, {
+    const config: ModelConfig = {
       charsPerToken,
       inputCostPerMillion: price,
-    });
+    };
+
+    // Include output pricing if available and valid
+    const outputPrice = extracted.output_cost_per_million;
+    if (outputPrice !== undefined && outputPrice > 0 && outputPrice <= 1000) {
+      config.outputCostPerMillion = outputPrice;
+    }
+
+    models.set(normalizedName, config);
   }
 
   console.log(`  Found ${models.size} models from ${provider}`);
   return models;
+}
+
+/**
+ * Fetch OpenAI-specific extended pricing (cached input, batch pricing).
+ * Merges into the existing models map.
+ */
+async function fetchOpenAIExtendedPricing(
+  firecrawl: FirecrawlApp,
+  models: Map<string, ModelConfig>
+): Promise<void> {
+  console.log('Fetching OpenAI cached/batch pricing...');
+
+  const prompt = `From the OpenAI pricing page, extract cached input and batch pricing for text models. For each model, get: model name/ID, cached input cost per 1 million tokens (from "Cached Input" column), batch input cost per 1 million tokens (from Batch API tier), and batch output cost per 1 million tokens (from Batch API tier). Only include models that have these pricing tiers available.`;
+
+  try {
+    const result = await firecrawl.extract([PROVIDER_URLS.openai], {
+      prompt,
+      schema: OPENAI_EXTENDED_SCHEMA,
+    });
+
+    if (!result.success || !result.data?.models) {
+      console.warn('Warning: Failed to extract OpenAI extended pricing');
+      return;
+    }
+
+    let updatedCount = 0;
+    for (const extracted of result.data.models as ExtractedOpenAIExtended[]) {
+      const normalizedName = normalizeModelName('openai', extracted.model_name);
+      if (!normalizedName) continue;
+
+      const existing = models.get(normalizedName);
+      if (!existing) continue;
+
+      let updated = false;
+
+      // Add cached input pricing if valid
+      const cached = extracted.cached_input_cost_per_million;
+      if (cached !== undefined && cached > 0 && cached <= 500) {
+        existing.cachedInputCostPerMillion = cached;
+        updated = true;
+      }
+
+      // Add batch input pricing if valid
+      const batchInput = extracted.batch_input_cost_per_million;
+      if (batchInput !== undefined && batchInput > 0 && batchInput <= 500) {
+        existing.batchInputCostPerMillion = batchInput;
+        updated = true;
+      }
+
+      // Add batch output pricing if valid
+      const batchOutput = extracted.batch_output_cost_per_million;
+      if (batchOutput !== undefined && batchOutput > 0 && batchOutput <= 1000) {
+        existing.batchOutputCostPerMillion = batchOutput;
+        updated = true;
+      }
+
+      if (updated) updatedCount++;
+    }
+
+    console.log(`  Added extended pricing to ${updatedCount} OpenAI models`);
+  } catch (error) {
+    console.warn('Warning: Error fetching OpenAI extended pricing:', error);
+  }
 }
 
 /**
@@ -282,11 +384,30 @@ function generateModelsFile(
 ): string {
   const { openai: openaiModels, anthropic: anthropicModels, google: googleModels } = groupModelsByProvider(allModels);
 
-  const formatModel = ([name, config]: [string, ModelConfig]) =>
-    `  '${name}': {
-    charsPerToken: ${config.charsPerToken},
-    inputCostPerMillion: ${config.inputCostPerMillion},
-  },`;
+  const formatModel = ([name, config]: [string, ModelConfig]) => {
+    const lines = [
+      `  '${name}': {`,
+      `    charsPerToken: ${config.charsPerToken},`,
+      `    inputCostPerMillion: ${config.inputCostPerMillion},`,
+    ];
+
+    // Add optional fields only if present
+    if (config.outputCostPerMillion !== undefined) {
+      lines.push(`    outputCostPerMillion: ${config.outputCostPerMillion},`);
+    }
+    if (config.cachedInputCostPerMillion !== undefined) {
+      lines.push(`    cachedInputCostPerMillion: ${config.cachedInputCostPerMillion},`);
+    }
+    if (config.batchInputCostPerMillion !== undefined) {
+      lines.push(`    batchInputCostPerMillion: ${config.batchInputCostPerMillion},`);
+    }
+    if (config.batchOutputCostPerMillion !== undefined) {
+      lines.push(`    batchOutputCostPerMillion: ${config.batchOutputCostPerMillion},`);
+    }
+
+    lines.push('  },');
+    return lines.join('\n');
+  };
 
   return `import type { ModelConfig } from './types.js';
 
@@ -341,14 +462,26 @@ export const DEFAULT_MODELS: Readonly<Record<string, Readonly<ModelConfig>>> =
  * @throws Error if model is not found
  */
 export function getModelConfig(model: string): ModelConfig {
-  const config = DEFAULT_MODELS[model];
-  if (!config) {
+  const direct = DEFAULT_MODELS[model];
+  if (direct) return direct;
+
+  const normalized = (() => {
+    if (!model.startsWith('claude-')) return model;
+    // Normalize common Anthropic model id variants:
+    // - Strip dated suffixes like \`-20251101\` (Anthropic frequently versions model IDs).
+    // - Accept \`-3-5\`/\`-4-5\` style and map to our internal \`-3.5\`/\`-4.5\` IDs.
+    const withoutDate = model.replace(/-\\d{8}$/, '');
+    return withoutDate.replace(/-(\\d+)-(\\d+)$/, (_m, major, minor) => \`-\${major}.\${minor}\`);
+  })();
+
+  const aliased = DEFAULT_MODELS[normalized];
+  if (!aliased) {
     const available = Object.keys(DEFAULT_MODELS).join(', ');
     throw new Error(
       \`Unknown model: "\${model}". Available models: \${available}\`
     );
   }
-  return config;
+  return aliased;
 }
 
 /**
@@ -376,10 +509,24 @@ async function main(): Promise<void> {
   // Start with existing models (preserve models not found in scrape)
   const allModels = new Map<string, ModelConfig>();
   for (const [name, config] of Object.entries(DEFAULT_MODELS)) {
-    allModels.set(name, {
+    const modelConfig: ModelConfig = {
       charsPerToken: config.charsPerToken,
       inputCostPerMillion: config.inputCostPerMillion,
-    });
+    };
+    // Preserve existing extended pricing fields
+    if (config.outputCostPerMillion !== undefined) {
+      modelConfig.outputCostPerMillion = config.outputCostPerMillion;
+    }
+    if (config.cachedInputCostPerMillion !== undefined) {
+      modelConfig.cachedInputCostPerMillion = config.cachedInputCostPerMillion;
+    }
+    if (config.batchInputCostPerMillion !== undefined) {
+      modelConfig.batchInputCostPerMillion = config.batchInputCostPerMillion;
+    }
+    if (config.batchOutputCostPerMillion !== undefined) {
+      modelConfig.batchOutputCostPerMillion = config.batchOutputCostPerMillion;
+    }
+    allModels.set(name, modelConfig);
   }
   console.log(`Starting with ${allModels.size} existing models`);
 
@@ -399,11 +546,16 @@ async function main(): Promise<void> {
             );
             updatedCount++;
           }
+          // Merge: update input/output but preserve existing cached/batch
+          existing.inputCostPerMillion = config.inputCostPerMillion;
+          if (config.outputCostPerMillion !== undefined) {
+            existing.outputCostPerMillion = config.outputCostPerMillion;
+          }
         } else {
           console.log(`  Added new model: ${name} at $${config.inputCostPerMillion}/M`);
           addedCount++;
+          allModels.set(name, config);
         }
-        allModels.set(name, config);
       }
     } catch (error) {
       console.error(`Error fetching from ${provider}:`, error);
@@ -412,6 +564,9 @@ async function main(): Promise<void> {
   }
 
   console.log(`\nSummary: ${updatedCount} prices updated, ${addedCount} new models added`);
+
+  // Fetch OpenAI-specific extended pricing (cached/batch)
+  await fetchOpenAIExtendedPricing(firecrawl, allModels);
 
   // Count models by provider
   const openaiCount = [...allModels.keys()].filter(
