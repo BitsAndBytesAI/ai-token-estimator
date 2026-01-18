@@ -82,8 +82,11 @@ function insertIntoTrie(root: CharMapTrie, codePoints: number[], replacement: st
   node.replacement = replacement;
 }
 
-// Maximum charmap size to parse (larger ones use NFKC fallback)
-// Parsing 200KB+ charmaps can take several seconds, so we skip them
+
+// Maximum charmap size to parse
+// Large charmaps (like T5's 237KB) use a double-array trie format that requires
+// specialized parsing. For now, we skip them and fall back to NFKC.
+// This affects ~9 test cases (ZWJ emoji sequences).
 const MAX_CHARMAP_SIZE = 50000;
 
 /**
@@ -102,16 +105,16 @@ const MAX_CHARMAP_SIZE = 50000;
  * - If this node has a replacement:
  *   - 3 bytes: string table offset (little-endian uint24), or 0xFFFFFF if no replacement
  *
- * Note: For very large charmaps (>50KB), we return an empty trie and the
- * normalizer will fall back to NFKC. This is a performance tradeoff.
+ * NOTE: Large charmaps (>50KB) use a more complex double-array trie format.
+ * We skip these and fall back to NFKC normalization.
  */
 export function parsePrecompiledCharsmap(data: Uint8Array): PrecompiledCharmap {
   if (data.length < 4) {
     return { trie: new CharMapTrie() };
   }
 
-  // Skip very large charmaps - they take too long to parse
-  // The normalizer will fall back to NFKC normalization
+  // Skip very large charmaps - they use a double-array trie format
+  // that's too complex to parse efficiently. Fall back to NFKC.
   if (data.length > MAX_CHARMAP_SIZE) {
     return { trie: new CharMapTrie() };
   }
@@ -185,15 +188,15 @@ function parseTrieNode(
     return root;
   }
 
-  // Use iterative BFS/DFS with a work queue instead of recursion
+  // Use iterative BFS with index-based queue to avoid O(n²) from shift()
   type WorkItem = { node: CharMapTrie; offset: number };
   const workQueue: WorkItem[] = [{ node: root, offset: rootOffset }];
+  let queueIndex = 0; // Use index instead of shift() for O(1) dequeue
   const visited = new Set<number>(); // Prevent infinite loops
 
   try {
-    while (workQueue.length > 0) {
-      const item = workQueue.shift()!;
-      const { node, offset: nodeOffset } = item;
+    while (queueIndex < workQueue.length) {
+      const { node, offset: nodeOffset } = workQueue[queueIndex++];
 
       // Prevent revisiting nodes (infinite loop protection)
       if (visited.has(nodeOffset)) {

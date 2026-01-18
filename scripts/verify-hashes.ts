@@ -38,6 +38,33 @@ async function verifyLocalModels(): Promise<VerifyResult[]> {
   for (const [name, info] of Object.entries(MODEL_REGISTRY)) {
     const filePath = path.join(MODELS_DIR, info.filename);
 
+    // Gated models are skipped (require HuggingFace auth)
+    if (info.gated) {
+      results.push({
+        name,
+        filename: info.filename,
+        expected: '(gated)',
+        actual: '',
+        match: true, // Don't fail for gated models
+        error: 'Gated model - skipped',
+      });
+      continue;
+    }
+
+    // Non-gated models MUST have a hash specified
+    if (!info.sha256) {
+      results.push({
+        name,
+        filename: info.filename,
+        expected: '(not specified)',
+        actual: fs.existsSync(filePath) ? computeSha256(filePath) : '',
+        match: false,
+        error: 'FATAL: Non-gated model must have sha256 hash specified',
+      });
+      continue;
+    }
+
+    // Non-gated models MUST have the file present
     if (!fs.existsSync(filePath)) {
       results.push({
         name,
@@ -45,19 +72,7 @@ async function verifyLocalModels(): Promise<VerifyResult[]> {
         expected: info.sha256,
         actual: '',
         match: false,
-        error: `File not found: ${filePath}`,
-      });
-      continue;
-    }
-
-    if (!info.sha256) {
-      results.push({
-        name,
-        filename: info.filename,
-        expected: '(not specified)',
-        actual: computeSha256(filePath),
-        match: false,
-        error: 'Hash not specified in registry (gated model?)',
+        error: `FATAL: Required model file not found: ${filePath}`,
       });
       continue;
     }
@@ -85,17 +100,20 @@ async function main(): Promise<void> {
   let skipped = 0;
 
   for (const result of results) {
-    if (result.error?.includes('File not found')) {
-      console.log(`⏭️  ${result.name}: SKIPPED (file not found)`);
+    if (result.error?.includes('Gated model')) {
+      console.log(`⏭️  ${result.name}: SKIPPED (gated model - requires HuggingFace auth)`);
       skipped++;
-    } else if (result.error?.includes('not specified')) {
-      console.log(`⚠️  ${result.name}: NO HASH (actual: ${result.actual})`);
-      skipped++;
+    } else if (result.error?.startsWith('FATAL:')) {
+      console.log(`❌ ${result.name}: ${result.error}`);
+      if (result.actual) {
+        console.log(`   Actual hash: ${result.actual}`);
+      }
+      failed++;
     } else if (result.match) {
       console.log(`✅ ${result.name}: OK`);
       passed++;
     } else {
-      console.log(`❌ ${result.name}: MISMATCH`);
+      console.log(`❌ ${result.name}: HASH MISMATCH`);
       console.log(`   Expected: ${result.expected}`);
       console.log(`   Actual:   ${result.actual}`);
       failed++;
@@ -103,10 +121,11 @@ async function main(): Promise<void> {
   }
 
   console.log(`\n${'='.repeat(50)}`);
-  console.log(`Results: ${passed} passed, ${failed} failed, ${skipped} skipped`);
+  console.log(`Results: ${passed} passed, ${failed} failed, ${skipped} skipped (gated)`);
 
   if (failed > 0) {
     console.error('\n❌ Hash verification failed!');
+    console.error('All non-gated models must have valid SHA-256 hashes and matching files.');
     process.exit(1);
   }
 

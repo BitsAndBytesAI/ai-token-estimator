@@ -50,11 +50,11 @@ export const MODEL_REGISTRY: Record<string, ModelInfo> = {
   },
   gemma: {
     url: 'https://huggingface.co/google/gemma-2b/resolve/main/tokenizer.model',
-    sha256: '4572f0f1951ed756f18d776555de25fd7fc7923f873e0ba985944538189722a4',
+    sha256: '', // Gated model - requires HuggingFace auth
     filename: 'gemma-tokenizer.model',
     algorithm: 'bpe',
     vocabSize: 256128,
-    gated: false,
+    gated: true, // Requires HuggingFace auth to download
   },
   // Gated models (require HuggingFace auth)
   llama2: {
