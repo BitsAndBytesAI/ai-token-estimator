@@ -209,12 +209,14 @@ function validateJsonConfig(config: HFTokenizerConfig): void {
 // pre-tokenizer.ts - Implements TrainerSpec pre-tokenization options
 
 export class PreTokenizer {
+  private readonly splitByWhitespace: boolean;
   private readonly splitDigits: boolean;
   private readonly splitByUnicodeScript: boolean;
   private readonly treatWhitespaceAsSuffix: boolean;
   private readonly whitespaceReplacement: string;
 
   constructor(spec: TrainerSpec, normalizerSpec: NormalizerSpec) {
+    this.splitByWhitespace = spec.splitByWhitespace ?? true;
     this.splitDigits = spec.splitDigits ?? false;
     this.splitByUnicodeScript = spec.splitByUnicodeScript ?? true;
     this.treatWhitespaceAsSuffix = spec.treatWhitespaceAsSuffix ?? false;
@@ -226,55 +228,83 @@ export class PreTokenizer {
    * Returns array of "word" segments to be encoded independently.
    */
   preTokenize(text: string): string[] {
-    let segments = [text];
+    // Split into whitespace/non-whitespace runs so we can preserve whitespace *counts*
+    const runs = this.splitByWhitespace
+      ? splitIntoRuns(text)
+      : [{ type: 'text' as const, text }];
 
-    // 1. Split by whitespace (always, unless explicitly disabled)
-    segments = segments.flatMap(s => this.splitByWhitespaceImpl(s));
+    // Refine text runs with optional script/digit splitting (whitespace runs are preserved)
+    const refinedRuns: Array<{ type: 'space' | 'text'; text: string }> = [];
 
-    // 2. Split by Unicode script (if enabled)
-    if (this.splitByUnicodeScript) {
-      segments = segments.flatMap(s => this.splitByScriptImpl(s));
-    }
-
-    // 3. Split digits (if enabled)
-    if (this.splitDigits) {
-      segments = segments.flatMap(s => this.splitDigitsImpl(s));
-    }
-
-    // 4. Apply whitespace replacement (▁ prefix or suffix)
-    segments = segments.map((s, i) => {
-      if (this.treatWhitespaceAsSuffix) {
-        // Suffix: word▁ (except last)
-        return i < segments.length - 1 ? s + this.whitespaceReplacement : s;
-      } else {
-        // Prefix: ▁word (default SentencePiece behavior)
-        return this.whitespaceReplacement + s;
+    for (const run of runs) {
+      if (run.type === 'space') {
+        refinedRuns.push(run);
+        continue;
       }
-    });
 
-    return segments;
-  }
+      let parts = [run.text];
+      if (this.splitByUnicodeScript) {
+        parts = parts.flatMap(s => this.splitByScriptImpl(s));
+      }
+      if (this.splitDigits) {
+        parts = parts.flatMap(s => this.splitDigitsImpl(s));
+      }
 
-  private splitByWhitespaceImpl(text: string): string[] {
-    // Split on whitespace, filter empty
-    return text.split(/\s+/).filter(s => s.length > 0);
+      for (const part of parts) {
+        if (part.length > 0) refinedRuns.push({ type: 'text', text: part });
+      }
+    }
+
+    // Attach whitespace as prefix/suffix markers using whitespaceReplacement
+    const segments: string[] = [];
+    let pendingPrefix = '';
+
+    for (const run of refinedRuns) {
+      if (run.type === 'space') {
+        const markers = whitespaceToReplacement(run.text, this.whitespaceReplacement);
+
+        if (this.treatWhitespaceAsSuffix) {
+          if (segments.length > 0) {
+            segments[segments.length - 1] += markers;
+          } else {
+            // Leading whitespace cannot be a suffix; attach to the first word as a prefix
+            pendingPrefix += markers;
+          }
+        } else {
+          pendingPrefix += markers;
+        }
+
+        continue;
+      }
+
+      segments.push(pendingPrefix + run.text);
+      pendingPrefix = '';
+    }
+
+    // Trailing whitespace in prefix mode becomes a standalone segment of markers
+    if (!this.treatWhitespaceAsSuffix && pendingPrefix) {
+      segments.push(pendingPrefix);
+    }
+
+    return segments.filter(s => s.length > 0);
   }
 
   private splitByScriptImpl(text: string): string[] {
     // Split at Unicode script boundaries (e.g., Latin → Han → Latin)
+    // Uses generated script tables from UCD for correctness and speed.
     const result: string[] = [];
     let current = '';
-    let currentScript: string | null = null;
+    let currentScript: number | null = null;
 
     for (const char of text) {
-      const script = getUnicodeScript(char);
-      if (currentScript !== null && script !== currentScript && script !== 'Common') {
+      const script = getUnicodeScriptId(char);
+      if (currentScript !== null && script !== currentScript && script !== SCRIPT_COMMON) {
         if (current) result.push(current);
         current = char;
         currentScript = script;
       } else {
         current += char;
-        if (script !== 'Common') currentScript = script;
+        if (script !== SCRIPT_COMMON) currentScript = script;
       }
     }
     if (current) result.push(current);
@@ -302,25 +332,31 @@ export class PreTokenizer {
   }
 }
 
-// Unicode script detection (simplified - use full UCD for production)
-function getUnicodeScript(char: string): string {
-  const cp = char.codePointAt(0)!;
+type Run = { type: 'space' | 'text'; text: string };
 
-  // Common ranges (simplified)
-  if (cp >= 0x0000 && cp <= 0x007F) return 'Latin';     // Basic Latin
-  if (cp >= 0x0080 && cp <= 0x024F) return 'Latin';     // Latin Extended
-  if (cp >= 0x4E00 && cp <= 0x9FFF) return 'Han';       // CJK Unified
-  if (cp >= 0x3040 && cp <= 0x309F) return 'Hiragana';
-  if (cp >= 0x30A0 && cp <= 0x30FF) return 'Katakana';
-  if (cp >= 0xAC00 && cp <= 0xD7AF) return 'Hangul';
-  if (cp >= 0x0400 && cp <= 0x04FF) return 'Cyrillic';
-  if (cp >= 0x0600 && cp <= 0x06FF) return 'Arabic';
-
-  // Numbers, punctuation, symbols are "Common" (don't trigger split)
-  if (/[\d\s\p{P}\p{S}]/u.test(char)) return 'Common';
-
-  return 'Unknown';
+function splitIntoRuns(text: string): Run[] {
+  const runs: Run[] = [];
+  for (const part of text.split(/(\s+)/u)) {
+    if (!part) continue;
+    runs.push(/^\s+$/u.test(part) ? { type: 'space', text: part } : { type: 'text', text: part });
+  }
+  return runs;
 }
+
+function whitespaceToReplacement(whitespace: string, replacement: string): string {
+  // One replacement marker per whitespace code point (tabs/newlines count too)
+  let out = '';
+  for (const _ of whitespace) out += replacement;
+  return out;
+}
+
+/**
+ * Unicode script detection (production):
+ * - Generated from UCD Scripts.txt at build time into `unicode-scripts.generated.ts`
+ * - Uses binary search over code point ranges for speed
+ */
+declare const SCRIPT_COMMON: number;
+declare function getUnicodeScriptId(char: string): number;
 ```
 
 ### 5. Denormalizer Handling
@@ -331,49 +367,7 @@ function getUnicodeScript(char: string): string {
 - Required for true `encode(decode(ids)) === ids` round-trip parity
 - The denormalizer charmap is essentially the inverse of the normalizer charmap
 
-```typescript
-// Normalizer.denormalize() does:
-// 1. Decode byte tokens: <0xXX> → actual bytes
-// 2. Replace configured whitespace token with space
-// 3. Remove dummy prefix (if addDummyPrefix was true)
-// 4. Apply denormalizer_spec.precompiledCharsmap (if present)
-
-export class Normalizer {
-  private readonly precompiledCharmap: PrecompiledCharmap | null;
-  private readonly denormalizerCharmap: PrecompiledCharmap | null;  // For decode
-  // ... other fields ...
-
-  constructor(spec: NormalizerSpec, denormalizerSpec?: DenormalizerSpec) {
-    // ... normalizer setup ...
-
-    // Parse denormalizer charmap if present (for decode parity)
-    if (denormalizerSpec?.precompiledCharsmap?.length) {
-      this.denormalizerCharmap = parsePrecompiledCharsmap(denormalizerSpec.precompiledCharsmap);
-    } else {
-      this.denormalizerCharmap = null;
-    }
-  }
-
-  denormalize(text: string): string {
-    let result = text;
-
-    // Replace configured whitespace token with space
-    result = result.replace(new RegExp(escapeRegExp(this.whitespaceReplacement), 'g'), ' ');
-
-    // Remove dummy prefix
-    if (this.addDummyPrefix && result.startsWith(' ')) {
-      result = result.slice(1);
-    }
-
-    // Apply denormalizer charmap if present (CRITICAL for decode parity)
-    if (this.denormalizerCharmap) {
-      result = applyPrecompiledCharsmap(result, this.denormalizerCharmap);
-    }
-
-    return result;
-  }
-}
-```
+Implementation note: `Normalizer.denormalize()` must apply `denormalizer_spec.precompiled_charsmap` (if present) for full decode parity. This behavior is part of the Phase 2 `Normalizer` implementation and should not be re-specified in separate snippets.
 
 **Note**: The denormalizer charmap uses the same format as the normalizer charmap, just with different mappings. Most models have the same charmap for both, but some have explicit denormalizer_spec.
 
@@ -513,12 +507,14 @@ src/sentencepiece/
 │   ├── precompiled.ts          # precompiled_charsmap execution
 │   └── basic.ts                # NFKC + whitespace (fallback)
 ├── unicode.ts                  # Code point utilities
+├── unicode-scripts.generated.ts # Generated Unicode script ranges (UCD Scripts.txt)
 ├── protobuf/
 │   ├── wire.ts                 # Low-level wire format parser
 │   ├── schema.ts               # SentencePiece protobuf schema types
 │   └── decoder.ts              # ModelProto decoder
 ├── json/
 │   ├── parser.ts               # HuggingFace tokenizer.json parser
+│   ├── normalizer.ts           # tokenizer.json normalizer subset + compiler
 │   └── validator.ts            # Config validation (scope enforcement)
 ├── download/
 │   ├── index.ts                # Model download helper (Node.js only)
@@ -835,17 +831,25 @@ import type { NormalizerSpec } from '../protobuf/schema.js';
 
 export class Normalizer {
   private readonly precompiledCharmap: PrecompiledCharmap | null;
+  private readonly denormalizerCharmap: PrecompiledCharmap | null;
   private readonly addDummyPrefix: boolean;
   private readonly removeExtraWhitespaces: boolean;
   private readonly escapeWhitespaces: boolean;
   private readonly whitespaceReplacement: string;
 
-  constructor(spec: NormalizerSpec) {
+  constructor(spec: NormalizerSpec, denormalizerSpec?: NormalizerSpec) {
     // Parse precompiled charmap if present (CRITICAL for parity)
     if (spec.precompiledCharsmap && spec.precompiledCharsmap.length > 0) {
       this.precompiledCharmap = parsePrecompiledCharsmap(spec.precompiledCharsmap);
     } else {
       this.precompiledCharmap = null;
+    }
+
+    // Parse denormalizer charmap if present (CRITICAL for decode parity)
+    if (denormalizerSpec?.precompiledCharsmap && denormalizerSpec.precompiledCharsmap.length > 0) {
+      this.denormalizerCharmap = parsePrecompiledCharsmap(denormalizerSpec.precompiledCharsmap);
+    } else {
+      this.denormalizerCharmap = null;
     }
 
     this.addDummyPrefix = spec.addDummyPrefix ?? true;
@@ -894,6 +898,11 @@ export class Normalizer {
     // Remove dummy prefix
     if (this.addDummyPrefix && result.startsWith(' ')) {
       result = result.slice(1);
+    }
+
+    // Apply denormalizer charmap (if present)
+    if (this.denormalizerCharmap) {
+      result = applyPrecompiledCharsmap(result, this.denormalizerCharmap);
     }
 
     return result;
@@ -1287,87 +1296,193 @@ export interface AddedToken {
   id: number;
   content: string;
   special: boolean;
-  lstrip?: boolean;   // Strip left whitespace before matching
-  rstrip?: boolean;   // Strip right whitespace after matching
-  single_word?: boolean;  // Only match as complete word
-  normalized?: boolean;   // Whether to normalize before matching
+  lstrip?: boolean;        // Strip left whitespace before matching (include it in the token match)
+  rstrip?: boolean;        // Strip right whitespace after matching (include it in the token match)
+  single_word?: boolean;   // Only match as a complete word
+  normalized?: boolean;    // Match against normalized text + normalized token content
 }
 
+export interface TextNormalizer {
+  normalize(text: string): string;
+}
+
+export type AddedTokenSegment =
+  | { type: 'added'; id: number }
+  | { type: 'text'; text: string };
+
 export class AddedTokenMatcher {
-  // Trie for efficient longest-match
-  private readonly trie: Map<string, { id: number; token: AddedToken } | Map<any, any>>;
-  private readonly tokens: AddedToken[];
+  /**
+   * Matches follow HuggingFace Tokenizers semantics:
+   * - Leftmost-longest match across the token set
+   * - `single_word`, `lstrip`, `rstrip` enforced
+   * - `normalized=true` tokens are matched on normalized text, with token content normalized too
+   *
+   * Implementation detail: We replicate HF's two-phase extraction:
+   * 1) Extract `normalized=false` tokens from the original text
+   * 2) Normalize remaining text segments, then extract `normalized=true` tokens from those segments
+   */
+  private readonly addedTokensById: Map<number, AddedToken>;
+  private readonly normalizer?: TextNormalizer;
+  private readonly rawTrie: TrieNode;
+  private readonly normalizedTrie: TrieNode;
 
-  constructor(addedTokens: AddedToken[]) {
-    this.tokens = addedTokens;
-    this.trie = new Map();
+  constructor(addedTokens: AddedToken[], options?: { normalizer?: TextNormalizer }) {
+    this.normalizer = options?.normalizer;
+    this.addedTokensById = new Map(addedTokens.map(t => [t.id, t]));
 
-    // Build trie for longest-match
-    for (const token of addedTokens) {
-      let node = this.trie;
-      for (const char of token.content) {
-        if (!node.has(char)) {
-          node.set(char, new Map());
-        }
-        node = node.get(char) as Map<string, any>;
-      }
-      node.set('$', { id: token.id, token });
-    }
+    const rawTokens = addedTokens.filter(t => !t.normalized);
+    const normalizedTokens = addedTokens.filter(t => t.normalized);
+
+    this.rawTrie = buildTrie(rawTokens, t => t.content);
+    this.normalizedTrie = buildTrie(normalizedTokens, t => {
+      const content = t.content;
+      return this.normalizer ? this.normalizer.normalize(content) : content;
+    });
+  }
+
+  getAddedTokenById(id: number): AddedToken | undefined {
+    return this.addedTokensById.get(id);
   }
 
   /**
-   * Split text into segments: added tokens (with IDs) and regular text (to encode)
-   * Returns array of { type: 'added', id } or { type: 'text', text }
+   * Returns segments in *encoding order*:
+   * - `{ type: 'added', id }` for added tokens
+   * - `{ type: 'text', text }` for text that should go through model encoding
+   *
+   * Note: Returned `{ type: 'text' }` segments are normalized (if a normalizer is provided),
+   * because HF matches `normalized=true` tokens against the normalized view.
    */
-  splitOnAddedTokens(text: string): Array<{ type: 'added'; id: number } | { type: 'text'; text: string }> {
-    const result: Array<{ type: 'added'; id: number } | { type: 'text'; text: string }> = [];
-    let i = 0;
-    let currentText = '';
+  extractAndNormalize(text: string): AddedTokenSegment[] {
+    // 1) Split on non-normalized tokens in the original text
+    const firstPass = splitOnTrie(text, this.rawTrie);
 
-    while (i < text.length) {
-      // Try to match an added token starting at position i
-      const match = this.findLongestMatch(text, i);
+    // 2) Normalize the remaining text segments
+    const normalizedSegments: AddedTokenSegment[] = firstPass.map(seg => {
+      if (seg.type !== 'text') return seg;
+      return { type: 'text', text: this.normalizer ? this.normalizer.normalize(seg.text) : seg.text };
+    });
 
-      if (match) {
-        // Flush accumulated text
-        if (currentText) {
-          result.push({ type: 'text', text: currentText });
-          currentText = '';
-        }
-        result.push({ type: 'added', id: match.id });
-        i += match.length;
-      } else {
-        currentText += text[i];
-        i++;
+    // 3) Split on normalized tokens in the normalized segments
+    const finalSegments: AddedTokenSegment[] = [];
+    for (const seg of normalizedSegments) {
+      if (seg.type !== 'text') {
+        finalSegments.push(seg);
+        continue;
       }
+      finalSegments.push(...splitOnTrie(seg.text, this.normalizedTrie));
     }
 
-    // Flush remaining text
-    if (currentText) {
-      result.push({ type: 'text', text: currentText });
-    }
+    return finalSegments;
+  }
+}
 
-    return result;
+type TrieNode = Map<string, TrieNode> & { __terminal__?: AddedToken };
+
+function buildTrie(tokens: AddedToken[], getPattern: (t: AddedToken) => string): TrieNode {
+  const root = new Map() as TrieNode;
+
+  // Deterministic insertion order matters for tie-breaking when patterns are equal length.
+  // Prefer lowest ID, then stable order.
+  const sorted = [...tokens].sort((a, b) => a.id - b.id);
+
+  for (const token of sorted) {
+    const pattern = getPattern(token);
+    if (!pattern) continue;
+
+    let node: TrieNode = root;
+    for (const ch of pattern) {
+      const next = node.get(ch) ?? (new Map() as TrieNode);
+      node.set(ch, next);
+      node = next;
+    }
+    node.__terminal__ = token;
   }
 
-  private findLongestMatch(text: string, start: number): { id: number; length: number } | null {
-    let node = this.trie;
-    let lastMatch: { id: number; length: number } | null = null;
+  return root;
+}
 
-    for (let i = start; i < text.length; i++) {
-      const char = text[i];
-      const child = node.get(char);
-      if (!child || !(child instanceof Map)) break;
-      node = child as Map<string, any>;
+function splitOnTrie(text: string, trie: TrieNode): AddedTokenSegment[] {
+  const out: AddedTokenSegment[] = [];
+  let cursor = 0;
+  let i = 0;
 
-      const terminal = node.get('$');
-      if (terminal) {
-        lastMatch = { id: terminal.id, length: i - start + 1 };
-      }
+  while (i < text.length) {
+    const match = findLongestMatchAt(text, i, trie);
+    if (!match) {
+      i++;
+      continue;
     }
 
-    return lastMatch;
+    // Enforce single_word (Unicode-aware approximation)
+    if (match.token.single_word && !isSingleWordBoundary(text, match.start, match.end)) {
+      i++;
+      continue;
+    }
+
+    // Apply lstrip/rstrip by expanding match to include adjacent whitespace
+    let start = match.start;
+    let end = match.end;
+
+    if (match.token.lstrip) {
+      start = Math.max(cursor, spaceLeftmostAtEnd(text, cursor, start));
+    }
+    if (match.token.rstrip) {
+      end = end + spaceRightmostAtStart(text, end);
+    }
+
+    if (cursor < start) {
+      out.push({ type: 'text', text: text.slice(cursor, start) });
+    }
+    out.push({ type: 'added', id: match.token.id });
+    cursor = end;
+    i = end;
   }
+
+  if (cursor < text.length) {
+    out.push({ type: 'text', text: text.slice(cursor) });
+  }
+
+  return out;
+}
+
+function findLongestMatchAt(text: string, start: number, trie: TrieNode): { token: AddedToken; start: number; end: number } | null {
+  let node: TrieNode | undefined = trie;
+  let best: { token: AddedToken; end: number } | null = null;
+
+  for (let i = start; i < text.length; i++) {
+    node = node.get(text[i]);
+    if (!node) break;
+    if (node.__terminal__) {
+      best = { token: node.__terminal__, end: i + 1 };
+    }
+  }
+
+  return best ? { token: best.token, start, end: best.end } : null;
+}
+
+function isSingleWordBoundary(text: string, start: number, end: number): boolean {
+  const before = start === 0 ? '' : text[start - 1];
+  const after = end >= text.length ? '' : text[end];
+  const startOk = start === 0 || !isWordChar(before);
+  const endOk = end === text.length || !isWordChar(after);
+  return startOk && endOk;
+}
+
+function isWordChar(ch: string): boolean {
+  // HF uses Unicode-aware `\\w`. JS `\\w` is ASCII-only, so approximate via Unicode properties.
+  return /[\p{L}\p{N}_]/u.test(ch);
+}
+
+function spaceLeftmostAtEnd(text: string, from: number, to: number): number {
+  let i = to;
+  while (i > from && /\s/u.test(text[i - 1])) i--;
+  return i;
+}
+
+function spaceRightmostAtStart(text: string, start: number): number {
+  let i = start;
+  while (i < text.length && /\s/u.test(text[i])) i++;
+  return i - start;
 }
 ```
 
@@ -1387,34 +1502,42 @@ export class JsonBPEEncoder {
   private readonly vocab: Map<string, number>;         // piece → id
   private readonly vocabReverse: Map<number, string>;  // id → piece
   private readonly mergeRules: Map<string, MergeRule>; // "left right" → rule
+  private readonly normalizer: TextNormalizer | null;
   private readonly byteFallback: boolean;
   private readonly unkId: number;
   private readonly continuingSubwordPrefix: string | null;
   private readonly endOfWordSuffix: string | null;
-  private readonly whitespaceReplacement: string;
+  private readonly whitespaceReplacement: string;      // Metaspace replacement
+  private readonly addPrefixSpace: boolean;            // Metaspace add_prefix_space
   private readonly addedTokenMatcher: AddedTokenMatcher | null;
+  private readonly addedTokensById: Map<number, AddedToken>;
 
   constructor(
     vocab: Record<string, number>,
     merges: string[],
     options: {
+      normalizer?: TextNormalizer;       // tokenizer.json normalizer pipeline (subset)
       byteFallback?: boolean;
       unkId?: number;
       continuingSubwordPrefix?: string;
       endOfWordSuffix?: string;
-      whitespaceReplacement?: string;
+      whitespaceReplacement?: string;    // Metaspace replacement
+      addPrefixSpace?: boolean;          // Metaspace add_prefix_space
       addedTokens?: AddedToken[];
     } = {}
   ) {
     this.vocab = new Map(Object.entries(vocab));
     this.vocabReverse = new Map(Object.entries(vocab).map(([k, v]) => [v, k]));
+    this.normalizer = options.normalizer ?? null;
     this.byteFallback = options.byteFallback ?? false;
     this.unkId = options.unkId ?? 0;
     this.continuingSubwordPrefix = options.continuingSubwordPrefix ?? null;
     this.endOfWordSuffix = options.endOfWordSuffix ?? null;
     this.whitespaceReplacement = options.whitespaceReplacement ?? '\u2581';
+    this.addPrefixSpace = options.addPrefixSpace ?? true;
+    this.addedTokensById = new Map((options.addedTokens ?? []).map(t => [t.id, t]));
     this.addedTokenMatcher = options.addedTokens?.length
-      ? new AddedTokenMatcher(options.addedTokens)
+      ? new AddedTokenMatcher(options.addedTokens, { normalizer: this.normalizer ?? undefined })
       : null;
 
     // Parse merges into lookup map
@@ -1429,21 +1552,26 @@ export class JsonBPEEncoder {
   encode(text: string): number[] {
     if (text.length === 0) return [];
 
-    // Step 0: Match added tokens first (if any)
+    // Step 0: Match added tokens first (if any) with HF semantics:
+    // - normalized=false matches on raw text
+    // - normalized=true matches on normalized view of the text
     if (this.addedTokenMatcher) {
-      const segments = this.addedTokenMatcher.splitOnAddedTokens(text);
+      const segments = this.addedTokenMatcher.extractAndNormalize(text);
       const result: number[] = [];
       for (const segment of segments) {
         if (segment.type === 'added') {
           result.push(segment.id);
         } else {
+          // segment.text is already normalized if a normalizer is configured
           result.push(...this.encodeText(segment.text));
         }
       }
       return result;
     }
 
-    return this.encodeText(text);
+    // No added tokens: still normalize if a normalizer exists
+    const normalized = this.normalizer ? this.normalizer.normalize(text) : text;
+    return this.encodeText(normalized);
   }
 
   private encodeText(text: string): number[] {
@@ -1463,27 +1591,48 @@ export class JsonBPEEncoder {
   }
 
   /**
-   * Metaspace pre-tokenization: split on whitespace, prepend replacement to each word
+   * Metaspace pre-tokenization (SentencePiece-style):
+   * - Preserves whitespace *counts* (multiple spaces/newlines/tabs)
+   * - Attaches whitespace runs as prefix markers on the following segment
+   * - Optionally adds a prefix marker to the first segment (add_prefix_space)
+   *
+   * This is required for parity with many `tokenizer.json` BPE models that rely on tokens like "▁word"
+   * and may also contain explicit pieces for repeated whitespace like "▁▁".
    */
   private preTokenize(text: string): string[] {
-    // Split by whitespace, prepend replacement char to indicate word boundary
-    const words: string[] = [];
-    let isFirst = true;
+    const segments: string[] = [];
+    let pendingPrefix = '';
 
-    for (const segment of text.split(/(\s+)/)) {
-      if (!segment) continue;
+    // add_prefix_space=true means: if the input doesn't start with whitespace,
+    // act as if there was a single leading whitespace.
+    if (this.addPrefixSpace && text.length > 0 && !/^\s/u.test(text)) {
+      pendingPrefix += this.whitespaceReplacement;
+    }
 
-      if (/^\s+$/.test(segment)) {
-        // Whitespace segment - skip (represented by replacement prefix on next word)
+    for (const part of text.split(/(\s+)/u)) {
+      if (!part) continue;
+
+      if (/^\s+$/u.test(part)) {
+        pendingPrefix += this.replacementMarkersForWhitespace(part);
         continue;
       }
 
-      // Non-whitespace: prepend replacement (unless treatWhitespaceAsSuffix)
-      words.push(this.whitespaceReplacement + segment);
-      isFirst = false;
+      segments.push(pendingPrefix + part);
+      pendingPrefix = '';
     }
 
-    return words;
+    // Trailing whitespace becomes its own segment (allows encoding "▁▁" etc)
+    if (pendingPrefix) {
+      segments.push(pendingPrefix);
+    }
+
+    return segments.filter(s => s.length > 0);
+  }
+
+  private replacementMarkersForWhitespace(whitespace: string): string {
+    let out = '';
+    for (const _ of whitespace) out += this.whitespaceReplacement;
+    return out;
   }
 
   /**
@@ -1522,10 +1671,21 @@ export class JsonBPEEncoder {
     }
 
     // Step 3: Apply subword prefix/suffix transformations (PER WORD)
-    tokens = this.applySubwordTransforms(tokens);
+    // Skip transforms for "whitespace-only" segments (e.g., trailing "▁▁") so we don't append </w>.
+    if (!this.isWhitespaceOnlySegment(word)) {
+      tokens = this.applySubwordTransforms(tokens);
+    }
 
     // Step 4: Convert tokens to IDs
     return tokens.map(t => this.vocab.get(t) ?? this.unkId);
+  }
+
+  private isWhitespaceOnlySegment(segment: string): boolean {
+    // True if the segment is solely repetition(s) of the Metaspace replacement string.
+    // Note: replacement can be multi-character in tokenizer.json.
+    if (!segment) return true;
+    if (!this.whitespaceReplacement) return false;
+    return segment.split(this.whitespaceReplacement).join('') === '';
   }
 
   /**
@@ -1579,10 +1739,15 @@ export class JsonBPEEncoder {
     const pieces: string[] = [];
 
     for (const id of tokenIds) {
-      const piece = this.vocabReverse.get(id);
-      if (piece === undefined) {
-        throw new Error(`Unknown token ID: ${id}`);
+      // Added tokens can have IDs outside the base vocab. Prefer them when present.
+      const added = this.addedTokensById.get(id);
+      if (added) {
+        pieces.push(added.content);
+        continue;
       }
+
+      const piece = this.vocabReverse.get(id);
+      if (piece === undefined) throw new Error(`Unknown token ID: ${id}`);
       pieces.push(piece);
     }
 
@@ -1635,13 +1800,30 @@ function getSentencePieceTokenizer(options: DataOptions): SentencePieceTokenizer
 
   if (config.source === 'json' && config.modelType === 'BPE') {
     // JSON-BPE: use merges-based encoder
-    return new JsonBPETokenizer(config.vocab, config.merges, config.options);
+    return new JsonBPETokenizer(config.vocab, config.merges, {
+      normalizer: config.normalizer,
+      // Metaspace pre_tokenizer config
+      whitespaceReplacement: config.metaspace?.replacement,
+      addPrefixSpace: config.metaspace?.addPrefixSpace,
+      // Added tokens (HF semantics)
+      addedTokens: config.addedTokens,
+      // Model options
+      unkId: config.unkId,
+      byteFallback: config.byteFallback,
+      continuingSubwordPrefix: config.continuingSubwordPrefix,
+      endOfWordSuffix: config.endOfWordSuffix,
+    });
   } else if (config.modelType === 'BPE') {
     // SentencePiece BPE: use score-based encoder
     return new SentencePieceBPETokenizer(config.pieces, config.trainerSpec);
   } else {
     // Unigram
-    return new UnigramTokenizer(config.pieces, config.trainerSpec);
+    return new UnigramTokenizer(config.pieces, config.trainerSpec, {
+      normalizer: config.normalizer,
+      metaspace: config.metaspace,
+      addedTokens: config.addedTokens,
+      unkId: config.unkId,
+    });
   }
 }
 ```
@@ -1709,14 +1891,21 @@ export class UnigramEncoder {
   private readonly unkId: number;
   private readonly unkScore: number;
   private readonly specialTokenMatcher: AddedTokenMatcher;  // For CONTROL + USER_DEFINED
+  private readonly addedTokensById: Map<number, AddedToken>;
 
-  constructor(pieces: SentencePiece[], trainerSpec?: TrainerSpec, addedTokens?: AddedToken[]) {
+  constructor(
+    pieces: SentencePiece[],
+    trainerSpec?: TrainerSpec,
+    addedTokens?: AddedToken[],
+    normalizer?: TextNormalizer
+  ) {
     this.trie = new VocabTrie();
     this.vocabReverse = new Map();
     this.byteScores = new Map();
     this.byteFallback = trainerSpec?.byteFallback ?? false;
     this.unkId = trainerSpec?.unkId ?? 0;
     this.unkScore = -Infinity;
+    this.addedTokensById = new Map((addedTokens ?? []).map(t => [t.id, t]));
 
     // Collect special tokens for atomic matching (CONTROL + USER_DEFINED + HF added_tokens)
     const specialTokens: AddedToken[] = [...(addedTokens ?? [])];
@@ -1742,7 +1931,7 @@ export class UnigramEncoder {
     }
 
     // Build special token matcher for atomic matching before Viterbi
-    this.specialTokenMatcher = new AddedTokenMatcher(specialTokens);
+    this.specialTokenMatcher = new AddedTokenMatcher(specialTokens, { normalizer });
   }
 
   encode(text: string): number[] {
@@ -1751,7 +1940,7 @@ export class UnigramEncoder {
     // Step 0: Match special/control tokens atomically BEFORE Viterbi
     // This ensures tokens like <s>, </s>, <unk>, and user-defined tokens
     // are never broken by the segmentation algorithm
-    const segments = this.specialTokenMatcher.splitOnAddedTokens(text);
+    const segments = this.specialTokenMatcher.extractAndNormalize(text);
     const result: number[] = [];
 
     for (const segment of segments) {
@@ -1861,10 +2050,14 @@ export class UnigramEncoder {
     const pieces: string[] = [];
 
     for (const id of tokens) {
-      const piece = this.vocabReverse.get(id);
-      if (piece === undefined) {
-        throw new Error(`Unknown token ID: ${id}`);
+      const added = this.addedTokensById.get(id);
+      if (added) {
+        pieces.push(added.content);
+        continue;
       }
+
+      const piece = this.vocabReverse.get(id);
+      if (piece === undefined) throw new Error(`Unknown token ID: ${id}`);
       pieces.push(piece);
     }
 
@@ -1984,7 +2177,8 @@ interface HFTokenizerConfig {
 // Extended result type for JSON parsing (includes merges for JSON-BPE)
 export interface ParsedJsonTokenizer {
   modelType: 'unigram' | 'json-bpe';
-  normalizerSpec: NormalizerSpec;
+  normalizer: TextNormalizer | null;  // tokenizer.json normalizer pipeline (subset)
+  metaspace: { replacement: string; addPrefixSpace: boolean } | null; // tokenizer.json Metaspace pre_tokenizer (if present)
   addedTokens: AddedToken[];  // REQUIRED: matched atomically before model encoding
 
   // For Unigram
@@ -1994,7 +2188,7 @@ export interface ParsedJsonTokenizer {
   // For JSON-BPE (merges-based)
   vocab?: Record<string, number>;
   merges?: string[];
-  unkId: number;              // RESOLVED from vocab[unk_token] (throws if missing)
+  unkId: number;              // RESOLVED from vocab/unk_token (used by Unigram + JSON-BPE)
   byteFallback?: boolean;
   continuingSubwordPrefix?: string;  // e.g., "##" for BERT-style
   endOfWordSuffix?: string;          // e.g., "</w>" for GPT-style
@@ -2006,7 +2200,11 @@ export function parseHFTokenizerJson(json: string | HFTokenizerConfig): ParsedJs
   // Validate configuration is within supported scope
   validateJsonConfig(config);
 
-  const normalizerSpec = buildNormalizerSpec(config.normalizer, config.pre_tokenizer);
+  const normalizer = buildHFNormalizer(config.normalizer);
+  const metaspace = extractMetaspaceSpec(config.pre_tokenizer);
+  if (config.model.type === 'BPE' && !metaspace) {
+    throw new Error('BPE tokenizer.json requires Metaspace pre_tokenizer (validator should have enforced this)');
+  }
 
   // Parse added_tokens (required for both BPE and Unigram)
   const addedTokens: AddedToken[] = (config.added_tokens ?? []).map(t => ({
@@ -2035,14 +2233,22 @@ export function parseHFTokenizerJson(json: string | HFTokenizerConfig): ParsedJs
     // Resolve unkId from vocab
     const unkToken = config.model.unk_token ?? '<unk>';
     const unkEntry = vocab.find(([p]) => p === unkToken);
+    if (!unkEntry && config.model.unk_token) {
+      throw new Error(`unk_token "${config.model.unk_token}" not found in Unigram vocab`);
+    }
     const unkId = unkEntry ? vocab.indexOf(unkEntry) : 0;
+
+    const trainerSpec = buildTrainerSpec(config, pieces.length, 1 /* UNIGRAM */);
+    trainerSpec.unkId = unkId;
+    trainerSpec.unkPiece = unkToken;
 
     return {
       modelType: 'unigram',
-      normalizerSpec,
+      normalizer,
+      metaspace,
       addedTokens,
       pieces,
-      trainerSpec: buildTrainerSpec(config, pieces.length, 1 /* UNIGRAM */),
+      trainerSpec,
       unkId,
     };
 
@@ -2063,7 +2269,8 @@ export function parseHFTokenizerJson(json: string | HFTokenizerConfig): ParsedJs
 
     return {
       modelType: 'json-bpe',
-      normalizerSpec,
+      normalizer,
+      metaspace,
       addedTokens,
       vocab,
       merges: config.model.merges ?? [],
@@ -2093,7 +2300,7 @@ function buildTrainerSpec(config: HFTokenizerConfig, vocabSize: number, modelTyp
     byteFallback: config.model.byte_fallback ?? false,
     splitDigits: false,
     treatWhitespaceAsSuffix: false,
-    unkId: 0,  // Will be resolved by tokenizer
+    unkId: 0,  // Resolved by parser for tokenizer.json (see parseHFTokenizerJson)
     bosId: -1, eosId: -1, padId: -1,
     unkPiece: config.model.unk_token ?? '<unk>',
     bosPiece: '<s>', eosPiece: '</s>', padPiece: '<pad>',
@@ -2101,29 +2308,80 @@ function buildTrainerSpec(config: HFTokenizerConfig, vocabSize: number, modelTyp
   };
 }
 
-function buildNormalizerSpec(normalizer: any, preTokenizer: any): NormalizerSpec {
-  let addDummyPrefix = true;
-  let escapeWhitespaces = true;
-  let whitespaceReplacement = '\u2581'; // Default: ▁
+function extractMetaspaceSpec(preTokenizer: any): { replacement: string; addPrefixSpace: boolean } | null {
+  if (!preTokenizer) return null;
 
-  // Extract metaspace settings
-  const metaspace = preTokenizer?.type === 'Metaspace' ? preTokenizer
-    : preTokenizer?.pretokenizers?.find((p: any) => p.type === 'Metaspace');
+  const metaspace =
+    preTokenizer.type === 'Metaspace'
+      ? preTokenizer
+      : preTokenizer.type === 'Sequence'
+        ? preTokenizer.pretokenizers?.find((p: any) => p.type === 'Metaspace')
+        : null;
 
-  if (metaspace) {
-    addDummyPrefix = metaspace.add_prefix_space ?? true;
-    // Metaspace replacement character (default: ▁ U+2581)
-    whitespaceReplacement = metaspace.replacement ?? '\u2581';
+  if (!metaspace) return null;
+  return {
+    replacement: metaspace.replacement ?? '\u2581',
+    addPrefixSpace: metaspace.add_prefix_space ?? true,
+  };
+}
+
+function buildHFNormalizer(normalizer: any): TextNormalizer | null {
+  if (!normalizer) return null;
+
+  // NOTE: This is the tokenizer.json normalizer pipeline, NOT SentencePiece normalizer_spec.
+  // Implement a minimal but extensible subset:
+  // - Sequence
+  // - Lowercase
+  // - NFKC
+  // - Strip
+  // - Replace
+  //
+  // Throw on unsupported normalizers to avoid silent mismatches.
+
+  if (normalizer.type === 'Sequence') {
+    const parts = normalizer.normalizers ?? [];
+    const compiled = parts.map((n: any) => buildHFNormalizer(n)).filter(Boolean) as TextNormalizer[];
+    return {
+      normalize(text: string): string {
+        let out = text;
+        for (const part of compiled) out = part.normalize(out);
+        return out;
+      },
+    };
   }
 
-  return {
-    name: normalizer?.type ?? 'identity',
-    precompiledCharsmap: new Uint8Array(0),
-    addDummyPrefix,
-    removeExtraWhitespaces: false,
-    escapeWhitespaces,
-    whitespaceReplacement,
-  };
+  if (normalizer.type === 'Lowercase') {
+    return { normalize: (t: string) => t.toLowerCase() };
+  }
+
+  if (normalizer.type === 'NFKC') {
+    return { normalize: (t: string) => t.normalize('NFKC') };
+  }
+
+  if (normalizer.type === 'Strip') {
+    const left = normalizer.left ?? true;
+    const right = normalizer.right ?? true;
+    return {
+      normalize(text: string): string {
+        let out = text;
+        if (left) out = out.replace(/^\s+/u, '');
+        if (right) out = out.replace(/\s+$/u, '');
+        return out;
+      },
+    };
+  }
+
+  if (normalizer.type === 'Replace') {
+    const pattern = normalizer.pattern?.String ?? normalizer.pattern ?? '';
+    const content = normalizer.content ?? '';
+    const re = new RegExp(pattern, 'gu');
+    return { normalize: (t: string) => t.replace(re, content) };
+  }
+
+  throw new UnsupportedTokenizerError(
+    `Unsupported tokenizer.json normalizer: "${normalizer.type}". ` +
+    'Add support in buildHFNormalizer() or provide a supported tokenizer.json.'
+  );
 }
 ```
 
@@ -2703,8 +2961,9 @@ describe('Model Download Helper', () => {
 ### Phase 1: Core Infrastructure
 1. [ ] Protobuf wire format parser (`protobuf/wire.ts`)
 2. [ ] ModelProto/SentencePiece decoder (`protobuf/decoder.ts`)
-3. [ ] Code point utilities (`unicode.ts`)
-4. [ ] Basic tests with manually downloaded .model files
+3. [ ] Unicode utilities + script tables (`unicode.ts`)
+4. [ ] Generate `unicode-scripts.generated.ts` from UCD (commit output)
+5. [ ] Basic tests with manually downloaded .model files
 
 ### Phase 2: Normalizer **CRITICAL**
 5. [ ] Parse precompiled_charsmap format
