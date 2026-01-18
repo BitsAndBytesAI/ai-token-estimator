@@ -16,15 +16,15 @@
 
 1. ✅ **BPE tokenizer encoder/decoder (tiktoken port)**: `encode`, `decode` (exact tokenization vs heuristic estimation).
 2. ✅ **Chat completion token counting**: `countChatCompletionTokens` (chat overhead + legacy functions API).
-3. 🟨 **Built-in cost estimation**: `estimateCost` (we support basic input cost estimation today via `estimate(...)`; missing richer categories for full parity).
+3. ✅ **Built-in cost estimation**: `estimateCost`, `estimateCostFromText`, `estimateCostFromTextAsync`, `getTotalCost` - full parity with output/cached/batch pricing support.
 4. ✅ **Explicit encoding support + model→encoding mapping**:
    - Encodings: `r50k_base`, `p50k_base`, `p50k_edit`, `cl100k_base`, `o200k_base`, `o200k_harmony`
    - Model→encoding mapping via `getOpenAIEncoding(...)`.
 5. ✅ **Synchronous load + sync API** (sync tokenization + estimation APIs).
+6. ✅ **Extended estimate() fields**: `outputTokens`, `cachedInputTokens`, `mode` inputs; `estimatedOutputCost`, `estimatedCachedInputCost`, `estimatedTotalCost` outputs.
 
 ## Next (Highest Impact to Build)
 
-6. ⏳ **Finish `estimateCost` parity**: output token costs, cached token categories, batch pricing categories (and an explicit `estimateCost(...)` API).
 7. ⏳ **Fast token-limit check without full encode**: `isWithinTokenLimit` (early-exit counting; returns `false` when exceeded, else token count).
 8. ⏳ **Chat-aware tokenization**: `encodeChat` (tokenize chat payloads correctly for specific models).
 
