@@ -235,3 +235,68 @@ describe('DEFAULT_MODELS', () => {
     }).toThrow();
   });
 });
+
+describe('estimate - extended cost fields', () => {
+  it('returns estimatedTotalCost equal to estimatedInputCost when no cost inputs', () => {
+    const result = estimate({ text: 'Hello, world!', model: 'gpt-4o' });
+    expect(result.estimatedTotalCost).toBe(result.estimatedInputCost);
+    expect(result.estimatedOutputCost).toBeUndefined();
+    expect(result.estimatedCachedInputCost).toBeUndefined();
+  });
+
+  it('calculates output cost when outputTokens provided', () => {
+    const result = estimate({
+      text: 'Hello',
+      model: 'gpt-4o',
+      outputTokens: 1_000_000,
+    });
+
+    expect(result.outputTokens).toBe(1_000_000);
+    expect(result.estimatedOutputCost).toBeCloseTo(10.0, 6); // $10/M output
+    expect(result.estimatedTotalCost).toBeCloseTo(result.estimatedInputCost + 10.0, 6);
+  });
+
+  it('calculates cached input cost when cachedInputTokens provided', () => {
+    // First count the tokens to know the input count
+    const baseResult = estimate({ text: 'a'.repeat(40), model: 'gpt-4o' });
+    const inputTokens = baseResult.estimatedTokens; // Should be 10 with exact tokenizer
+
+    const result = estimate({
+      text: 'a'.repeat(40),
+      model: 'gpt-4o',
+      cachedInputTokens: 5,
+    });
+
+    expect(result.estimatedCachedInputCost).toBeGreaterThan(0);
+    expect(result.estimatedTotalCost).toBeLessThan(result.estimatedInputCost + (result.estimatedCachedInputCost || 0));
+  });
+
+  it('uses batch rates when mode=batch', () => {
+    const standardResult = estimate({
+      text: 'a'.repeat(40),
+      model: 'gpt-4o',
+    });
+
+    const batchResult = estimate({
+      text: 'a'.repeat(40),
+      model: 'gpt-4o',
+      mode: 'batch',
+    });
+
+    // Batch input rate is $1.25/M vs standard $2.50/M, so batch should be cheaper
+    expect(batchResult.estimatedTotalCost).toBeLessThan(standardResult.estimatedInputCost);
+  });
+
+  it('falls back to input-only cost when pricing unavailable', () => {
+    // Claude doesn't have output pricing in models.ts, so outputTokens should gracefully fail
+    const result = estimate({
+      text: 'Hello, world!',
+      model: 'claude-sonnet-4',
+      outputTokens: 100,
+    });
+
+    // Should fall back to input-only cost when estimateCost throws
+    expect(result.estimatedTotalCost).toBe(result.estimatedInputCost);
+    expect(result.estimatedOutputCost).toBeUndefined();
+  });
+});

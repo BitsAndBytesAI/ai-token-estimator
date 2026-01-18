@@ -52,6 +52,14 @@ export interface EstimateInput {
    * - `auto`: use OpenAI BPE for OpenAI models, otherwise heuristic
    */
   tokenizer?: TokenizerMode;
+
+  // NEW: Optional cost estimation inputs
+  /** Output tokens for cost estimation (optional) */
+  outputTokens?: number;
+  /** Cached input tokens for cost estimation (optional, must be <= estimatedTokens) */
+  cachedInputTokens?: number;
+  /** Pricing mode: 'standard' or 'batch' (optional) */
+  mode?: 'standard' | 'batch';
 }
 
 export interface EstimateAsyncInput extends Omit<EstimateInput, 'tokenizer'> {
@@ -125,6 +133,16 @@ export interface EstimateOutput {
   tokenizerMode?: TokenizerModeAsync;
   /** OpenAI encoding used when tokenizerMode is `openai_exact` */
   encodingUsed?: string;
+
+  // NEW: Extended cost fields (only present if outputTokens/cachedInputTokens/mode provided)
+  /** Output tokens (echoed from input if provided) */
+  outputTokens?: number;
+  /** Estimated output cost in USD (only if outputTokens provided and outputCostPerMillion available) */
+  estimatedOutputCost?: number;
+  /** Estimated cached input cost in USD (only if cachedInputTokens provided and cachedInputCostPerMillion available) */
+  estimatedCachedInputCost?: number;
+  /** Total estimated cost in USD (always present - sum of input + output + cached costs) */
+  estimatedTotalCost: number;
 }
 
 // =============================================================================

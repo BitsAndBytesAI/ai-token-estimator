@@ -1,5 +1,6 @@
 import { getModelConfig } from './models.js';
 import { encode, getOpenAIEncoding } from './openai-bpe.js';
+import { estimateCost } from './cost.js';
 import type { EstimateInput, EstimateOutput, TokenizerMode } from './types.js';
 
 /**
@@ -33,7 +34,15 @@ function countCodePoints(text: string): number {
  * ```
  */
 export function estimate(input: EstimateInput): EstimateOutput {
-  const { text, model, rounding = 'ceil', tokenizer = 'heuristic' } = input;
+  const {
+    text,
+    model,
+    rounding = 'ceil',
+    tokenizer = 'heuristic',
+    outputTokens,
+    cachedInputTokens,
+    mode,
+  } = input;
   const config = getModelConfig(model);
 
   // Runtime guard for JS callers who may pass async-only tokenizer modes.
@@ -97,6 +106,32 @@ export function estimate(input: EstimateInput): EstimateOutput {
   const estimatedInputCost =
     (estimatedTokens * config.inputCostPerMillion) / 1_000_000;
 
+  // Calculate extended cost fields if cost inputs provided
+  let estimatedOutputCost: number | undefined;
+  let estimatedCachedInputCost: number | undefined;
+  let estimatedTotalCost = estimatedInputCost;
+
+  // Use estimateCost for detailed calculation if any cost-related input is provided
+  const hasCostInputs = outputTokens !== undefined || cachedInputTokens !== undefined || mode !== undefined;
+
+  if (hasCostInputs) {
+    try {
+      const costResult = estimateCost({
+        model,
+        inputTokens: estimatedTokens,
+        outputTokens,
+        cachedInputTokens,
+        mode,
+      });
+      estimatedOutputCost = costResult.costs.output > 0 ? costResult.costs.output : undefined;
+      estimatedCachedInputCost = costResult.costs.cachedInput > 0 ? costResult.costs.cachedInput : undefined;
+      estimatedTotalCost = costResult.costs.total;
+    } catch {
+      // If estimateCost throws (e.g., missing pricing), fall back to input-only cost
+      estimatedTotalCost = estimatedInputCost;
+    }
+  }
+
   return {
     model,
     characterCount,
@@ -105,5 +140,9 @@ export function estimate(input: EstimateInput): EstimateOutput {
     charsPerToken: config.charsPerToken,
     tokenizerMode: tokenizerModeUsed,
     encodingUsed,
+    outputTokens,
+    estimatedOutputCost,
+    estimatedCachedInputCost,
+    estimatedTotalCost,
   };
 }

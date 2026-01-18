@@ -150,3 +150,63 @@ describe('provider tokenizers', () => {
     ).rejects.toThrow(/Gemini countTokens failed/i);
   });
 });
+
+describe('estimateAsync - extended cost fields', () => {
+  it('returns estimatedTotalCost equal to estimatedInputCost when no cost inputs', async () => {
+    const result = await estimateAsync({ text: 'Hello, world!', model: 'gpt-4o' });
+    expect(result.estimatedTotalCost).toBe(result.estimatedInputCost);
+    expect(result.estimatedOutputCost).toBeUndefined();
+    expect(result.estimatedCachedInputCost).toBeUndefined();
+  });
+
+  it('calculates output cost when outputTokens provided', async () => {
+    const result = await estimateAsync({
+      text: 'Hello',
+      model: 'gpt-4o',
+      outputTokens: 1_000_000,
+    });
+
+    expect(result.outputTokens).toBe(1_000_000);
+    expect(result.estimatedOutputCost).toBeCloseTo(10.0, 6); // $10/M output
+    expect(result.estimatedTotalCost).toBeCloseTo(result.estimatedInputCost + 10.0, 6);
+  });
+
+  it('calculates cached input cost when cachedInputTokens provided', async () => {
+    const result = await estimateAsync({
+      text: 'a'.repeat(40),
+      model: 'gpt-4o',
+      cachedInputTokens: 5,
+    });
+
+    expect(result.estimatedCachedInputCost).toBeGreaterThan(0);
+  });
+
+  it('uses batch rates when mode=batch', async () => {
+    const standardResult = await estimateAsync({
+      text: 'a'.repeat(40),
+      model: 'gpt-4o',
+    });
+
+    const batchResult = await estimateAsync({
+      text: 'a'.repeat(40),
+      model: 'gpt-4o',
+      mode: 'batch',
+    });
+
+    // Batch input rate is $1.25/M vs standard $2.50/M, so batch should be cheaper
+    expect(batchResult.estimatedTotalCost).toBeLessThan(standardResult.estimatedInputCost);
+  });
+
+  it('falls back to input-only cost when pricing unavailable', async () => {
+    // Claude doesn't have output pricing in models.ts, so outputTokens should gracefully fail
+    const result = await estimateAsync({
+      text: 'Hello, world!',
+      model: 'claude-sonnet-4',
+      outputTokens: 100,
+    });
+
+    // Should fall back to input-only cost when estimateCost throws
+    expect(result.estimatedTotalCost).toBe(result.estimatedInputCost);
+    expect(result.estimatedOutputCost).toBeUndefined();
+  });
+});
