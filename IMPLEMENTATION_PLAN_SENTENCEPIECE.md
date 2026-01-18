@@ -1325,6 +1325,7 @@ export class AddedTokenMatcher {
   private readonly normalizer?: TextNormalizer;
   private readonly rawTrie: TrieNode;
   private readonly normalizedTrie: TrieNode;
+  private readonly hasNormalizedTokens: boolean;
 
   constructor(addedTokens: AddedToken[], options?: { normalizer?: TextNormalizer }) {
     this.normalizer = options?.normalizer;
@@ -1332,6 +1333,7 @@ export class AddedTokenMatcher {
 
     const rawTokens = addedTokens.filter(t => !t.normalized);
     const normalizedTokens = addedTokens.filter(t => t.normalized);
+    this.hasNormalizedTokens = normalizedTokens.length > 0;
 
     this.rawTrie = buildTrie(rawTokens, t => t.content);
     this.normalizedTrie = buildTrie(normalizedTokens, t => {
@@ -1355,6 +1357,12 @@ export class AddedTokenMatcher {
   extractAndNormalize(text: string): AddedTokenSegment[] {
     // 1) Split on non-normalized tokens in the original text
     const firstPass = splitOnTrie(text, this.rawTrie);
+
+    // If there are no normalized=true tokens, do not normalize the remaining text segments here.
+    // This avoids accidentally changing the model input when a normalizer is provided for other reasons.
+    if (!this.hasNormalizedTokens) {
+      return firstPass;
+    }
 
     // 2) Normalize the remaining text segments
     const normalizedSegments: AddedTokenSegment[] = firstPass.map(seg => {
