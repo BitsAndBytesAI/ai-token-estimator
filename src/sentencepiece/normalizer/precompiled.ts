@@ -16,7 +16,8 @@
  */
 
 export interface PrecompiledCharmap {
-  trie: CharMapTrie;
+  trie?: CharMapTrie;
+  doubleArrayTrie?: DoubleArrayTrie;
 }
 
 /**
@@ -83,59 +84,198 @@ function insertIntoTrie(root: CharMapTrie, codePoints: number[], replacement: st
 }
 
 
-// Maximum charmap size to parse
-// Large charmaps (like T5's 237KB) use a double-array trie format that requires
-// specialized parsing. For now, we skip them and fall back to NFKC.
-// This affects ~9 test cases (ZWJ emoji sequences).
-const MAX_CHARMAP_SIZE = 50000;
+/**
+ * Double-array trie for efficient binary lookup in large charmaps.
+ * Based on the SentencePiece Darts::DoubleArray format.
+ *
+ * Format (from SentencePiece DecodePrecompiledCharsMap):
+ * - Bytes 0-3: trie_blob_size in BYTES (must be divisible by 1024)
+ * - Bytes 4 to 4+trie_blob_size: double-array trie data
+ * - Remaining bytes: normalized strings (null-separated)
+ *
+ * Each trie node (u32) encodes:
+ * - Label: node & 0xFF - byte to match
+ * - Offset: (node >> 10) << ((node & (1 << 9)) >> 6) - next node offset
+ * - Has Leaf: (node >> 8) & 1 - indicates output exists
+ * - Value: node & ((1 << 31) - 1) - string table offset (when leaf)
+ *
+ * Lookup uses XOR-based state transitions.
+ */
+export class DoubleArrayTrie {
+  private readonly trie: Uint32Array;
+  private readonly normalizedData: Uint8Array;
+  private readonly trieLength: number;
+
+  constructor(data: Uint8Array) {
+    if (data.length < 8) {
+      this.trie = new Uint32Array(0);
+      this.normalizedData = new Uint8Array(0);
+      this.trieLength = 0;
+      return;
+    }
+
+    const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+
+    // First 4 bytes: trie_blob_size in BYTES
+    const trieBlobSize = view.getUint32(0, true);
+
+    // Validation: trie_blob_size must be divisible by 1024 (per SentencePiece)
+    if (trieBlobSize < 1024 || (trieBlobSize & 0x3ff) !== 0) {
+      this.trie = new Uint32Array(0);
+      this.normalizedData = new Uint8Array(0);
+      this.trieLength = 0;
+      return;
+    }
+
+    // Check bounds
+    if (4 + trieBlobSize > data.length) {
+      this.trie = new Uint32Array(0);
+      this.normalizedData = new Uint8Array(0);
+      this.trieLength = 0;
+      return;
+    }
+
+    // Trie length is number of u32 entries
+    this.trieLength = trieBlobSize / 4;
+
+    // Create a view of the trie data (starts at byte 4)
+    this.trie = new Uint32Array(data.buffer, data.byteOffset + 4, this.trieLength);
+
+    // Normalized string data follows the trie
+    this.normalizedData = data.subarray(4 + trieBlobSize);
+  }
+
+  /**
+   * Check if the trie is valid
+   */
+  get isValid(): boolean {
+    return this.trieLength > 0 && this.normalizedData.length > 0;
+  }
+
+  /**
+   * Look up a UTF-8 byte sequence and return all prefix matches.
+   * Returns array of {length, replacement} for each matching prefix.
+   */
+  commonPrefixSearch(utf8Bytes: Uint8Array): Array<{ length: number; replacement: string }> {
+    const results: Array<{ length: number; replacement: string }> = [];
+
+    if (!this.isValid || utf8Bytes.length === 0) {
+      return results;
+    }
+
+    let nodePos = 0;
+
+    // Get initial offset from first node
+    const firstNode = this.trie[0];
+    nodePos ^= this.getOffset(firstNode);
+
+    for (let i = 0; i < utf8Bytes.length; i++) {
+      const byte = utf8Bytes[i];
+
+      // XOR with the byte value
+      nodePos ^= byte;
+
+      if (nodePos < 0 || nodePos >= this.trieLength) {
+        break;
+      }
+
+      const unit = this.trie[nodePos];
+
+      // Check if the label matches the byte
+      if (this.getLabel(unit) !== byte) {
+        break;
+      }
+
+      // XOR with the offset for next iteration
+      nodePos ^= this.getOffset(unit);
+
+      // Check if this node has a leaf (output)
+      if (this.hasLeaf(unit)) {
+        // Value is stored at the new nodePos (after XOR with offset)
+        if (nodePos >= 0 && nodePos < this.trieLength) {
+          const leafUnit = this.trie[nodePos];
+          const value = this.getValue(leafUnit);
+          const replacement = this.getStringAt(value);
+          results.push({ length: i + 1, replacement });
+        }
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Transform a single character (as UTF-8 bytes) using the trie.
+   * Returns the replacement string, or null if no transformation.
+   */
+  transform(utf8Bytes: Uint8Array): string | null {
+    const matches = this.commonPrefixSearch(utf8Bytes);
+    // Return the longest (last) match
+    if (matches.length > 0) {
+      return matches[matches.length - 1].replacement;
+    }
+    return null;
+  }
+
+  // Extract label from node (low 8 bits only for byte comparison)
+  private getLabel(node: number): number {
+    return node & 0xFF;
+  }
+
+  // Extract offset: (node >> 10) << ((node & (1 << 9)) >> 6)
+  private getOffset(node: number): number {
+    const shift = ((node & 0x200) >>> 6); // (node & (1 << 9)) >> 6
+    return ((node >>> 10) << shift) >>> 0;
+  }
+
+  // Check has_leaf flag: (node >> 8) & 1 == 1
+  private hasLeaf(node: number): boolean {
+    return ((node >>> 8) & 1) === 1;
+  }
+
+  // Get value (string table offset): node & ((1 << 31) - 1)
+  private getValue(node: number): number {
+    return (node >>> 0) & 0x7FFFFFFF;
+  }
+
+  private getStringAt(offset: number): string {
+    if (offset >= this.normalizedData.length) {
+      return '';
+    }
+
+    // Find null terminator
+    let end = offset;
+    while (end < this.normalizedData.length && this.normalizedData[end] !== 0) {
+      end++;
+    }
+
+    return new TextDecoder().decode(this.normalizedData.subarray(offset, end));
+  }
+}
 
 /**
  * Parse the precompiled_charsmap binary format
  *
- * The format is:
- * - Bytes 0-3: little-endian uint32, offset to trie data
- * - Bytes 4 to trieOffset: string table (null-terminated UTF-8 strings)
- * - Bytes trieOffset to end: trie structure
+ * SentencePiece format (from DecodePrecompiledCharsMap):
+ * - Bytes 0-3: trie_blob_size in BYTES (must be divisible by 1024)
+ * - Bytes 4 to 4+trie_blob_size: double-array trie data
+ * - Remaining bytes: normalized strings (null-separated UTF-8)
  *
- * Trie structure (each node):
- * - 3 bytes: number of children (little-endian uint24)
- * - For each child:
- *   - 3 bytes: code point (little-endian uint24)
- *   - 3 bytes: child node offset from start of trie data (little-endian uint24)
- * - If this node has a replacement:
- *   - 3 bytes: string table offset (little-endian uint24), or 0xFFFFFF if no replacement
- *
- * NOTE: Large charmaps (>50KB) use a more complex double-array trie format.
- * We skip these and fall back to NFKC normalization.
+ * The entire blob is passed to DoubleArrayTrie which handles the parsing.
  */
 export function parsePrecompiledCharsmap(data: Uint8Array): PrecompiledCharmap {
-  if (data.length < 4) {
+  if (data.length < 8) {
     return { trie: new CharMapTrie() };
   }
 
-  // Skip very large charmaps - they use a double-array trie format
-  // that's too complex to parse efficiently. Fall back to NFKC.
-  if (data.length > MAX_CHARMAP_SIZE) {
-    return { trie: new CharMapTrie() };
+  // Try to parse as double-array trie (SentencePiece format)
+  const daTrie = new DoubleArrayTrie(data);
+  if (daTrie.isValid) {
+    return { doubleArrayTrie: daTrie };
   }
 
-  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-
-  // Read trie offset (first 4 bytes, little-endian)
-  const trieOffset = view.getUint32(0, true);
-
-  if (trieOffset >= data.length) {
-    return { trie: new CharMapTrie() };
-  }
-
-  // Parse string table (bytes 4 to trieOffset)
-  const stringTable = parseStringTable(data.subarray(4, trieOffset));
-
-  // Parse trie (bytes trieOffset to end)
-  const trieData = data.subarray(trieOffset);
-  const trie = parseTrieNode(trieData, 0, stringTable);
-
-  return { trie };
+  // Fall back to empty trie (should not happen for valid SentencePiece models)
+  return { trie: new CharMapTrie() };
 }
 
 /**
@@ -262,7 +402,13 @@ function readUint24LE(data: Uint8Array, offset: number): number {
  * Apply precompiled charmap to text
  */
 export function applyPrecompiledCharsmap(text: string, charmap: PrecompiledCharmap): string {
-  if (!charmap.trie.children.size) {
+  // Use double-array trie if available
+  if (charmap.doubleArrayTrie?.isValid) {
+    return applyDoubleArrayCharmap(text, charmap.doubleArrayTrie);
+  }
+
+  // Fall back to simple trie
+  if (!charmap.trie || !charmap.trie.children.size) {
     // Empty trie, no transformations
     return text;
   }
@@ -283,4 +429,42 @@ export function applyPrecompiledCharsmap(text: string, charmap: PrecompiledCharm
   }
 
   return result.join('');
+}
+
+/**
+ * Apply double-array trie charmap to text.
+ *
+ * The trie operates on UTF-8 byte sequences, so we must process the entire
+ * input as a byte stream with longest-match prefix search. This correctly
+ * handles multi-byte sequences like decomposed Unicode (e.g., "n" + combining
+ * tilde → "ñ").
+ */
+function applyDoubleArrayCharmap(text: string, trie: DoubleArrayTrie): string {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const utf8Bytes = encoder.encode(text);
+  const resultBytes: number[] = [];
+
+  let pos = 0;
+  while (pos < utf8Bytes.length) {
+    // Try longest-match prefix search from current position
+    const matches = trie.commonPrefixSearch(utf8Bytes.subarray(pos));
+
+    if (matches.length > 0) {
+      // Use the longest match (last in the array)
+      const longest = matches[matches.length - 1];
+      // Append the replacement (as UTF-8 bytes)
+      const replacementBytes = encoder.encode(longest.replacement);
+      for (const b of replacementBytes) {
+        resultBytes.push(b);
+      }
+      pos += longest.length;
+    } else {
+      // No match - keep the original byte and advance by one byte
+      resultBytes.push(utf8Bytes[pos]);
+      pos++;
+    }
+  }
+
+  return decoder.decode(new Uint8Array(resultBytes));
 }

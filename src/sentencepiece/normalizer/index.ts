@@ -76,7 +76,7 @@ export class Normalizer {
     let result = text;
 
     // 1. Apply precompiled charmap (if present)
-    if (this.precompiledCharmap && this.precompiledCharmap.trie.children.size > 0) {
+    if (this.precompiledCharmap && this.hasValidCharmap(this.precompiledCharmap)) {
       result = applyPrecompiledCharsmap(result, this.precompiledCharmap);
     } else {
       // Fallback: basic NFKC normalization
@@ -122,11 +122,26 @@ export class Normalizer {
     }
 
     // 3. Apply denormalizer charmap (if present)
-    if (this.denormalizerCharmap && this.denormalizerCharmap.trie.children.size > 0) {
+    if (this.denormalizerCharmap && this.hasValidCharmap(this.denormalizerCharmap)) {
       result = applyPrecompiledCharsmap(result, this.denormalizerCharmap);
     }
 
     return result;
+  }
+
+  /**
+   * Check if a charmap has valid content (either trie or doubleArrayTrie)
+   */
+  private hasValidCharmap(charmap: PrecompiledCharmap): boolean {
+    // Check double-array trie first (used for large charmaps)
+    if (charmap.doubleArrayTrie?.isValid) {
+      return true;
+    }
+    // Fall back to simple trie
+    if (charmap.trie && charmap.trie.children.size > 0) {
+      return true;
+    }
+    return false;
   }
 
   /**

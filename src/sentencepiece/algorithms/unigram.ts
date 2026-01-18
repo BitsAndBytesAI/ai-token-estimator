@@ -191,10 +191,11 @@ export class UnigramEncoder {
       for (const { id, score, length } of candidates) {
         const newScore = best[i].score + score;
         const endIdx = i + length;
-        // Tie-break: only update on strictly better score (first valid path wins on ties)
-        // Note: Python sentencepiece uses model-specific tie-break logic that we can't
-        // fully replicate. This affects ~2 edge cases (????, !!!!) out of 824 tests.
-        if (newScore > best[endIdx].score) {
+        // Tie-break: on equal scores, prefer later start position (larger prevIdx)
+        // This produces "longer earlier piece" segmentations matching most Python cases.
+        // Use epsilon comparison for floating-point score equality.
+        const scoreDiff = newScore - best[endIdx].score;
+        if (scoreDiff > 1e-9 || (Math.abs(scoreDiff) <= 1e-9 && i > best[endIdx].prevIdx)) {
           best[endIdx] = { score: newScore, prevIdx: i, tokenId: id };
         }
       }
@@ -208,8 +209,9 @@ export class UnigramEncoder {
           const byteTokens = this.getByteTokensForChar(char);
           if (byteTokens) {
             const newScore = best[i].score + byteTokens.totalScore;
-            // Same tie-break rule: only update on strictly better score
-            if (newScore > best[i + 1].score) {
+            // Same tie-break rule: prefer larger prevIdx on equal scores
+            const scoreDiff = newScore - best[i + 1].score;
+            if (scoreDiff > 1e-9 || (Math.abs(scoreDiff) <= 1e-9 && i > best[i + 1].prevIdx)) {
               // Store as special marker; we'll expand during backtrack
               best[i + 1] = { score: newScore, prevIdx: i, tokenId: -2 }; // -2 = byte fallback
             }
@@ -238,8 +240,9 @@ export class UnigramEncoder {
 
         // Emit single UNK for the entire unknown span
         const newScore = best[i].score + this.unkScore;
-        // Same tie-break rule: only update on strictly better score
-        if (newScore > best[endUnk].score) {
+        // Same tie-break rule: prefer larger prevIdx on equal scores
+        const scoreDiff = newScore - best[endUnk].score;
+        if (scoreDiff > 1e-9 || (Math.abs(scoreDiff) <= 1e-9 && i > best[endUnk].prevIdx)) {
           best[endUnk] = { score: newScore, prevIdx: i, tokenId: this.unkId };
         }
       }
