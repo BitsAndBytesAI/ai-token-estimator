@@ -145,13 +145,8 @@ export function estimateCost(options: EstimateCostInput): CostEstimate {
     );
   }
 
-  // Get model config
-  let config: ModelConfig;
-  try {
-    config = getModelConfig(model);
-  } catch {
-    throw new Error(`Unknown model: "${model}"`);
-  }
+  // Get model config (let getModelConfig's helpful error message bubble up)
+  const config = getModelConfig(model);
 
   // Validate output pricing availability
   if (outputTokens > 0 && config.outputCostPerMillion === undefined) {

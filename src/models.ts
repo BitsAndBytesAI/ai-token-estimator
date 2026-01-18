@@ -117,6 +117,10 @@ const models: Record<string, ModelConfig> = {
   'gpt-4o': {
     charsPerToken: 4,
     inputCostPerMillion: 2.5,
+    outputCostPerMillion: 10.0,
+    cachedInputCostPerMillion: 1.25,
+    batchInputCostPerMillion: 1.25,
+    batchOutputCostPerMillion: 5.0,
   },
   'gpt-4o-2024-05-13': {
     charsPerToken: 4,
@@ -129,6 +133,10 @@ const models: Record<string, ModelConfig> = {
   'gpt-4o-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 0.15,
+    outputCostPerMillion: 0.6,
+    cachedInputCostPerMillion: 0.075,
+    batchInputCostPerMillion: 0.075,
+    batchOutputCostPerMillion: 0.3,
   },
   'gpt-4o-mini-audio-preview': {
     charsPerToken: 4,
