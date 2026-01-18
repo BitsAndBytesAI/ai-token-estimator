@@ -1,0 +1,5166 @@
+{
+  "model_name": "t5",
+  "model_path": "/Users/hacker/CODE/ai-token-estimator-remove-sentencepiece/tests/.models/t5-tokenizer.model",
+  "vocab_size": 32000,
+  "encode_fixtures": [
+    {
+      "input": "Hello, world!",
+      "expected_ids": [
+        8774,
+        6,
+        296,
+        55
+      ],
+      "expected_pieces": [
+        "▁Hello",
+        ",",
+        "▁world",
+        "!"
+      ]
+    },
+    {
+      "input": "The quick brown fox jumps over the lazy dog.",
+      "expected_ids": [
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        4418,
+        7,
+        147,
+        8,
+        19743,
+        1782,
+        5
+      ],
+      "expected_pieces": [
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁jump",
+        "s",
+        "▁over",
+        "▁the",
+        "▁lazy",
+        "▁dog",
+        "."
+      ]
+    },
+    {
+      "input": "Hello",
+      "expected_ids": [
+        8774
+      ],
+      "expected_pieces": [
+        "▁Hello"
+      ]
+    },
+    {
+      "input": "hello",
+      "expected_ids": [
+        21820
+      ],
+      "expected_pieces": [
+        "▁hello"
+      ]
+    },
+    {
+      "input": "HELLO",
+      "expected_ids": [
+        454,
+        12735,
+        667
+      ],
+      "expected_pieces": [
+        "▁H",
+        "ELL",
+        "O"
+      ]
+    },
+    {
+      "input": "a",
+      "expected_ids": [
+        3,
+        9
+      ],
+      "expected_pieces": [
+        "▁",
+        "a"
+      ]
+    },
+    {
+      "input": "A",
+      "expected_ids": [
+        71
+      ],
+      "expected_pieces": [
+        "▁A"
+      ]
+    },
+    {
+      "input": "1",
+      "expected_ids": [
+        209
+      ],
+      "expected_pieces": [
+        "▁1"
+      ]
+    },
+    {
+      "input": " ",
+      "expected_ids": [],
+      "expected_pieces": []
+    },
+    {
+      "input": "日本語テスト",
+      "expected_ids": [
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "日本語テスト"
+      ]
+    },
+    {
+      "input": "こんにちは世界",
+      "expected_ids": [
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "こんにちは世界"
+      ]
+    },
+    {
+      "input": "Привет мир",
+      "expected_ids": [
+        3,
+        2,
+        14709,
+        6609,
+        15042,
+        3,
+        21325,
+        8452
+      ],
+      "expected_pieces": [
+        "▁",
+        "П",
+        "ри",
+        "в",
+        "ет",
+        "▁",
+        "ми",
+        "р"
+      ]
+    },
+    {
+      "input": "Здравствуй",
+      "expected_ids": [
+        3,
+        2,
+        5814,
+        7948,
+        6609,
+        24832,
+        3700,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "З",
+        "д",
+        "ра",
+        "в",
+        "ств",
+        "у",
+        "й"
+      ]
+    },
+    {
+      "input": "مرحبا بالعالم",
+      "expected_ids": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "مرحبا",
+        "▁",
+        "بالعالم"
+      ]
+    },
+    {
+      "input": "שלום עולם",
+      "expected_ids": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "שלום",
+        "▁",
+        "עולם"
+      ]
+    },
+    {
+      "input": "Γειά σου κόσμε",
+      "expected_ids": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "Γειά",
+        "▁",
+        "σου",
+        "▁",
+        "κόσμε"
+      ]
+    },
+    {
+      "input": "你好世界",
+      "expected_ids": [
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "你好世界"
+      ]
+    },
+    {
+      "input": "안녕하세요",
+      "expected_ids": [
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "안녕하세요"
+      ]
+    },
+    {
+      "input": "สวัสดีโลก",
+      "expected_ids": [
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "สวัสดีโลก"
+      ]
+    },
+    {
+      "input": "🎉",
+      "expected_ids": [
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "🎉"
+      ]
+    },
+    {
+      "input": "🚀💻🎯",
+      "expected_ids": [
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "🚀💻🎯"
+      ]
+    },
+    {
+      "input": "👨‍👩‍👧‍👦",
+      "expected_ids": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "👨",
+        "▁",
+        "👩",
+        "▁",
+        "👧",
+        "▁",
+        "👦"
+      ]
+    },
+    {
+      "input": "🏳️‍🌈",
+      "expected_ids": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "🏳️",
+        "▁",
+        "🌈"
+      ]
+    },
+    {
+      "input": "👩🏽‍💻",
+      "expected_ids": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "👩🏽",
+        "▁",
+        "💻"
+      ]
+    },
+    {
+      "input": "🇺🇸",
+      "expected_ids": [
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "🇺🇸"
+      ]
+    },
+    {
+      "input": "❤️",
+      "expected_ids": [
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "❤️"
+      ]
+    },
+    {
+      "input": "café",
+      "expected_ids": [
+        11949
+      ],
+      "expected_pieces": [
+        "▁café"
+      ]
+    },
+    {
+      "input": "café",
+      "expected_ids": [
+        11949
+      ],
+      "expected_pieces": [
+        "▁café"
+      ]
+    },
+    {
+      "input": "나는 한국어",
+      "expected_ids": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "나는",
+        "▁",
+        "한국어"
+      ]
+    },
+    {
+      "input": "ñ",
+      "expected_ids": [
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "ñ"
+      ]
+    },
+    {
+      "input": "ñ",
+      "expected_ids": [
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "ñ"
+      ]
+    },
+    {
+      "input": "",
+      "expected_ids": [],
+      "expected_pieces": []
+    },
+    {
+      "input": " ",
+      "expected_ids": [],
+      "expected_pieces": []
+    },
+    {
+      "input": "   ",
+      "expected_ids": [],
+      "expected_pieces": []
+    },
+    {
+      "input": "\n",
+      "expected_ids": [],
+      "expected_pieces": []
+    },
+    {
+      "input": "\t",
+      "expected_ids": [],
+      "expected_pieces": []
+    },
+    {
+      "input": "\n\t\r",
+      "expected_ids": [],
+      "expected_pieces": []
+    },
+    {
+      "input": "\r\n",
+      "expected_ids": [],
+      "expected_pieces": []
+    },
+    {
+      "input": "word1  word2   word3",
+      "expected_ids": [
+        1448,
+        536,
+        1448,
+        357,
+        1448,
+        519
+      ],
+      "expected_pieces": [
+        "▁word",
+        "1",
+        "▁word",
+        "2",
+        "▁word",
+        "3"
+      ]
+    },
+    {
+      "input": " leading",
+      "expected_ids": [
+        1374
+      ],
+      "expected_pieces": [
+        "▁leading"
+      ]
+    },
+    {
+      "input": "trailing ",
+      "expected_ids": [
+        5032,
+        53
+      ],
+      "expected_pieces": [
+        "▁trail",
+        "ing"
+      ]
+    },
+    {
+      "input": "  both  ",
+      "expected_ids": [
+        321
+      ],
+      "expected_pieces": [
+        "▁both"
+      ]
+    },
+    {
+      "input": "multiple   spaces   here",
+      "expected_ids": [
+        1317,
+        4856,
+        270
+      ],
+      "expected_pieces": [
+        "▁multiple",
+        "▁spaces",
+        "▁here"
+      ]
+    },
+    {
+      "input": "tabs\there",
+      "expected_ids": [
+        3808,
+        7,
+        270
+      ],
+      "expected_pieces": [
+        "▁tab",
+        "s",
+        "▁here"
+      ]
+    },
+    {
+      "input": "newlines\nhere",
+      "expected_ids": [
+        126,
+        6972,
+        270
+      ],
+      "expected_pieces": [
+        "▁new",
+        "lines",
+        "▁here"
+      ]
+    },
+    {
+      "input": "mixed \t\n whitespace",
+      "expected_ids": [
+        4838,
+        872,
+        6633
+      ],
+      "expected_pieces": [
+        "▁mixed",
+        "▁white",
+        "space"
+      ]
+    },
+    {
+      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expected_ids": [
+        3,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "expected_pieces": [
+        "▁",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a"
+      ]
+    },
+    {
+      "input": "hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello ",
+      "expected_ids": [
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820
+      ],
+      "expected_pieces": [
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello",
+        "▁hello"
+      ]
+    },
+    {
+      "input": "The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox ",
+      "expected_ids": [
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400
+      ],
+      "expected_pieces": [
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox",
+        "▁The",
+        "▁quick",
+        "▁brown",
+        "▁",
+        "fox"
+      ]
+    },
+    {
+      "input": "12345",
+      "expected_ids": [
+        3,
+        14574,
+        2128
+      ],
+      "expected_pieces": [
+        "▁",
+        "123",
+        "45"
+      ]
+    },
+    {
+      "input": "3.14159",
+      "expected_ids": [
+        1877,
+        2534,
+        27904
+      ],
+      "expected_pieces": [
+        "▁3.",
+        "14",
+        "159"
+      ]
+    },
+    {
+      "input": "1,234,567.89",
+      "expected_ids": [
+        1914,
+        2773,
+        26392,
+        3708,
+        5,
+        3914
+      ],
+      "expected_pieces": [
+        "▁1,",
+        "23",
+        "4,5",
+        "67",
+        ".",
+        "89"
+      ]
+    },
+    {
+      "input": "-42",
+      "expected_ids": [
+        3,
+        18,
+        4165
+      ],
+      "expected_pieces": [
+        "▁",
+        "-",
+        "42"
+      ]
+    },
+    {
+      "input": "+100",
+      "expected_ids": [
+        1768,
+        2915
+      ],
+      "expected_pieces": [
+        "▁+",
+        "100"
+      ]
+    },
+    {
+      "input": "1e10",
+      "expected_ids": [
+        209,
+        15,
+        1714
+      ],
+      "expected_pieces": [
+        "▁1",
+        "e",
+        "10"
+      ]
+    },
+    {
+      "input": "50%",
+      "expected_ids": [
+        5743
+      ],
+      "expected_pieces": [
+        "▁50%"
+      ]
+    },
+    {
+      "input": "$100.00",
+      "expected_ids": [
+        10417,
+        4200
+      ],
+      "expected_pieces": [
+        "▁$100",
+        ".00"
+      ]
+    },
+    {
+      "input": "<s>",
+      "expected_ids": [
+        3,
+        2,
+        7,
+        3155
+      ],
+      "expected_pieces": [
+        "▁",
+        "<",
+        "s",
+        ">"
+      ]
+    },
+    {
+      "input": "</s>",
+      "expected_ids": [
+        3,
+        2,
+        87,
+        7,
+        3155
+      ],
+      "expected_pieces": [
+        "▁",
+        "<",
+        "/",
+        "s",
+        ">"
+      ]
+    },
+    {
+      "input": "<unk>",
+      "expected_ids": [
+        3,
+        2,
+        6513,
+        3155
+      ],
+      "expected_pieces": [
+        "▁",
+        "<",
+        "unk",
+        ">"
+      ]
+    },
+    {
+      "input": "<pad>",
+      "expected_ids": [
+        3,
+        2,
+        5612,
+        3155
+      ],
+      "expected_pieces": [
+        "▁",
+        "<",
+        "pad",
+        ">"
+      ]
+    },
+    {
+      "input": "<mask>",
+      "expected_ids": [
+        3,
+        2,
+        2754,
+        157,
+        3155
+      ],
+      "expected_pieces": [
+        "▁",
+        "<",
+        "mas",
+        "k",
+        ">"
+      ]
+    },
+    {
+      "input": "[CLS]",
+      "expected_ids": [
+        784,
+        8440,
+        134,
+        908
+      ],
+      "expected_pieces": [
+        "▁[",
+        "CL",
+        "S",
+        "]"
+      ]
+    },
+    {
+      "input": "[SEP]",
+      "expected_ids": [
+        784,
+        134,
+        8569,
+        908
+      ],
+      "expected_pieces": [
+        "▁[",
+        "S",
+        "EP",
+        "]"
+      ]
+    },
+    {
+      "input": "[MASK]",
+      "expected_ids": [
+        784,
+        23010,
+        439,
+        908
+      ],
+      "expected_pieces": [
+        "▁[",
+        "MAS",
+        "K",
+        "]"
+      ]
+    },
+    {
+      "input": "<s>text</s>",
+      "expected_ids": [
+        3,
+        2,
+        7,
+        3155,
+        6327,
+        2,
+        87,
+        7,
+        3155
+      ],
+      "expected_pieces": [
+        "▁",
+        "<",
+        "s",
+        ">",
+        "text",
+        "<",
+        "/",
+        "s",
+        ">"
+      ]
+    },
+    {
+      "input": "text with <unk> token",
+      "expected_ids": [
+        1499,
+        28,
+        3,
+        2,
+        6513,
+        3155,
+        14145
+      ],
+      "expected_pieces": [
+        "▁text",
+        "▁with",
+        "▁",
+        "<",
+        "unk",
+        ">",
+        "▁token"
+      ]
+    },
+    {
+      "input": "Hello 世界! 🌍 Привет",
+      "expected_ids": [
+        8774,
+        3,
+        2,
+        55,
+        3,
+        2,
+        3,
+        2,
+        14709,
+        6609,
+        15042
+      ],
+      "expected_pieces": [
+        "▁Hello",
+        "▁",
+        "世界",
+        "!",
+        "▁",
+        "🌍",
+        "▁",
+        "П",
+        "ри",
+        "в",
+        "ет"
+      ]
+    },
+    {
+      "input": "Code: def foo(): pass",
+      "expected_ids": [
+        3636,
+        10,
+        20,
+        89,
+        5575,
+        32,
+        9960,
+        10,
+        1903
+      ],
+      "expected_pieces": [
+        "▁Code",
+        ":",
+        "▁de",
+        "f",
+        "▁fo",
+        "o",
+        "()",
+        ":",
+        "▁pass"
+      ]
+    },
+    {
+      "input": "Email: test@example.com",
+      "expected_ids": [
+        8601,
+        10,
+        794,
+        1741,
+        994,
+        9,
+        9208,
+        5,
+        287
+      ],
+      "expected_pieces": [
+        "▁Email",
+        ":",
+        "▁test",
+        "@",
+        "ex",
+        "a",
+        "mple",
+        ".",
+        "com"
+      ]
+    },
+    {
+      "input": "URL: https://example.com/path?query=1&foo=bar",
+      "expected_ids": [
+        8889,
+        10,
+        4893,
+        1303,
+        994,
+        9,
+        9208,
+        5,
+        287,
+        87,
+        8292,
+        58,
+        835,
+        651,
+        2423,
+        536,
+        184,
+        89,
+        32,
+        32,
+        2423,
+        1047
+      ],
+      "expected_pieces": [
+        "▁URL",
+        ":",
+        "▁https",
+        "://",
+        "ex",
+        "a",
+        "mple",
+        ".",
+        "com",
+        "/",
+        "path",
+        "?",
+        "que",
+        "ry",
+        "=",
+        "1",
+        "&",
+        "f",
+        "o",
+        "o",
+        "=",
+        "bar"
+      ]
+    },
+    {
+      "input": "Path: /usr/local/bin/python",
+      "expected_ids": [
+        12465,
+        10,
+        3,
+        87,
+        302,
+        52,
+        87,
+        16882,
+        87,
+        4517,
+        87,
+        102,
+        63,
+        189,
+        106
+      ],
+      "expected_pieces": [
+        "▁Path",
+        ":",
+        "▁",
+        "/",
+        "us",
+        "r",
+        "/",
+        "local",
+        "/",
+        "bin",
+        "/",
+        "p",
+        "y",
+        "th",
+        "on"
+      ]
+    },
+    {
+      "input": "Windows: C:\\Users\\test\\file.txt",
+      "expected_ids": [
+        1758,
+        10,
+        205,
+        10,
+        2,
+        1265,
+        7,
+        277,
+        2,
+        4377,
+        2,
+        11966,
+        5,
+        17,
+        226,
+        17
+      ],
+      "expected_pieces": [
+        "▁Windows",
+        ":",
+        "▁C",
+        ":",
+        "\\",
+        "U",
+        "s",
+        "ers",
+        "\\",
+        "test",
+        "\\",
+        "file",
+        ".",
+        "t",
+        "x",
+        "t"
+      ]
+    },
+    {
+      "input": "ﬁ",
+      "expected_ids": [
+        361
+      ],
+      "expected_pieces": [
+        "▁fi"
+      ]
+    },
+    {
+      "input": "ﬂ",
+      "expected_ids": [
+        3,
+        89,
+        40
+      ],
+      "expected_pieces": [
+        "▁",
+        "f",
+        "l"
+      ]
+    },
+    {
+      "input": "①②③",
+      "expected_ids": [
+        3,
+        14574
+      ],
+      "expected_pieces": [
+        "▁",
+        "123"
+      ]
+    },
+    {
+      "input": "Ａ",
+      "expected_ids": [
+        71
+      ],
+      "expected_pieces": [
+        "▁A"
+      ]
+    },
+    {
+      "input": "ａ",
+      "expected_ids": [
+        3,
+        9
+      ],
+      "expected_pieces": [
+        "▁",
+        "a"
+      ]
+    },
+    {
+      "input": " ",
+      "expected_ids": [],
+      "expected_pieces": []
+    },
+    {
+      "input": "…",
+      "expected_ids": [
+        3,
+        233
+      ],
+      "expected_pieces": [
+        "▁",
+        "..."
+      ]
+    },
+    {
+      "input": "—",
+      "expected_ids": [
+        3,
+        318
+      ],
+      "expected_pieces": [
+        "▁",
+        "—"
+      ]
+    },
+    {
+      "input": "–",
+      "expected_ids": [
+        3,
+        104
+      ],
+      "expected_pieces": [
+        "▁",
+        "–"
+      ]
+    },
+    {
+      "input": "‘’",
+      "expected_ids": [
+        458,
+        22
+      ],
+      "expected_pieces": [
+        "▁‘",
+        "’"
+      ]
+    },
+    {
+      "input": "“”",
+      "expected_ids": [
+        105,
+        153
+      ],
+      "expected_pieces": [
+        "▁“",
+        "”"
+      ]
+    },
+    {
+      "input": "function foo() { return 42; }",
+      "expected_ids": [
+        1681,
+        5575,
+        32,
+        9960,
+        3,
+        2,
+        1205,
+        6426,
+        117,
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁function",
+        "▁fo",
+        "o",
+        "()",
+        "▁",
+        "{",
+        "▁return",
+        "▁42",
+        ";",
+        "▁",
+        "}"
+      ]
+    },
+    {
+      "input": "def hello():\n    print('world')",
+      "expected_ids": [
+        20,
+        89,
+        21820,
+        9960,
+        10,
+        2281,
+        599,
+        31,
+        7276,
+        31,
+        61
+      ],
+      "expected_pieces": [
+        "▁de",
+        "f",
+        "▁hello",
+        "()",
+        ":",
+        "▁print",
+        "(",
+        "'",
+        "world",
+        "'",
+        ")"
+      ]
+    },
+    {
+      "input": "SELECT * FROM users WHERE id = 1;",
+      "expected_ids": [
+        3,
+        23143,
+        14196,
+        1429,
+        21680,
+        1105,
+        549,
+        17444,
+        427,
+        3,
+        23,
+        26,
+        3274,
+        209,
+        117
+      ],
+      "expected_pieces": [
+        "▁",
+        "SEL",
+        "ECT",
+        "▁*",
+        "▁FROM",
+        "▁users",
+        "▁W",
+        "HER",
+        "E",
+        "▁",
+        "i",
+        "d",
+        "▁=",
+        "▁1",
+        ";"
+      ]
+    },
+    {
+      "input": "const x = { a: 1, b: 2 };",
+      "expected_ids": [
+        6900,
+        17,
+        3,
+        226,
+        3274,
+        3,
+        2,
+        3,
+        9,
+        10,
+        1914,
+        3,
+        115,
+        10,
+        204,
+        3,
+        2,
+        117
+      ],
+      "expected_pieces": [
+        "▁cons",
+        "t",
+        "▁",
+        "x",
+        "▁=",
+        "▁",
+        "{",
+        "▁",
+        "a",
+        ":",
+        "▁1,",
+        "▁",
+        "b",
+        ":",
+        "▁2",
+        "▁",
+        "}",
+        ";"
+      ]
+    },
+    {
+      "input": "<html><body>Hello</body></html>",
+      "expected_ids": [
+        3,
+        2,
+        10500,
+        3155,
+        2,
+        6965,
+        3155,
+        566,
+        7126,
+        2,
+        87,
+        6965,
+        3155,
+        2,
+        87,
+        10500,
+        3155
+      ],
+      "expected_pieces": [
+        "▁",
+        "<",
+        "html",
+        ">",
+        "<",
+        "body",
+        ">",
+        "H",
+        "ello",
+        "<",
+        "/",
+        "body",
+        ">",
+        "<",
+        "/",
+        "html",
+        ">"
+      ]
+    },
+    {
+      "input": "{\"key\": \"value\"}",
+      "expected_ids": [
+        3,
+        2,
+        121,
+        4397,
+        121,
+        10,
+        96,
+        12097,
+        121,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "{",
+        "\"",
+        "key",
+        "\"",
+        ":",
+        "▁\"",
+        "value",
+        "\"",
+        "}"
+      ]
+    },
+    {
+      "input": "[\"a\", \"b\", \"c\"]",
+      "expected_ids": [
+        784,
+        121,
+        9,
+        1686,
+        96,
+        115,
+        1686,
+        96,
+        75,
+        121,
+        908
+      ],
+      "expected_pieces": [
+        "▁[",
+        "\"",
+        "a",
+        "\",",
+        "▁\"",
+        "b",
+        "\",",
+        "▁\"",
+        "c",
+        "\"",
+        "]"
+      ]
+    },
+    {
+      "input": "x² + y² = z²",
+      "expected_ids": [
+        3,
+        226,
+        357,
+        1768,
+        3,
+        63,
+        357,
+        3274,
+        3,
+        172,
+        357
+      ],
+      "expected_pieces": [
+        "▁",
+        "x",
+        "2",
+        "▁+",
+        "▁",
+        "y",
+        "2",
+        "▁=",
+        "▁",
+        "z",
+        "2"
+      ]
+    },
+    {
+      "input": "∑(i=1 to n)",
+      "expected_ids": [
+        3,
+        2,
+        599,
+        23,
+        2423,
+        536,
+        12,
+        3,
+        29,
+        61
+      ],
+      "expected_pieces": [
+        "▁",
+        "∑",
+        "(",
+        "i",
+        "=",
+        "1",
+        "▁to",
+        "▁",
+        "n",
+        ")"
+      ]
+    },
+    {
+      "input": "∫f(x)dx",
+      "expected_ids": [
+        3,
+        2,
+        89,
+        599,
+        226,
+        61,
+        26,
+        226
+      ],
+      "expected_pieces": [
+        "▁",
+        "∫",
+        "f",
+        "(",
+        "x",
+        ")",
+        "d",
+        "x"
+      ]
+    },
+    {
+      "input": "α β γ δ",
+      "expected_ids": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected_pieces": [
+        "▁",
+        "α",
+        "▁",
+        "β",
+        "▁",
+        "γ",
+        "▁",
+        "δ"
+      ]
+    },
+    {
+      "input": "π ≈ 3.14159",
+      "expected_ids": [
+        3,
+        2,
+        3,
+        2,
+        1877,
+        2534,
+        27904
+      ],
+      "expected_pieces": [
+        "▁",
+        "π",
+        "▁",
+        "≈",
+        "▁3.",
+        "14",
+        "159"
+      ]
+    },
+    {
+      "input": "€100",
+      "expected_ids": [
+        3416,
+        2915
+      ],
+      "expected_pieces": [
+        "▁€",
+        "100"
+      ]
+    },
+    {
+      "input": "£50",
+      "expected_ids": [
+        3996,
+        1752
+      ],
+      "expected_pieces": [
+        "▁£",
+        "50"
+      ]
+    },
+    {
+      "input": "¥1000",
+      "expected_ids": [
+        3,
+        2,
+        16824
+      ],
+      "expected_pieces": [
+        "▁",
+        "¥",
+        "1000"
+      ]
+    },
+    {
+      "input": "₿0.01",
+      "expected_ids": [
+        3,
+        2,
+        11739,
+        536
+      ],
+      "expected_pieces": [
+        "▁",
+        "₿",
+        "0.0",
+        "1"
+      ]
+    },
+    {
+      "input": "© 2024",
+      "expected_ids": [
+        3,
+        2,
+        460,
+        2266
+      ],
+      "expected_pieces": [
+        "▁",
+        "©",
+        "▁20",
+        "24"
+      ]
+    },
+    {
+      "input": "® trademark",
+      "expected_ids": [
+        3,
+        1732,
+        10602
+      ],
+      "expected_pieces": [
+        "▁",
+        "®",
+        "▁trademark"
+      ]
+    },
+    {
+      "input": "™ symbol",
+      "expected_ids": [
+        3,
+        2305,
+        6083
+      ],
+      "expected_pieces": [
+        "▁",
+        "TM",
+        "▁symbol"
+      ]
+    },
+    {
+      "input": "aaaaaaaaaa",
+      "expected_ids": [
+        3,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "expected_pieces": [
+        "▁",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a"
+      ]
+    },
+    {
+      "input": "abababababab",
+      "expected_ids": [
+        703,
+        9,
+        12534,
+        8699,
+        12534
+      ],
+      "expected_pieces": [
+        "▁ab",
+        "a",
+        "bab",
+        "aba",
+        "bab"
+      ]
+    },
+    {
+      "input": "123123123123",
+      "expected_ids": [
+        3,
+        14574,
+        14574,
+        14574,
+        14574
+      ],
+      "expected_pieces": [
+        "▁",
+        "123",
+        "123",
+        "123",
+        "123"
+      ]
+    },
+    {
+      "input": "....",
+      "expected_ids": [
+        3,
+        2824
+      ],
+      "expected_pieces": [
+        "▁",
+        "...."
+      ]
+    },
+    {
+      "input": "!!!!",
+      "expected_ids": [
+        3,
+        12887
+      ],
+      "expected_pieces": [
+        "▁",
+        "!!!!"
+      ]
+    },
+    {
+      "input": "????",
+      "expected_ids": [
+        3,
+        8665,
+        58
+      ],
+      "expected_pieces": [
+        "▁",
+        "???",
+        "?"
+      ]
+    },
+    {
+      "input": "a b",
+      "expected_ids": [
+        3,
+        9,
+        3,
+        115
+      ],
+      "expected_pieces": [
+        "▁",
+        "a",
+        "▁",
+        "b"
+      ]
+    },
+    {
+      "input": "a  b",
+      "expected_ids": [
+        3,
+        9,
+        3,
+        115
+      ],
+      "expected_pieces": [
+        "▁",
+        "a",
+        "▁",
+        "b"
+      ]
+    },
+    {
+      "input": "a   b",
+      "expected_ids": [
+        3,
+        9,
+        3,
+        115
+      ],
+      "expected_pieces": [
+        "▁",
+        "a",
+        "▁",
+        "b"
+      ]
+    },
+    {
+      "input": " a",
+      "expected_ids": [
+        3,
+        9
+      ],
+      "expected_pieces": [
+        "▁",
+        "a"
+      ]
+    },
+    {
+      "input": "a ",
+      "expected_ids": [
+        3,
+        9
+      ],
+      "expected_pieces": [
+        "▁",
+        "a"
+      ]
+    },
+    {
+      "input": " a ",
+      "expected_ids": [
+        3,
+        9
+      ],
+      "expected_pieces": [
+        "▁",
+        "a"
+      ]
+    }
+  ],
+  "decode_fixtures": [
+    {
+      "input_ids": [
+        8774,
+        6,
+        296,
+        55
+      ],
+      "expected": "Hello, world!"
+    },
+    {
+      "input_ids": [
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        4418,
+        7,
+        147,
+        8,
+        19743,
+        1782,
+        5
+      ],
+      "expected": "The quick brown fox jumps over the lazy dog."
+    },
+    {
+      "input_ids": [
+        8774
+      ],
+      "expected": "Hello"
+    },
+    {
+      "input_ids": [
+        21820
+      ],
+      "expected": "hello"
+    },
+    {
+      "input_ids": [
+        454,
+        12735,
+        667
+      ],
+      "expected": "HELLO"
+    },
+    {
+      "input_ids": [
+        3,
+        9
+      ],
+      "expected": "a"
+    },
+    {
+      "input_ids": [
+        71
+      ],
+      "expected": "A"
+    },
+    {
+      "input_ids": [
+        209
+      ],
+      "expected": "1"
+    },
+    {
+      "input_ids": [],
+      "expected": ""
+    },
+    {
+      "input_ids": [
+        3,
+        2
+      ],
+      "expected": " ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2
+      ],
+      "expected": " ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        14709,
+        6609,
+        15042,
+        3,
+        21325,
+        8452
+      ],
+      "expected": " ⁇ ривет мир"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        5814,
+        7948,
+        6609,
+        24832,
+        3700,
+        2
+      ],
+      "expected": " ⁇ дравству ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected": " ⁇   ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected": " ⁇   ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected": " ⁇   ⁇   ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2
+      ],
+      "expected": " ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2
+      ],
+      "expected": " ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2
+      ],
+      "expected": " ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2
+      ],
+      "expected": " ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2
+      ],
+      "expected": " ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected": " ⁇   ⁇   ⁇   ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected": " ⁇   ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected": " ⁇   ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2
+      ],
+      "expected": " ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2
+      ],
+      "expected": " ⁇ "
+    },
+    {
+      "input_ids": [
+        11949
+      ],
+      "expected": "café"
+    },
+    {
+      "input_ids": [
+        11949
+      ],
+      "expected": "café"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected": " ⁇   ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2
+      ],
+      "expected": " ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2
+      ],
+      "expected": " ⁇ "
+    },
+    {
+      "input_ids": [],
+      "expected": ""
+    },
+    {
+      "input_ids": [],
+      "expected": ""
+    },
+    {
+      "input_ids": [],
+      "expected": ""
+    },
+    {
+      "input_ids": [],
+      "expected": ""
+    },
+    {
+      "input_ids": [],
+      "expected": ""
+    },
+    {
+      "input_ids": [],
+      "expected": ""
+    },
+    {
+      "input_ids": [],
+      "expected": ""
+    },
+    {
+      "input_ids": [
+        1448,
+        536,
+        1448,
+        357,
+        1448,
+        519
+      ],
+      "expected": "word1 word2 word3"
+    },
+    {
+      "input_ids": [
+        1374
+      ],
+      "expected": "leading"
+    },
+    {
+      "input_ids": [
+        5032,
+        53
+      ],
+      "expected": "trailing"
+    },
+    {
+      "input_ids": [
+        321
+      ],
+      "expected": "both"
+    },
+    {
+      "input_ids": [
+        1317,
+        4856,
+        270
+      ],
+      "expected": "multiple spaces here"
+    },
+    {
+      "input_ids": [
+        3808,
+        7,
+        270
+      ],
+      "expected": "tabs here"
+    },
+    {
+      "input_ids": [
+        126,
+        6972,
+        270
+      ],
+      "expected": "newlines here"
+    },
+    {
+      "input_ids": [
+        4838,
+        872,
+        6633
+      ],
+      "expected": "mixed whitespace"
+    },
+    {
+      "input_ids": [
+        3,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "expected": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "input_ids": [
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820
+      ],
+      "expected": "hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello"
+    },
+    {
+      "input_ids": [
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400
+      ],
+      "expected": "The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox"
+    },
+    {
+      "input_ids": [
+        3,
+        14574,
+        2128
+      ],
+      "expected": "12345"
+    },
+    {
+      "input_ids": [
+        1877,
+        2534,
+        27904
+      ],
+      "expected": "3.14159"
+    },
+    {
+      "input_ids": [
+        1914,
+        2773,
+        26392,
+        3708,
+        5,
+        3914
+      ],
+      "expected": "1,234,567.89"
+    },
+    {
+      "input_ids": [
+        3,
+        18,
+        4165
+      ],
+      "expected": "-42"
+    },
+    {
+      "input_ids": [
+        1768,
+        2915
+      ],
+      "expected": "+100"
+    },
+    {
+      "input_ids": [
+        209,
+        15,
+        1714
+      ],
+      "expected": "1e10"
+    },
+    {
+      "input_ids": [
+        5743
+      ],
+      "expected": "50%"
+    },
+    {
+      "input_ids": [
+        10417,
+        4200
+      ],
+      "expected": "$100.00"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        7,
+        3155
+      ],
+      "expected": " ⁇ s>"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        87,
+        7,
+        3155
+      ],
+      "expected": " ⁇ /s>"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        6513,
+        3155
+      ],
+      "expected": " ⁇ unk>"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        5612,
+        3155
+      ],
+      "expected": " ⁇ pad>"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        2754,
+        157,
+        3155
+      ],
+      "expected": " ⁇ mask>"
+    },
+    {
+      "input_ids": [
+        784,
+        8440,
+        134,
+        908
+      ],
+      "expected": "[CLS]"
+    },
+    {
+      "input_ids": [
+        784,
+        134,
+        8569,
+        908
+      ],
+      "expected": "[SEP]"
+    },
+    {
+      "input_ids": [
+        784,
+        23010,
+        439,
+        908
+      ],
+      "expected": "[MASK]"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        7,
+        3155,
+        6327,
+        2,
+        87,
+        7,
+        3155
+      ],
+      "expected": " ⁇ s>text ⁇ /s>"
+    },
+    {
+      "input_ids": [
+        1499,
+        28,
+        3,
+        2,
+        6513,
+        3155,
+        14145
+      ],
+      "expected": "text with  ⁇ unk> token"
+    },
+    {
+      "input_ids": [
+        8774,
+        3,
+        2,
+        55,
+        3,
+        2,
+        3,
+        2,
+        14709,
+        6609,
+        15042
+      ],
+      "expected": "Hello  ⁇ !  ⁇   ⁇ ривет"
+    },
+    {
+      "input_ids": [
+        3636,
+        10,
+        20,
+        89,
+        5575,
+        32,
+        9960,
+        10,
+        1903
+      ],
+      "expected": "Code: def foo(): pass"
+    },
+    {
+      "input_ids": [
+        8601,
+        10,
+        794,
+        1741,
+        994,
+        9,
+        9208,
+        5,
+        287
+      ],
+      "expected": "Email: test@example.com"
+    },
+    {
+      "input_ids": [
+        8889,
+        10,
+        4893,
+        1303,
+        994,
+        9,
+        9208,
+        5,
+        287,
+        87,
+        8292,
+        58,
+        835,
+        651,
+        2423,
+        536,
+        184,
+        89,
+        32,
+        32,
+        2423,
+        1047
+      ],
+      "expected": "URL: https://example.com/path?query=1&foo=bar"
+    },
+    {
+      "input_ids": [
+        12465,
+        10,
+        3,
+        87,
+        302,
+        52,
+        87,
+        16882,
+        87,
+        4517,
+        87,
+        102,
+        63,
+        189,
+        106
+      ],
+      "expected": "Path: /usr/local/bin/python"
+    },
+    {
+      "input_ids": [
+        1758,
+        10,
+        205,
+        10,
+        2,
+        1265,
+        7,
+        277,
+        2,
+        4377,
+        2,
+        11966,
+        5,
+        17,
+        226,
+        17
+      ],
+      "expected": "Windows: C: ⁇ Users ⁇ test ⁇ file.txt"
+    },
+    {
+      "input_ids": [
+        361
+      ],
+      "expected": "fi"
+    },
+    {
+      "input_ids": [
+        3,
+        89,
+        40
+      ],
+      "expected": "fl"
+    },
+    {
+      "input_ids": [
+        3,
+        14574
+      ],
+      "expected": "123"
+    },
+    {
+      "input_ids": [
+        71
+      ],
+      "expected": "A"
+    },
+    {
+      "input_ids": [
+        3,
+        9
+      ],
+      "expected": "a"
+    },
+    {
+      "input_ids": [],
+      "expected": ""
+    },
+    {
+      "input_ids": [
+        3,
+        233
+      ],
+      "expected": "..."
+    },
+    {
+      "input_ids": [
+        3,
+        318
+      ],
+      "expected": "—"
+    },
+    {
+      "input_ids": [
+        3,
+        104
+      ],
+      "expected": "–"
+    },
+    {
+      "input_ids": [
+        458,
+        22
+      ],
+      "expected": "‘’"
+    },
+    {
+      "input_ids": [
+        105,
+        153
+      ],
+      "expected": "“”"
+    },
+    {
+      "input_ids": [
+        1681,
+        5575,
+        32,
+        9960,
+        3,
+        2,
+        1205,
+        6426,
+        117,
+        3,
+        2
+      ],
+      "expected": "function foo()  ⁇  return 42;  ⁇ "
+    },
+    {
+      "input_ids": [
+        20,
+        89,
+        21820,
+        9960,
+        10,
+        2281,
+        599,
+        31,
+        7276,
+        31,
+        61
+      ],
+      "expected": "def hello(): print('world')"
+    },
+    {
+      "input_ids": [
+        3,
+        23143,
+        14196,
+        1429,
+        21680,
+        1105,
+        549,
+        17444,
+        427,
+        3,
+        23,
+        26,
+        3274,
+        209,
+        117
+      ],
+      "expected": "SELECT * FROM users WHERE id = 1;"
+    },
+    {
+      "input_ids": [
+        6900,
+        17,
+        3,
+        226,
+        3274,
+        3,
+        2,
+        3,
+        9,
+        10,
+        1914,
+        3,
+        115,
+        10,
+        204,
+        3,
+        2,
+        117
+      ],
+      "expected": "const x =  ⁇  a: 1, b: 2  ⁇ ;"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        10500,
+        3155,
+        2,
+        6965,
+        3155,
+        566,
+        7126,
+        2,
+        87,
+        6965,
+        3155,
+        2,
+        87,
+        10500,
+        3155
+      ],
+      "expected": " ⁇ html> ⁇ body>Hello ⁇ /body> ⁇ /html>"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        121,
+        4397,
+        121,
+        10,
+        96,
+        12097,
+        121,
+        2
+      ],
+      "expected": " ⁇ \"key\": \"value\" ⁇ "
+    },
+    {
+      "input_ids": [
+        784,
+        121,
+        9,
+        1686,
+        96,
+        115,
+        1686,
+        96,
+        75,
+        121,
+        908
+      ],
+      "expected": "[\"a\", \"b\", \"c\"]"
+    },
+    {
+      "input_ids": [
+        3,
+        226,
+        357,
+        1768,
+        3,
+        63,
+        357,
+        3274,
+        3,
+        172,
+        357
+      ],
+      "expected": "x2 + y2 = z2"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        599,
+        23,
+        2423,
+        536,
+        12,
+        3,
+        29,
+        61
+      ],
+      "expected": " ⁇ (i=1 to n)"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        89,
+        599,
+        226,
+        61,
+        26,
+        226
+      ],
+      "expected": " ⁇ f(x)dx"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "expected": " ⁇   ⁇   ⁇   ⁇ "
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        3,
+        2,
+        1877,
+        2534,
+        27904
+      ],
+      "expected": " ⁇   ⁇  3.14159"
+    },
+    {
+      "input_ids": [
+        3416,
+        2915
+      ],
+      "expected": "€100"
+    },
+    {
+      "input_ids": [
+        3996,
+        1752
+      ],
+      "expected": "£50"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        16824
+      ],
+      "expected": " ⁇ 1000"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        11739,
+        536
+      ],
+      "expected": " ⁇ 0.01"
+    },
+    {
+      "input_ids": [
+        3,
+        2,
+        460,
+        2266
+      ],
+      "expected": " ⁇  2024"
+    },
+    {
+      "input_ids": [
+        3,
+        1732,
+        10602
+      ],
+      "expected": "® trademark"
+    },
+    {
+      "input_ids": [
+        3,
+        2305,
+        6083
+      ],
+      "expected": "TM symbol"
+    },
+    {
+      "input_ids": [
+        3,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "expected": "aaaaaaaaaa"
+    },
+    {
+      "input_ids": [
+        703,
+        9,
+        12534,
+        8699,
+        12534
+      ],
+      "expected": "abababababab"
+    },
+    {
+      "input_ids": [
+        3,
+        14574,
+        14574,
+        14574,
+        14574
+      ],
+      "expected": "123123123123"
+    },
+    {
+      "input_ids": [
+        3,
+        2824
+      ],
+      "expected": "...."
+    },
+    {
+      "input_ids": [
+        3,
+        12887
+      ],
+      "expected": "!!!!"
+    },
+    {
+      "input_ids": [
+        3,
+        8665,
+        58
+      ],
+      "expected": "????"
+    },
+    {
+      "input_ids": [
+        3,
+        9,
+        3,
+        115
+      ],
+      "expected": "a b"
+    },
+    {
+      "input_ids": [
+        3,
+        9,
+        3,
+        115
+      ],
+      "expected": "a b"
+    },
+    {
+      "input_ids": [
+        3,
+        9,
+        3,
+        115
+      ],
+      "expected": "a b"
+    },
+    {
+      "input_ids": [
+        3,
+        9
+      ],
+      "expected": "a"
+    },
+    {
+      "input_ids": [
+        3,
+        9
+      ],
+      "expected": "a"
+    },
+    {
+      "input_ids": [
+        3,
+        9
+      ],
+      "expected": "a"
+    }
+  ],
+  "roundtrip_fixtures": [
+    {
+      "original": "Hello, world!",
+      "encoded": [
+        8774,
+        6,
+        296,
+        55
+      ],
+      "decoded": "Hello, world!",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "The quick brown fox jumps over the lazy dog.",
+      "encoded": [
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        4418,
+        7,
+        147,
+        8,
+        19743,
+        1782,
+        5
+      ],
+      "decoded": "The quick brown fox jumps over the lazy dog.",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "Hello",
+      "encoded": [
+        8774
+      ],
+      "decoded": "Hello",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "hello",
+      "encoded": [
+        21820
+      ],
+      "decoded": "hello",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "HELLO",
+      "encoded": [
+        454,
+        12735,
+        667
+      ],
+      "decoded": "HELLO",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "a",
+      "encoded": [
+        3,
+        9
+      ],
+      "decoded": "a",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "A",
+      "encoded": [
+        71
+      ],
+      "decoded": "A",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "1",
+      "encoded": [
+        209
+      ],
+      "decoded": "1",
+      "roundtrip_ok": true
+    },
+    {
+      "original": " ",
+      "encoded": [],
+      "decoded": "",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "日本語テスト",
+      "encoded": [
+        3,
+        2
+      ],
+      "decoded": " ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "こんにちは世界",
+      "encoded": [
+        3,
+        2
+      ],
+      "decoded": " ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "Привет мир",
+      "encoded": [
+        3,
+        2,
+        14709,
+        6609,
+        15042,
+        3,
+        21325,
+        8452
+      ],
+      "decoded": " ⁇ ривет мир",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "Здравствуй",
+      "encoded": [
+        3,
+        2,
+        5814,
+        7948,
+        6609,
+        24832,
+        3700,
+        2
+      ],
+      "decoded": " ⁇ дравству ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "مرحبا بالعالم",
+      "encoded": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "decoded": " ⁇   ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "שלום עולם",
+      "encoded": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "decoded": " ⁇   ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "Γειά σου κόσμε",
+      "encoded": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "decoded": " ⁇   ⁇   ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "你好世界",
+      "encoded": [
+        3,
+        2
+      ],
+      "decoded": " ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "안녕하세요",
+      "encoded": [
+        3,
+        2
+      ],
+      "decoded": " ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "สวัสดีโลก",
+      "encoded": [
+        3,
+        2
+      ],
+      "decoded": " ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "🎉",
+      "encoded": [
+        3,
+        2
+      ],
+      "decoded": " ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "🚀💻🎯",
+      "encoded": [
+        3,
+        2
+      ],
+      "decoded": " ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "👨‍👩‍👧‍👦",
+      "encoded": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "decoded": " ⁇   ⁇   ⁇   ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "🏳️‍🌈",
+      "encoded": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "decoded": " ⁇   ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "👩🏽‍💻",
+      "encoded": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "decoded": " ⁇   ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "🇺🇸",
+      "encoded": [
+        3,
+        2
+      ],
+      "decoded": " ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "❤️",
+      "encoded": [
+        3,
+        2
+      ],
+      "decoded": " ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "café",
+      "encoded": [
+        11949
+      ],
+      "decoded": "café",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "café",
+      "encoded": [
+        11949
+      ],
+      "decoded": "café",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "나는 한국어",
+      "encoded": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "decoded": " ⁇   ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "ñ",
+      "encoded": [
+        3,
+        2
+      ],
+      "decoded": " ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "ñ",
+      "encoded": [
+        3,
+        2
+      ],
+      "decoded": " ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "",
+      "encoded": [],
+      "decoded": "",
+      "roundtrip_ok": true
+    },
+    {
+      "original": " ",
+      "encoded": [],
+      "decoded": "",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "   ",
+      "encoded": [],
+      "decoded": "",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "\n",
+      "encoded": [],
+      "decoded": "",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "\t",
+      "encoded": [],
+      "decoded": "",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "\n\t\r",
+      "encoded": [],
+      "decoded": "",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "\r\n",
+      "encoded": [],
+      "decoded": "",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "word1  word2   word3",
+      "encoded": [
+        1448,
+        536,
+        1448,
+        357,
+        1448,
+        519
+      ],
+      "decoded": "word1 word2 word3",
+      "roundtrip_ok": false
+    },
+    {
+      "original": " leading",
+      "encoded": [
+        1374
+      ],
+      "decoded": "leading",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "trailing ",
+      "encoded": [
+        5032,
+        53
+      ],
+      "decoded": "trailing",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "  both  ",
+      "encoded": [
+        321
+      ],
+      "decoded": "both",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "multiple   spaces   here",
+      "encoded": [
+        1317,
+        4856,
+        270
+      ],
+      "decoded": "multiple spaces here",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "tabs\there",
+      "encoded": [
+        3808,
+        7,
+        270
+      ],
+      "decoded": "tabs here",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "newlines\nhere",
+      "encoded": [
+        126,
+        6972,
+        270
+      ],
+      "decoded": "newlines here",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "mixed \t\n whitespace",
+      "encoded": [
+        4838,
+        872,
+        6633
+      ],
+      "decoded": "mixed whitespace",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "encoded": [
+        3,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "decoded": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello ",
+      "encoded": [
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820,
+        21820
+      ],
+      "decoded": "hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox ",
+      "encoded": [
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400,
+        37,
+        1704,
+        4216,
+        3,
+        20400
+      ],
+      "decoded": "The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox The quick brown fox",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "12345",
+      "encoded": [
+        3,
+        14574,
+        2128
+      ],
+      "decoded": "12345",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "3.14159",
+      "encoded": [
+        1877,
+        2534,
+        27904
+      ],
+      "decoded": "3.14159",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "1,234,567.89",
+      "encoded": [
+        1914,
+        2773,
+        26392,
+        3708,
+        5,
+        3914
+      ],
+      "decoded": "1,234,567.89",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "-42",
+      "encoded": [
+        3,
+        18,
+        4165
+      ],
+      "decoded": "-42",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "+100",
+      "encoded": [
+        1768,
+        2915
+      ],
+      "decoded": "+100",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "1e10",
+      "encoded": [
+        209,
+        15,
+        1714
+      ],
+      "decoded": "1e10",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "50%",
+      "encoded": [
+        5743
+      ],
+      "decoded": "50%",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "$100.00",
+      "encoded": [
+        10417,
+        4200
+      ],
+      "decoded": "$100.00",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "<s>",
+      "encoded": [
+        3,
+        2,
+        7,
+        3155
+      ],
+      "decoded": " ⁇ s>",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "</s>",
+      "encoded": [
+        3,
+        2,
+        87,
+        7,
+        3155
+      ],
+      "decoded": " ⁇ /s>",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "<unk>",
+      "encoded": [
+        3,
+        2,
+        6513,
+        3155
+      ],
+      "decoded": " ⁇ unk>",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "<pad>",
+      "encoded": [
+        3,
+        2,
+        5612,
+        3155
+      ],
+      "decoded": " ⁇ pad>",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "<mask>",
+      "encoded": [
+        3,
+        2,
+        2754,
+        157,
+        3155
+      ],
+      "decoded": " ⁇ mask>",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "[CLS]",
+      "encoded": [
+        784,
+        8440,
+        134,
+        908
+      ],
+      "decoded": "[CLS]",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "[SEP]",
+      "encoded": [
+        784,
+        134,
+        8569,
+        908
+      ],
+      "decoded": "[SEP]",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "[MASK]",
+      "encoded": [
+        784,
+        23010,
+        439,
+        908
+      ],
+      "decoded": "[MASK]",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "<s>text</s>",
+      "encoded": [
+        3,
+        2,
+        7,
+        3155,
+        6327,
+        2,
+        87,
+        7,
+        3155
+      ],
+      "decoded": " ⁇ s>text ⁇ /s>",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "text with <unk> token",
+      "encoded": [
+        1499,
+        28,
+        3,
+        2,
+        6513,
+        3155,
+        14145
+      ],
+      "decoded": "text with  ⁇ unk> token",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "Hello 世界! 🌍 Привет",
+      "encoded": [
+        8774,
+        3,
+        2,
+        55,
+        3,
+        2,
+        3,
+        2,
+        14709,
+        6609,
+        15042
+      ],
+      "decoded": "Hello  ⁇ !  ⁇   ⁇ ривет",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "Code: def foo(): pass",
+      "encoded": [
+        3636,
+        10,
+        20,
+        89,
+        5575,
+        32,
+        9960,
+        10,
+        1903
+      ],
+      "decoded": "Code: def foo(): pass",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "Email: test@example.com",
+      "encoded": [
+        8601,
+        10,
+        794,
+        1741,
+        994,
+        9,
+        9208,
+        5,
+        287
+      ],
+      "decoded": "Email: test@example.com",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "URL: https://example.com/path?query=1&foo=bar",
+      "encoded": [
+        8889,
+        10,
+        4893,
+        1303,
+        994,
+        9,
+        9208,
+        5,
+        287,
+        87,
+        8292,
+        58,
+        835,
+        651,
+        2423,
+        536,
+        184,
+        89,
+        32,
+        32,
+        2423,
+        1047
+      ],
+      "decoded": "URL: https://example.com/path?query=1&foo=bar",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "Path: /usr/local/bin/python",
+      "encoded": [
+        12465,
+        10,
+        3,
+        87,
+        302,
+        52,
+        87,
+        16882,
+        87,
+        4517,
+        87,
+        102,
+        63,
+        189,
+        106
+      ],
+      "decoded": "Path: /usr/local/bin/python",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "Windows: C:\\Users\\test\\file.txt",
+      "encoded": [
+        1758,
+        10,
+        205,
+        10,
+        2,
+        1265,
+        7,
+        277,
+        2,
+        4377,
+        2,
+        11966,
+        5,
+        17,
+        226,
+        17
+      ],
+      "decoded": "Windows: C: ⁇ Users ⁇ test ⁇ file.txt",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "ﬁ",
+      "encoded": [
+        361
+      ],
+      "decoded": "fi",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "ﬂ",
+      "encoded": [
+        3,
+        89,
+        40
+      ],
+      "decoded": "fl",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "①②③",
+      "encoded": [
+        3,
+        14574
+      ],
+      "decoded": "123",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "Ａ",
+      "encoded": [
+        71
+      ],
+      "decoded": "A",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "ａ",
+      "encoded": [
+        3,
+        9
+      ],
+      "decoded": "a",
+      "roundtrip_ok": false
+    },
+    {
+      "original": " ",
+      "encoded": [],
+      "decoded": "",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "…",
+      "encoded": [
+        3,
+        233
+      ],
+      "decoded": "...",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "—",
+      "encoded": [
+        3,
+        318
+      ],
+      "decoded": "—",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "–",
+      "encoded": [
+        3,
+        104
+      ],
+      "decoded": "–",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "‘’",
+      "encoded": [
+        458,
+        22
+      ],
+      "decoded": "‘’",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "“”",
+      "encoded": [
+        105,
+        153
+      ],
+      "decoded": "“”",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "function foo() { return 42; }",
+      "encoded": [
+        1681,
+        5575,
+        32,
+        9960,
+        3,
+        2,
+        1205,
+        6426,
+        117,
+        3,
+        2
+      ],
+      "decoded": "function foo()  ⁇  return 42;  ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "def hello():\n    print('world')",
+      "encoded": [
+        20,
+        89,
+        21820,
+        9960,
+        10,
+        2281,
+        599,
+        31,
+        7276,
+        31,
+        61
+      ],
+      "decoded": "def hello(): print('world')",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "SELECT * FROM users WHERE id = 1;",
+      "encoded": [
+        3,
+        23143,
+        14196,
+        1429,
+        21680,
+        1105,
+        549,
+        17444,
+        427,
+        3,
+        23,
+        26,
+        3274,
+        209,
+        117
+      ],
+      "decoded": "SELECT * FROM users WHERE id = 1;",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "const x = { a: 1, b: 2 };",
+      "encoded": [
+        6900,
+        17,
+        3,
+        226,
+        3274,
+        3,
+        2,
+        3,
+        9,
+        10,
+        1914,
+        3,
+        115,
+        10,
+        204,
+        3,
+        2,
+        117
+      ],
+      "decoded": "const x =  ⁇  a: 1, b: 2  ⁇ ;",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "<html><body>Hello</body></html>",
+      "encoded": [
+        3,
+        2,
+        10500,
+        3155,
+        2,
+        6965,
+        3155,
+        566,
+        7126,
+        2,
+        87,
+        6965,
+        3155,
+        2,
+        87,
+        10500,
+        3155
+      ],
+      "decoded": " ⁇ html> ⁇ body>Hello ⁇ /body> ⁇ /html>",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "{\"key\": \"value\"}",
+      "encoded": [
+        3,
+        2,
+        121,
+        4397,
+        121,
+        10,
+        96,
+        12097,
+        121,
+        2
+      ],
+      "decoded": " ⁇ \"key\": \"value\" ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "[\"a\", \"b\", \"c\"]",
+      "encoded": [
+        784,
+        121,
+        9,
+        1686,
+        96,
+        115,
+        1686,
+        96,
+        75,
+        121,
+        908
+      ],
+      "decoded": "[\"a\", \"b\", \"c\"]",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "x² + y² = z²",
+      "encoded": [
+        3,
+        226,
+        357,
+        1768,
+        3,
+        63,
+        357,
+        3274,
+        3,
+        172,
+        357
+      ],
+      "decoded": "x2 + y2 = z2",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "∑(i=1 to n)",
+      "encoded": [
+        3,
+        2,
+        599,
+        23,
+        2423,
+        536,
+        12,
+        3,
+        29,
+        61
+      ],
+      "decoded": " ⁇ (i=1 to n)",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "∫f(x)dx",
+      "encoded": [
+        3,
+        2,
+        89,
+        599,
+        226,
+        61,
+        26,
+        226
+      ],
+      "decoded": " ⁇ f(x)dx",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "α β γ δ",
+      "encoded": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "decoded": " ⁇   ⁇   ⁇   ⁇ ",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "π ≈ 3.14159",
+      "encoded": [
+        3,
+        2,
+        3,
+        2,
+        1877,
+        2534,
+        27904
+      ],
+      "decoded": " ⁇   ⁇  3.14159",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "€100",
+      "encoded": [
+        3416,
+        2915
+      ],
+      "decoded": "€100",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "£50",
+      "encoded": [
+        3996,
+        1752
+      ],
+      "decoded": "£50",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "¥1000",
+      "encoded": [
+        3,
+        2,
+        16824
+      ],
+      "decoded": " ⁇ 1000",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "₿0.01",
+      "encoded": [
+        3,
+        2,
+        11739,
+        536
+      ],
+      "decoded": " ⁇ 0.01",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "© 2024",
+      "encoded": [
+        3,
+        2,
+        460,
+        2266
+      ],
+      "decoded": " ⁇  2024",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "® trademark",
+      "encoded": [
+        3,
+        1732,
+        10602
+      ],
+      "decoded": "® trademark",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "™ symbol",
+      "encoded": [
+        3,
+        2305,
+        6083
+      ],
+      "decoded": "TM symbol",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "aaaaaaaaaa",
+      "encoded": [
+        3,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "decoded": "aaaaaaaaaa",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "abababababab",
+      "encoded": [
+        703,
+        9,
+        12534,
+        8699,
+        12534
+      ],
+      "decoded": "abababababab",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "123123123123",
+      "encoded": [
+        3,
+        14574,
+        14574,
+        14574,
+        14574
+      ],
+      "decoded": "123123123123",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "....",
+      "encoded": [
+        3,
+        2824
+      ],
+      "decoded": "....",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "!!!!",
+      "encoded": [
+        3,
+        12887
+      ],
+      "decoded": "!!!!",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "????",
+      "encoded": [
+        3,
+        8665,
+        58
+      ],
+      "decoded": "????",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "a b",
+      "encoded": [
+        3,
+        9,
+        3,
+        115
+      ],
+      "decoded": "a b",
+      "roundtrip_ok": true
+    },
+    {
+      "original": "a  b",
+      "encoded": [
+        3,
+        9,
+        3,
+        115
+      ],
+      "decoded": "a b",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "a   b",
+      "encoded": [
+        3,
+        9,
+        3,
+        115
+      ],
+      "decoded": "a b",
+      "roundtrip_ok": false
+    },
+    {
+      "original": " a",
+      "encoded": [
+        3,
+        9
+      ],
+      "decoded": "a",
+      "roundtrip_ok": false
+    },
+    {
+      "original": "a ",
+      "encoded": [
+        3,
+        9
+      ],
+      "decoded": "a",
+      "roundtrip_ok": false
+    },
+    {
+      "original": " a ",
+      "encoded": [
+        3,
+        9
+      ],
+      "decoded": "a",
+      "roundtrip_ok": false
+    }
+  ],
+  "special_tokens": {
+    "unk_id": 2,
+    "bos_id": -1,
+    "eos_id": 1,
+    "pad_id": 0
+  }
+}

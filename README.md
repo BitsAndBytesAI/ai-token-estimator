@@ -4,25 +4,28 @@
 [![CI](https://github.com/BitsAndBytesAI/ai-token-estimator/actions/workflows/ci.yml/badge.svg)](https://github.com/BitsAndBytesAI/ai-token-estimator/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/ai-token-estimator.svg)](https://github.com/BitsAndBytesAI/ai-token-estimator/blob/main/LICENSE)
 
-The best way to estimate **tokens + input cost** for LLM calls — with **exact OpenAI tokenization** (tiktoken-compatible BPE) and optional **official provider token counting** for Claude/Gemini.
+The best way to estimate **tokens + input cost** for LLM calls — with **exact OpenAI tokenization** (tiktoken-compatible BPE), a pure TypeScript **SentencePiece tokenizer** (T5, ALBERT, XLNet, Gemma, LLaMA 2, and more), and optional provider-backed token counting for Anthropic + Gemini.
 
-> Accuracy depends on the tokenizer mode you choose:
-> - **Exact** for OpenAI models when you use `openai_exact` / `encode()` / `decode()`.
-> - **Exact** for Claude/Gemini when you use `estimateAsync()` with their official count-tokens endpoints.
-> - **Heuristic** fallback is available for speed and resilience.
+> **Zero external dependencies** — pure TypeScript implementation of both BPE and SentencePiece tokenizers.
 
 ## Features
 
 - **Exact OpenAI tokenization** (tiktoken-compatible BPE): `encode()` / `decode()` / `openai_exact`
+- **OpenAI chat completion token counting** (legacy `functions` API): `countChatCompletionTokens()` with optional per-message breakdown
+- **Pure TypeScript SentencePiece tokenizer** (no native dependencies):
+  - Supports `.model` files (protobuf format)
+  - Supports `tokenizer.json` files (HuggingFace format, validated configs)
+  - Unigram + SentencePiece-style BPE, plus merges-based JSON-BPE (when represented in `tokenizer.json`)
+  - Works in Node.js and browsers
 - **Official provider token counting** (async):
   - Anthropic `POST /v1/messages/count_tokens` (`anthropic_count_tokens`)
   - Gemini `models/:countTokens` (`gemini_count_tokens`)
 - **Fast local fallback** options:
   - Heuristic (`heuristic`, default)
-  - Local Gemma SentencePiece approximation (`gemma_sentencepiece`, lazy-loaded)
+  - Local SentencePiece tokenization for Gemma/LLaMA/T5 models
   - Automatic fallback to heuristic on provider failures (`fallbackToHeuristicOnError`)
 - **Cost estimation** using a weekly auto-updated pricing/model list (GitHub Actions)
-- TypeScript-first, ships ESM + CJS
+- TypeScript-first, ships ESM + CJS, zero runtime dependencies
 
 ## Installation
 
@@ -59,14 +62,49 @@ console.log(countTokens({ text: 'Hello, world!', model: 'gpt-5.1' }));
 // { tokens: 4, exact: true, encoding: 'o200k_base' }
 ```
 
+## Quick Recipes
+
+### OpenAI chat completion tokens (legacy functions API)
+
+```ts
+import { countChatCompletionTokens } from 'ai-token-estimator';
+
+const { totalTokens } = countChatCompletionTokens({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Hello!' }],
+});
+```
+
+### Local SentencePiece token counting
+
+```ts
+import { countSentencePieceTokensAsync } from 'ai-token-estimator';
+
+const tokens = await countSentencePieceTokensAsync('Hello!', {
+  modelPath: './path/to/spiece.model',
+});
+```
+
+### Provider-backed counts (server-side)
+
+```ts
+import { estimateAsync } from 'ai-token-estimator';
+
+const out = await estimateAsync({
+  model: 'claude-sonnet-4.5',
+  text: 'Hello!',
+  tokenizer: 'anthropic_count_tokens',
+});
+```
+
 ## Exact OpenAI tokenization (BPE)
 
-This package includes **exact tokenization for OpenAI models** using a native tiktoken-compatible BPE tokenizer.
+This package includes **exact tokenization for OpenAI models** using a built-in tiktoken-compatible BPE tokenizer.
 
 Notes:
-- Encodings are **lazy-loaded on first use** (one-time cost per encoding).
 - Exact tokenization is **slower** than heuristic estimation; `estimate()` defaults to `'heuristic'` to keep existing behavior fast.
-- `encode` / `decode` and `estimate({ tokenizer: 'openai_exact' })` require **Node.js** (uses `node:module` under the hood).
+- For distribution/build compatibility, all OpenAI vocabularies are bundled (trade-off: larger bundle size).
+- Pure TypeScript implementation: works in Node.js and browsers (no native deps, no WASM).
 
 ```ts
 import { encode, decode } from 'ai-token-estimator';
@@ -81,6 +119,184 @@ console.log(roundTrip); // "Hello, world!"
 
 Supported encodings:
 `r50k_base`, `p50k_base`, `p50k_edit`, `cl100k_base`, `o200k_base`, `o200k_harmony`
+
+## SentencePiece Tokenizer (T5, ALBERT, XLNet, Gemma, LLaMA 2, etc.)
+
+This package includes a **pure TypeScript SentencePiece tokenizer** with zero native dependencies. It supports models that use Unigram or SentencePiece-style BPE tokenization (plus validated `tokenizer.json` configurations), including T5, ALBERT, XLNet, Gemma, LLaMA 2, and many HuggingFace models.
+
+### Basic Usage
+
+```typescript
+import {
+  loadSentencePieceTokenizer,
+  getSentencePieceTokenizer,
+  encodeSentencePiece,
+  decodeSentencePiece,
+  countSentencePieceTokens
+} from 'ai-token-estimator';
+
+// Async API (Node.js) - load from file
+const tokenizer = await loadSentencePieceTokenizer({
+  modelPath: './path/to/tokenizer.model'
+});
+
+const tokens = tokenizer.encode('Hello, world!');
+const text = tokenizer.decode(tokens);
+console.log(tokens);        // [8774, 6, 296, 55]
+console.log(text);          // "Hello, world!"
+console.log(tokenizer.vocabSize);  // 32000
+console.log(tokenizer.algorithm);  // "unigram" or "bpe"
+
+// Sync API (browser/serverless) - from ArrayBuffer
+const response = await fetch('/models/tokenizer.model');
+const modelData = new Uint8Array(await response.arrayBuffer());
+const tokenizer2 = getSentencePieceTokenizer({ modelData });
+```
+
+### Supported Model Formats
+
+| Format | Extension | Description |
+|--------|-----------|-------------|
+| **SentencePiece Protobuf** | `.model` | Native SentencePiece format (T5, ALBERT, XLNet, Gemma) |
+| **HuggingFace JSON** | `tokenizer.json` | HuggingFace tokenizers format (many models) |
+
+Notes:
+- `tokenizer.json` support is intentionally scoped to validated configs (Unigram and merges-based BPE with Metaspace-style whitespace handling). If a tokenizer JSON uses ByteLevel/byte-fallback pipelines (GPT-2-style), this library will throw a helpful error.
+
+```typescript
+// Load .model file (protobuf)
+const tokenizer = await loadSentencePieceTokenizer({
+  modelPath: './t5-base/spiece.model'
+});
+
+// Load tokenizer.json (HuggingFace format)
+const tokenizer = await loadSentencePieceTokenizer({
+  modelPath: './my-hf-model/tokenizer.json',
+  format: 'json'  // optional, auto-detected from extension
+});
+```
+
+### Model Download Helper
+
+For convenience, you can automatically download known models (opt-in network access):
+
+```typescript
+import { ensureSentencePieceModel, MODEL_REGISTRY } from 'ai-token-estimator';
+
+// Download a known model (cached locally). No network calls unless allowDownload: true.
+const modelPath = await ensureSentencePieceModel({
+  tokenizer: 't5-base',
+  allowDownload: true,
+  cacheDir: './models', // optional; default: ~/.cache/sentencepiece (or SENTENCEPIECE_MODEL_CACHE_DIR)
+});
+
+const tokenizer = await loadSentencePieceTokenizer({ modelPath });
+
+// Available pre-configured models (registry can be extended)
+console.log(Object.keys(MODEL_REGISTRY));
+// ['t5-base', 'albert-base-v2', 'xlnet-base-cased', 'gemma', 'llama2', ...]
+```
+
+Notes:
+- Downloads are disabled by default (`allowDownload: false`) to avoid surprise network calls.
+- Some registry entries may be gated and require HuggingFace authentication (`HF_TOKEN` / `HUGGINGFACE_HUB_TOKEN` or `authToken` option).
+
+### Convenience Functions
+
+```typescript
+import {
+  encodeSentencePieceAsync,
+  decodeSentencePieceAsync,
+  countSentencePieceTokensAsync
+} from 'ai-token-estimator';
+
+// One-liner encoding/decoding (loads model each time - use tokenizer instance for batch)
+const tokens = await encodeSentencePieceAsync('Hello!', { modelPath: './model.model' });
+const text = await decodeSentencePieceAsync(tokens, { modelPath: './model.model' });
+const count = await countSentencePieceTokensAsync('Hello!', { modelPath: './model.model' });
+```
+
+### Algorithm Support
+
+| Algorithm | Description | Models |
+|-----------|-------------|--------|
+| **Unigram** | Probabilistic subword segmentation | T5, ALBERT, XLNet, mT5 |
+| **SentencePiece BPE** | Score-based BPE used in `.model` files | Gemma, LLaMA 2 (and other SP-BPE models) |
+| **JSON-BPE (merges-based)** | BPE defined by `vocab` + `merges[]` in `tokenizer.json` | Some HuggingFace tokenizers (validated configs) |
+
+The algorithm is automatically detected from the model file.
+
+### Advanced: Working with Custom Models
+
+```typescript
+import { parseModelProto, UnigramEncoder, BPEEncoder } from 'ai-token-estimator';
+
+// Low-level: parse model protobuf directly
+const modelBytes = fs.readFileSync('./custom.model');
+const model = parseModelProto(new Uint8Array(modelBytes));
+
+console.log(model.pieces.length);           // vocabulary size
+console.log(model.trainerSpec?.modelType);  // 1 = UNIGRAM, 2 = BPE
+console.log(model.normalizerSpec?.name);    // e.g., 'nmt_nfkc'
+
+// Create encoder directly
+const encoder = new UnigramEncoder(model.pieces, {
+  trainerSpec: model.trainerSpec
+});
+const tokens = encoder.encode('Hello, world!');
+```
+
+### Normalization
+
+The tokenizer handles SentencePiece normalization automatically:
+
+- **Dummy prefix**: Adds space before text (configurable)
+- **Whitespace escaping**: Converts spaces to `▁` (U+2581)
+- **NFKC normalization**: Unicode normalization
+- **Extra whitespace removal**: Collapses multiple spaces
+
+```typescript
+// Access normalizer directly
+import { Normalizer } from 'ai-token-estimator';
+
+const normalizer = new Normalizer({
+  normalizerSpec: model.normalizerSpec,
+  denormalizerSpec: model.denormalizerSpec,
+});
+
+const normalized = normalizer.normalize('Hello  World');
+// "▁Hello▁World" (with dummy prefix and escaped spaces)
+
+const denormalized = normalizer.denormalize('▁Hello▁World');
+// "Hello World"
+```
+
+### Browser Usage
+
+The SentencePiece tokenizer works in browsers without any polyfills:
+
+```typescript
+// Fetch model and create tokenizer
+async function loadTokenizer(modelUrl: string) {
+  const response = await fetch(modelUrl);
+  const modelData = new Uint8Array(await response.arrayBuffer());
+  return getSentencePieceTokenizer({ modelData });
+}
+
+const tokenizer = await loadTokenizer('/models/t5.model');
+const tokens = tokenizer.encode('Browser tokenization!');
+```
+
+### Caching
+
+Model parsing is automatically cached for performance:
+
+```typescript
+import { clearModelCache } from 'ai-token-estimator';
+
+// Clear cache if needed (e.g., for memory management)
+clearModelCache();
+```
 
 ## Using the exact tokenizer with `estimate()`
 
@@ -118,7 +334,7 @@ import { estimateAsync } from 'ai-token-estimator';
 
 const out = await estimateAsync({
   text: 'Hello, Claude',
-  model: 'claude-sonnet-4-5',
+  model: 'claude-sonnet-4.5',
   tokenizer: 'anthropic_count_tokens',
   fallbackToHeuristicOnError: true,
   anthropic: {
@@ -150,17 +366,14 @@ const out = await estimateAsync({
 console.log(out.estimatedTokens);
 ```
 
-### Local Gemini option: Gemma SentencePiece (approximation)
+### Local Gemini option: Gemma SentencePiece
 
-If you want a **local** tokenizer option for Gemini-like models, you can use a SentencePiece tokenizer model (e.g. Gemma's
-`tokenizer.model`) via `sentencepiece-js`.
-
-Note:
-- `sentencepiece-js` is only loaded when you use `tokenizer: 'gemma_sentencepiece'` (lazy-loaded).
+If you want a **local** tokenizer option for Gemini-like models, you can use a SentencePiece tokenizer model (e.g. Gemma's `tokenizer.model`) with our pure TypeScript SentencePiece implementation.
 
 ```ts
-import { estimateAsync } from 'ai-token-estimator';
+import { estimateAsync, countGemmaSentencePieceTokens } from 'ai-token-estimator';
 
+// Via estimateAsync
 const out = await estimateAsync({
   text: 'Hello!',
   model: 'gemini-2.0-flash',
@@ -171,10 +384,17 @@ const out = await estimateAsync({
 });
 
 console.log(out.estimatedTokens);
+
+// Or use directly
+const count = await countGemmaSentencePieceTokens({
+  modelPath: '/path/to/tokenizer.model',
+  text: 'Hello, world!'
+});
 ```
 
 Note:
 - This is **not** an official Gemini tokenizer; treat it as an approximation unless you have verified equivalence for your models.
+- Uses our pure TypeScript SentencePiece implementation (no native dependencies).
 
 ## API Reference
 
@@ -215,7 +435,7 @@ interface EstimateOutput {
 Async estimator that supports provider token counting modes:
 - `anthropic_count_tokens` (Anthropic token count endpoint)
 - `gemini_count_tokens` (Gemini token count endpoint)
-- `gemma_sentencepiece` (local SentencePiece, requires `sentencepiece-js` and a model file)
+- `gemma_sentencepiece` (local SentencePiece tokenization using built-in pure TypeScript implementation)
 
 API keys should be provided via env vars (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`) or passed explicitly in the config objects.
 
@@ -343,6 +563,100 @@ interface ModelConfig {
 ### `DEFAULT_MODELS`
 
 Read-only object containing all model configurations. Frozen to prevent runtime mutation.
+
+### SentencePiece API
+
+#### `loadSentencePieceTokenizer(options: FileOptions): Promise<SentencePieceTokenizer>`
+
+Loads a SentencePiece tokenizer from a file path (Node.js async API).
+
+```typescript
+interface FileOptions {
+  modelPath: string;              // Path to .model or tokenizer.json file
+  format?: 'protobuf' | 'json';   // Auto-detected from extension if omitted
+}
+
+interface SentencePieceTokenizer {
+  encode(text: string): number[];   // Encode text to token IDs
+  decode(tokens: number[]): string; // Decode token IDs to text
+  readonly vocabSize: number;       // Vocabulary size
+  readonly algorithm: 'bpe' | 'unigram';  // Tokenization algorithm
+}
+```
+
+#### `getSentencePieceTokenizer(options: DataOptions): SentencePieceTokenizer`
+
+Creates a tokenizer from in-memory model data (sync API, browser-compatible).
+
+```typescript
+interface DataOptions {
+  modelData: Uint8Array | ArrayBuffer;  // Model file bytes
+  format?: 'protobuf' | 'json';         // Auto-detected if omitted
+}
+```
+
+#### `ensureSentencePieceModel(options: DownloadOptions): Promise<string>`
+
+Downloads a known tokenizer model from HuggingFace and returns the local path.
+
+```typescript
+type KnownTokenizer = keyof typeof MODEL_REGISTRY; // e.g. 't5-base', 'albert-base-v2', 'xlnet-base-cased', ...
+
+interface DownloadOptions {
+  tokenizer: KnownTokenizer;
+  cacheDir?: string;         // Cache directory (default: ~/.cache/sentencepiece or SENTENCEPIECE_MODEL_CACHE_DIR)
+  allowDownload?: boolean;   // Default: false (no surprise network calls)
+  verifyHash?: boolean;      // Default: true (when registry hash is present)
+  authToken?: string;        // HuggingFace auth token (or HF_TOKEN / HUGGINGFACE_HUB_TOKEN env vars)
+  customUrl?: string;        // Optional mirror/override URL (hash still verified)
+}
+```
+
+#### `encodeSentencePiece(text: string, options: DataOptions): number[]`
+
+Encode text to tokens (sync, from in-memory model data).
+
+#### `decodeSentencePiece(tokens: number[], options: DataOptions): string`
+
+Decode tokens to text (sync, from in-memory model data).
+
+#### `countSentencePieceTokens(text: string, options: DataOptions): number`
+
+Count tokens in text (sync, from in-memory model data).
+
+#### `encodeSentencePieceAsync(text: string, options: FileOptions): Promise<number[]>`
+
+Encode text to tokens (async, from file path).
+
+#### `decodeSentencePieceAsync(tokens: number[], options: FileOptions): Promise<string>`
+
+Decode tokens to text (async, from file path).
+
+#### `countSentencePieceTokensAsync(text: string, options: FileOptions): Promise<number>`
+
+Count tokens in text (async, from file path).
+
+#### `parseModelProto(buffer: Uint8Array): ModelProto`
+
+Low-level: Parse a SentencePiece .model file (protobuf format).
+
+```typescript
+interface ModelProto {
+  pieces: SentencePiece[];        // Vocabulary pieces
+  trainerSpec?: TrainerSpec;      // Training configuration
+  normalizerSpec?: NormalizerSpec; // Normalization settings
+}
+
+interface SentencePiece {
+  piece: string;   // Token string
+  score: number;   // Log probability score
+  type: SentencePieceType;  // NORMAL, UNKNOWN, CONTROL, etc.
+}
+```
+
+#### `clearModelCache(): void`
+
+Clears the internal model parsing cache (useful for memory management).
 
 ## Rounding Options
 
