@@ -8,6 +8,9 @@
  * 1. Lower score = higher priority (merge first)
  * 2. Tie-breaker: lower piece ID (earlier in vocab)
  * 3. Position tie-breaker: leftmost position
+ *
+ * NOTE: CONTROL tokens (<pad>, <s>, </s>, etc.) are NOT matched atomically.
+ * They are tokenized as ordinary text, matching Python sentencepiece behavior.
  */
 
 import type { SentencePiece, TrainerSpec } from '../protobuf/schema.js';
@@ -120,7 +123,9 @@ export class BPEEncoder {
     this.byteFallback = options.trainerSpec?.byteFallback ?? false;
     this.unkId = options.trainerSpec?.unkId ?? 0;
 
-    // Collect special tokens for atomic matching
+    // Collect special tokens for atomic matching (USER_DEFINED + HF added_tokens only)
+    // NOTE: CONTROL tokens (<pad>, <s>, </s>, etc.) are NOT matched atomically in real
+    // sentencepiece - they are tokenized as ordinary text
     const specialTokens: AddedToken[] = [...(options.addedTokens ?? [])];
     this.addedTokensById = new Map((options.addedTokens ?? []).map((t) => [t.id, t]));
 
@@ -138,8 +143,8 @@ export class BPEEncoder {
         }
       }
 
-      // Add control tokens to special matcher
-      if (type === SentencePieceType.CONTROL || type === SentencePieceType.USER_DEFINED) {
+      // Only USER_DEFINED tokens are matched atomically (not CONTROL tokens)
+      if (type === SentencePieceType.USER_DEFINED) {
         specialTokens.push({ id, content: piece, special: true });
       }
     }
@@ -221,21 +226,37 @@ export class BPEEncoder {
     let prev: LinkedNode | null = null;
     let position = 0;
 
-    // Iterate over code points
-    for (const char of text) {
+    // Convert to array of code points for correct Unicode handling
+    const codePoints = [...text];
+
+    // Iterate over code points, collapsing consecutive unknowns into a single UNK
+    let i = 0;
+    while (i < codePoints.length) {
+      const char = codePoints[i];
       let pieces: string[];
 
       if (this.vocab.has(char)) {
         pieces = [char];
+        i++;
       } else if (this.byteFallback) {
         // Split into byte tokens
         const bytes = new TextEncoder().encode(char);
         pieces = Array.from(bytes).map(
           (b) => `<0x${b.toString(16).toUpperCase().padStart(2, '0')}>`
         );
+        i++;
       } else {
-        // Unknown token
+        // Unknown character - find the entire unknown span and emit a single UNK
+        // This matches Python sentencepiece behavior
+        let endUnk = i + 1;
+        while (endUnk < codePoints.length) {
+          const nextChar = codePoints[endUnk];
+          if (this.vocab.has(nextChar)) break;
+          if (this.byteFallback) break; // byte fallback would handle it
+          endUnk++;
+        }
         pieces = [this.vocabReverse.get(this.unkId) ?? '<unk>'];
+        i = endUnk; // Skip the entire unknown span
       }
 
       for (const piece of pieces) {

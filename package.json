@@ -33,7 +33,8 @@
     "test:watch": "vitest",
     "test:dist": "node scripts/test-dist.mjs",
     "lint": "eslint src tests",
-    "prepublishOnly": "npm run lint && npm run test && npm run build && npm run test:dist",
+    "verify:hashes": "tsx scripts/verify-hashes.ts",
+    "prepublishOnly": "npm run lint && npm run test && npm run build && npm run test:dist && npm run verify:hashes",
     "update-pricing": "tsx scripts/update-pricing.ts",
     "benchmark:tokenizer": "tsx benchmark/tokenizer.ts"
   },

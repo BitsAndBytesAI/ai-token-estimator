@@ -389,7 +389,7 @@ interface EstimateOutput {
 Async estimator that supports provider token counting modes:
 - `anthropic_count_tokens` (Anthropic token count endpoint)
 - `gemini_count_tokens` (Gemini token count endpoint)
-- `gemma_sentencepiece` (local SentencePiece, requires `sentencepiece-js` and a model file)
+- `gemma_sentencepiece` (local SentencePiece tokenization using built-in pure TypeScript implementation)
 
 API keys should be provided via env vars (`ANTHROPIC_API_KEY`, `GEMINI_API_KEY`) or passed explicitly in the config objects.
 

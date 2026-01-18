@@ -5,9 +5,10 @@
  * Uses a trie for O(maxLen) prefix-based candidate lookup per position.
  *
  * Algorithm:
- * 1. Match special/control tokens atomically before segmentation
+ * 1. Match USER_DEFINED tokens atomically before segmentation (NOT CONTROL tokens)
  * 2. Use Viterbi DP to find the highest-scoring segmentation
  * 3. Support byte fallback for unknown characters
+ * 4. Collapse unknown runs into a single UNK token (matching Python sentencepiece)
  */
 
 import type { SentencePiece, TrainerSpec } from '../protobuf/schema.js';
@@ -101,7 +102,9 @@ export class UnigramEncoder {
     let unkScore = -Infinity;
     this.addedTokensById = new Map((options.addedTokens ?? []).map((t) => [t.id, t]));
 
-    // Collect special tokens for atomic matching (CONTROL + USER_DEFINED + HF added_tokens)
+    // Collect special tokens for atomic matching (USER_DEFINED + HF added_tokens only)
+    // NOTE: CONTROL tokens (<pad>, <s>, </s>, etc.) are NOT matched atomically in real
+    // sentencepiece - they are tokenized as ordinary text (e.g., "<pad>" → ["▁<", "pad", ">"])
     const specialTokens: AddedToken[] = [...(options.addedTokens ?? [])];
 
     for (let id = 0; id < pieces.length; id++) {
@@ -116,10 +119,12 @@ export class UnigramEncoder {
           this.byteScores.set(parseInt(match[1], 16), { id, score });
         }
       } else if (type === SentencePieceType.CONTROL) {
-        // Match atomically, don't add to trie
-        specialTokens.push({ id, content: piece, special: true });
+        // CONTROL tokens (<pad>, <s>, </s>, etc.) are NEVER matched from input text.
+        // In real sentencepiece, they can only be added programmatically via
+        // add_bos_id/add_eos_id etc. Do NOT add them to the trie.
+        // The text "<s>" should be tokenized as ['▁<', 's', '>'], not as [<s>_id]
       } else if (type === SentencePieceType.USER_DEFINED) {
-        // Match atomically, don't add to trie
+        // USER_DEFINED tokens ARE matched atomically (user-specified special tokens)
         specialTokens.push({ id, content: piece, special: true });
       } else if (type === SentencePieceType.NORMAL) {
         // Add to trie for Viterbi
@@ -208,10 +213,29 @@ export class UnigramEncoder {
           }
         }
 
-        // Fallback to UNK token (CRITICAL: ensures path always exists)
+        // UNK fallback: find the maximal unknown span and emit a single UNK
+        // This matches Python sentencepiece behavior where consecutive unknown
+        // characters are collapsed into a single UNK token
+        let endUnk = i + 1;
+        while (endUnk < n) {
+          // Check if there are any vocabulary matches at this position
+          const nextCandidates = this.trie.findPrefixes(codePoints, endUnk);
+          if (nextCandidates.length > 0) break;
+
+          // Check if byte fallback can handle this character
+          if (this.byteFallback) {
+            const nextByteTokens = this.getByteTokensForChar(codePoints[endUnk]);
+            if (nextByteTokens) break;
+          }
+
+          // Continue the unknown span
+          endUnk++;
+        }
+
+        // Emit single UNK for the entire unknown span
         const newScore = best[i].score + this.unkScore;
-        if (newScore > best[i + 1].score) {
-          best[i + 1] = { score: newScore, prevIdx: i, tokenId: this.unkId };
+        if (newScore > best[endUnk].score) {
+          best[endUnk] = { score: newScore, prevIdx: i, tokenId: this.unkId };
         }
       }
     }

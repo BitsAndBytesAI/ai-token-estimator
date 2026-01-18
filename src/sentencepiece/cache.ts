@@ -33,14 +33,25 @@ export function clearModelCache(): void {
 /**
  * Generate a cache key from model bytes
  *
- * Uses a simple hash of the first 1KB for uniqueness + total length.
+ * Uses FNV-1a hash of the FULL model bytes to avoid collisions.
+ * This is critical for correctness - two different models must not
+ * collide and reuse the wrong parsed model.
  */
 export function getModelCacheKey(bytes: Uint8Array): string {
-  // Simple hash of first 1KB for cache key
-  const sample = bytes.slice(0, 1024);
-  let hash = 0;
-  for (let i = 0; i < sample.length; i++) {
-    hash = ((hash << 5) - hash + sample[i]) | 0;
+  // FNV-1a hash parameters (32-bit)
+  const FNV_PRIME = 0x01000193;
+  const FNV_OFFSET_BASIS = 0x811c9dc5;
+
+  let hash = FNV_OFFSET_BASIS;
+
+  // Hash ALL bytes, not just a sample
+  for (let i = 0; i < bytes.length; i++) {
+    hash ^= bytes[i];
+    // Multiply by FNV prime (use Math.imul for proper 32-bit multiplication)
+    hash = Math.imul(hash, FNV_PRIME);
   }
-  return `model_${hash.toString(16)}_${bytes.length}`;
+
+  // Convert to unsigned 32-bit and format as hex
+  const hashHex = (hash >>> 0).toString(16).padStart(8, '0');
+  return `model_${hashHex}_${bytes.length}`;
 }

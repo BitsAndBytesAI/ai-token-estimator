@@ -74,41 +74,68 @@ export function readTag(buf: Uint8Array, offset: number): { fieldNumber: number;
 
 /**
  * Read length-delimited field (returns sub-buffer)
+ * @throws Error if the length would exceed the buffer bounds
  */
 export function readLengthDelimited(buf: Uint8Array, offset: number): { data: Uint8Array; bytesRead: number } {
   const { value: length, bytesRead: lenBytes } = readVarint(buf, offset);
-  const data = buf.subarray(offset + lenBytes, offset + lenBytes + length);
+  const dataStart = offset + lenBytes;
+  const dataEnd = dataStart + length;
+
+  // Bounds check: ensure the length-delimited data doesn't exceed buffer
+  if (dataEnd > buf.length) {
+    throw new Error(
+      `Length-delimited field exceeds buffer bounds: offset=${offset}, length=${length}, bufferLength=${buf.length}`
+    );
+  }
+
+  const data = buf.subarray(dataStart, dataEnd);
   return { data, bytesRead: lenBytes + length };
 }
 
 /**
  * Read float (32-bit IEEE 754, little-endian)
+ * @throws Error if there aren't enough bytes in the buffer
  */
 export function readFloat(buf: Uint8Array, offset: number): number {
+  if (offset + 4 > buf.length) {
+    throw new Error(`Buffer underflow reading float: offset=${offset}, bufferLength=${buf.length}`);
+  }
   const view = new DataView(buf.buffer, buf.byteOffset + offset, 4);
   return view.getFloat32(0, true); // little-endian
 }
 
 /**
  * Read double (64-bit IEEE 754, little-endian)
+ * @throws Error if there aren't enough bytes in the buffer
  */
 export function readDouble(buf: Uint8Array, offset: number): number {
+  if (offset + 8 > buf.length) {
+    throw new Error(`Buffer underflow reading double: offset=${offset}, bufferLength=${buf.length}`);
+  }
   const view = new DataView(buf.buffer, buf.byteOffset + offset, 8);
   return view.getFloat64(0, true); // little-endian
 }
 
 /**
  * Read fixed32 (32-bit unsigned integer, little-endian)
+ * @throws Error if there aren't enough bytes in the buffer
  */
 export function readFixed32(buf: Uint8Array, offset: number): number {
+  if (offset + 4 > buf.length) {
+    throw new Error(`Buffer underflow reading fixed32: offset=${offset}, bufferLength=${buf.length}`);
+  }
   const view = new DataView(buf.buffer, buf.byteOffset + offset, 4);
   return view.getUint32(0, true); // little-endian
 }
 
 /**
  * Read fixed64 as bigint (64-bit unsigned integer, little-endian)
+ * @throws Error if there aren't enough bytes in the buffer
  */
 export function readFixed64(buf: Uint8Array, offset: number): bigint {
+  if (offset + 8 > buf.length) {
+    throw new Error(`Buffer underflow reading fixed64: offset=${offset}, bufferLength=${buf.length}`);
+  }
   const view = new DataView(buf.buffer, buf.byteOffset + offset, 8);
   const lo = view.getUint32(0, true);
   const hi = view.getUint32(4, true);
@@ -137,6 +164,7 @@ export function readBytes(buf: Uint8Array, offset: number): { value: Uint8Array;
 
 /**
  * Skip a field based on wire type
+ * @throws Error if there aren't enough bytes in the buffer
  */
 export function skipField(buf: Uint8Array, offset: number, wireType: number): number {
   switch (wireType) {
@@ -145,12 +173,18 @@ export function skipField(buf: Uint8Array, offset: number, wireType: number): nu
       return bytesRead;
     }
     case WIRE_64BIT:
+      if (offset + 8 > buf.length) {
+        throw new Error(`Buffer underflow skipping 64-bit field: offset=${offset}, bufferLength=${buf.length}`);
+      }
       return 8;
     case WIRE_LENGTH_DELIMITED: {
       const { bytesRead } = readLengthDelimited(buf, offset);
       return bytesRead;
     }
     case WIRE_32BIT:
+      if (offset + 4 > buf.length) {
+        throw new Error(`Buffer underflow skipping 32-bit field: offset=${offset}, bufferLength=${buf.length}`);
+      }
       return 4;
     default:
       throw new Error(`Unknown wire type: ${wireType}`);
