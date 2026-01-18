@@ -1957,6 +1957,10 @@ export class UnigramEncoder {
   private encodeText(text: string): number[] {
     if (text.length === 0) return [];
 
+    // NOTE: For tokenizer.json Unigram models that use a Metaspace pre_tokenizer,
+    // the caller (e.g., UnigramTokenizer wrapper) must apply Metaspace first so inputs
+    // like "Hello" become "▁Hello" (or configured replacement), matching the vocab pieces.
+
     // Convert to array of code points for correct Unicode handling
     const codePoints = [...text];
     const n = codePoints.length;
