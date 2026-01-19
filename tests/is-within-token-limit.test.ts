@@ -5,7 +5,7 @@ import {
   isChatWithinTokenLimit,
   countChatCompletionTokens,
 } from '../src/index.js';
-import type { ChatMessage } from '../src/index.js';
+import type { ChatMessage, IsChatWithinTokenLimitInput } from '../src/index.js';
 
 // =============================================================================
 // isWithinTokenLimit - plain text tests
@@ -189,6 +189,30 @@ describe('isChatWithinTokenLimit', () => {
         tokenLimit: 10.5,
       })
     ).toThrow(/integer/);
+  });
+
+  it('throws when tools API field is passed', () => {
+    const input: unknown = {
+      messages: [{ role: 'user', content: 'Hello' }],
+      model: 'gpt-4o',
+      tokenLimit: 100,
+      tools: [],
+    };
+    expect(() =>
+      isChatWithinTokenLimit(input as IsChatWithinTokenLimitInput)
+    ).toThrow(/Tools API/);
+  });
+
+  it('throws when tool_choice is passed', () => {
+    const input: unknown = {
+      messages: [{ role: 'user', content: 'Hello' }],
+      model: 'gpt-4o',
+      tokenLimit: 100,
+      tool_choice: 'auto',
+    };
+    expect(() =>
+      isChatWithinTokenLimit(input as IsChatWithinTokenLimitInput)
+    ).toThrow(/tool_choice/);
   });
 
   describe('parity with countChatCompletionTokens', () => {

@@ -432,9 +432,8 @@ export function isChatWithinTokenLimit(
   validateTokenLimit(tokenLimit);
 
   // 2. Validate inputs (reuse existing validation)
-  // Create a minimal input object for validateNoToolsApi
-  const validationInput = { messages, model, functions, function_call } as ChatCompletionTokenCountInput;
-  validateNoToolsApi(validationInput);
+  // Pass original input to validateNoToolsApi so tools/tool_choice fields are detected
+  validateNoToolsApi(input as unknown as ChatCompletionTokenCountInput);
   validateMessages(messages);
   validateOpenAIModel(model, encoding);
 
