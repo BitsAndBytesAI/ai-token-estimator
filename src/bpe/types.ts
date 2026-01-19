@@ -86,9 +86,28 @@ export interface DecodeOptions {
 }
 
 /**
+ * Result from encodeTextWithLimit.
+ */
+export interface EncodeWithLimitResult {
+  /** Number of tokens counted */
+  count: number;
+  /** Whether the limit was exceeded */
+  exceeded: boolean;
+}
+
+/**
  * Encoding API returned by getTokenizer().
  */
 export interface EncodingApi {
   encode: (text: string, allowedSpecial?: Set<string> | 'all' | 'skip') => number[];
   decode: (tokens: Iterable<number>) => string;
+  /**
+   * Encode with early exit when token limit is exceeded.
+   * Returns count and whether the limit was exceeded.
+   */
+  encodeTextWithLimit: (
+    text: string,
+    limit: number,
+    allowedSpecial?: Set<string> | 'all' | 'skip'
+  ) => EncodeWithLimitResult;
 }

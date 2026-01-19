@@ -25,11 +25,14 @@ import {
 } from './chat-token-constants.js';
 import { formatFunctionDefinitions } from './function-formatting.js';
 import { encode, getOpenAIEncoding } from './openai-bpe.js';
+import { getTokenizer } from './bpe/index.js';
 import type { OpenAIEncoding } from './openai-bpe.js';
 import type {
   ChatMessage,
   ChatCompletionTokenCountInput,
   ChatCompletionTokenCountOutput,
+  FunctionDefinition,
+  FunctionCallOption,
 } from './types.js';
 
 // =============================================================================
@@ -352,4 +355,224 @@ export function countChatCompletionTokens(
   }
 
   return result;
+}
+
+// =============================================================================
+// Token Limit Checking with Early Exit
+// =============================================================================
+
+/**
+ * Input for isChatWithinTokenLimit.
+ * Object-style input to match countChatCompletionTokens API.
+ */
+export interface IsChatWithinTokenLimitInput {
+  messages: ChatMessage[];
+  model: string;
+  tokenLimit: number;
+  encoding?: OpenAIEncoding;
+  functions?: FunctionDefinition[];
+  function_call?: FunctionCallOption;
+}
+
+/**
+ * Validate tokenLimit is a non-negative finite integer.
+ */
+function validateTokenLimit(tokenLimit: number): void {
+  if (!Number.isFinite(tokenLimit)) {
+    throw new Error('tokenLimit must be a finite number');
+  }
+  if (!Number.isInteger(tokenLimit)) {
+    throw new Error('tokenLimit must be an integer');
+  }
+  if (tokenLimit < 0) {
+    throw new Error('tokenLimit must be non-negative');
+  }
+}
+
+/**
+ * Check if chat messages are within a token limit, with early exit optimization.
+ *
+ * Uses object-style input to match countChatCompletionTokens API.
+ * Returns `false` if the token count exceeds the limit, otherwise returns
+ * the actual token count.
+ *
+ * This is significantly faster than full tokenization when the limit is
+ * exceeded early in the input.
+ *
+ * @throws {Error} If tokenLimit is invalid (NaN, Infinity, negative, non-integer)
+ * @throws {Error} If model is not an OpenAI model (unless encoding override provided)
+ * @throws {Error} If tools, tool_choice, tool_calls, or tool_call_id are present
+ * @throws {Error} If any message has non-string content (arrays, numbers, objects)
+ *
+ * @example
+ * ```typescript
+ * const result = isChatWithinTokenLimit({
+ *   messages: [
+ *     { role: 'system', content: 'You are a helpful assistant.' },
+ *     { role: 'user', content: 'Hello!' }
+ *   ],
+ *   model: 'gpt-4o',
+ *   tokenLimit: 100,
+ * });
+ *
+ * if (result === false) {
+ *   console.log('Messages exceed token limit');
+ * } else {
+ *   console.log(`Messages use ${result} tokens`);
+ * }
+ * ```
+ */
+export function isChatWithinTokenLimit(
+  input: IsChatWithinTokenLimitInput
+): false | number {
+  const { messages, model, tokenLimit, encoding, functions, function_call } =
+    input;
+
+  // 1. Strict tokenLimit validation
+  validateTokenLimit(tokenLimit);
+
+  // 2. Validate inputs (reuse existing validation)
+  // Pass original input to validateNoToolsApi so tools/tool_choice fields are detected
+  validateNoToolsApi(input as unknown as ChatCompletionTokenCountInput);
+  validateMessages(messages);
+  validateOpenAIModel(model, encoding);
+
+  // 3. Resolve encoding and get tokenizer with early-exit support
+  const resolvedEncoding: OpenAIEncoding =
+    encoding ?? getOpenAIEncoding({ model });
+  const api = getTokenizer(resolvedEncoding);
+
+  // 4. Start with fixed completion overhead
+  let count = COMPLETION_REQUEST_TOKEN_OVERHEAD;
+
+  if (count > tokenLimit) return false;
+
+  const hasFunctions = Boolean(functions?.length);
+
+  // 5. Pre-scan: check if any message is a system message (for deduction calculation)
+  // We need to know this upfront to correctly calculate function overhead
+  const hasSystemMessage = messages.some((m) => m.role === 'system');
+
+  // 6. Calculate function overhead WITH early exit
+  if (hasFunctions && functions) {
+    const formatted = formatFunctionDefinitions(functions);
+    const funcResult = api.encodeTextWithLimit(
+      formatted,
+      tokenLimit - count,
+      'skip'
+    );
+    if (funcResult.exceeded) return false;
+
+    let funcOverhead = funcResult.count + FUNCTION_DEFINITION_TOKEN_OVERHEAD;
+
+    // Apply SYSTEM_FUNCTION_TOKEN_DEDUCTION immediately if we have system message
+    // This prevents false negatives from deducting at the end
+    if (hasSystemMessage) {
+      funcOverhead -= SYSTEM_FUNCTION_TOKEN_DEDUCTION;
+    }
+
+    count += funcOverhead;
+    if (count > tokenLimit) return false;
+  }
+
+  // 7. Function call overhead (with early exit)
+  if (function_call && function_call !== 'auto') {
+    if (function_call === 'none') {
+      count += FUNCTION_CALL_NONE_TOKEN_OVERHEAD;
+    } else if (typeof function_call === 'object' && function_call.name) {
+      const fcNameResult = api.encodeTextWithLimit(
+        function_call.name,
+        tokenLimit - count,
+        'skip'
+      );
+      if (fcNameResult.exceeded) return false;
+      count += fcNameResult.count + FUNCTION_CALL_NAME_TOKEN_OVERHEAD;
+    }
+    if (count > tokenLimit) return false;
+  }
+
+  // 8. Process messages with early exit
+  let systemPadded = false;
+
+  for (const message of messages) {
+    let overhead = MESSAGE_TOKEN_OVERHEAD;
+
+    // Role tokens
+    if (message.role) {
+      const roleResult = api.encodeTextWithLimit(
+        message.role,
+        tokenLimit - count,
+        'skip'
+      );
+      if (roleResult.exceeded) return false;
+      count += roleResult.count;
+    }
+
+    // Content
+    let content = message.content ?? '';
+    if (hasFunctions && message.role === 'system' && !systemPadded) {
+      if (content && !content.endsWith('\n')) {
+        content = content + '\n';
+      }
+      systemPadded = true;
+    }
+
+    if (content) {
+      const contentResult = api.encodeTextWithLimit(
+        content,
+        tokenLimit - count,
+        'skip'
+      );
+      if (contentResult.exceeded) return false;
+      count += contentResult.count;
+    }
+
+    // Name
+    if (message.name) {
+      const nameResult = api.encodeTextWithLimit(
+        message.name,
+        tokenLimit - count,
+        'skip'
+      );
+      if (nameResult.exceeded) return false;
+      count += nameResult.count;
+      overhead += MESSAGE_NAME_TOKEN_OVERHEAD;
+    }
+
+    // Function call in message
+    if (message.function_call) {
+      if (message.function_call.name) {
+        const fcNameResult = api.encodeTextWithLimit(
+          message.function_call.name,
+          tokenLimit - count,
+          'skip'
+        );
+        if (fcNameResult.exceeded) return false;
+        count += fcNameResult.count;
+      }
+      if (message.function_call.arguments) {
+        const fcArgsResult = api.encodeTextWithLimit(
+          message.function_call.arguments,
+          tokenLimit - count,
+          'skip'
+        );
+        if (fcArgsResult.exceeded) return false;
+        count += fcArgsResult.count;
+      }
+      overhead += FUNCTION_CALL_METADATA_TOKEN_OVERHEAD;
+    }
+
+    // Function role discount
+    if (message.role === 'function') {
+      overhead -= FUNCTION_ROLE_TOKEN_DISCOUNT;
+    }
+
+    count += overhead;
+    if (count > tokenLimit) return false;
+  }
+
+  // Note: SYSTEM_FUNCTION_TOKEN_DEDUCTION already applied above when computing funcOverhead
+  // This prevents false negatives from deducting only at the end
+
+  return count;
 }

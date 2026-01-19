@@ -247,6 +247,119 @@ export class BPETokenizer {
   }
 
   /**
+   * Encode text with a token limit, returning early if the limit is exceeded.
+   * This is optimized for fast token-limit validation without full tokenization.
+   *
+   * @param text - The text to encode
+   * @param limit - Maximum number of tokens allowed
+   * @param allowedSpecial - Controls special token handling (same as encodeText)
+   * @returns Object with count and exceeded flag
+   */
+  encodeTextWithLimit(
+    text: string,
+    limit: number,
+    allowedSpecial?: Set<string> | 'all' | 'skip'
+  ): { count: number; exceeded: boolean } {
+    if (!text) return { count: 0, exceeded: false };
+    if (limit < 0) return { count: 0, exceeded: true };
+
+    // Skip special token handling if requested (treat special tokens as regular text)
+    if (allowedSpecial === 'skip') {
+      return this.encodeOrdinaryWithLimit(text, limit);
+    }
+
+    let count = 0;
+
+    // Process special tokens if any are defined
+    if (this.specialTokenMap.size > 0) {
+      const parts = this.splitOnSpecialTokens(text, allowedSpecial);
+
+      for (const part of parts) {
+        if (part.isSpecial) {
+          count += 1; // Special tokens are always 1 token
+          if (count > limit) return { count, exceeded: true };
+        } else {
+          const result = this.encodeOrdinaryWithLimit(part.text, limit - count);
+          count += result.count;
+          if (result.exceeded) {
+            return { count, exceeded: true };
+          }
+        }
+      }
+    } else {
+      return this.encodeOrdinaryWithLimit(text, limit);
+    }
+
+    return { count, exceeded: false };
+  }
+
+  /**
+   * Incremental encoding with early exit.
+   * CRITICAL: Uses RegExp.exec() loop instead of text.match() to avoid
+   * allocating all pieces upfront. This enables true early exit.
+   */
+  private encodeOrdinaryWithLimit(
+    text: string,
+    limit: number
+  ): { count: number; exceeded: boolean } {
+    if (!text) return { count: 0, exceeded: false };
+    if (limit < 0) return { count: 0, exceeded: true };
+
+    let count = 0;
+
+    // CRITICAL: Clone regex per call to avoid reentrancy issues.
+    // RegExp.lastIndex is mutable state; concurrent calls would corrupt it.
+    // Also ensure /g flag is present for exec() to work correctly.
+    const regex = new RegExp(
+      this.tokenSplitRegex.source,
+      this.tokenSplitRegex.flags.includes('g')
+        ? this.tokenSplitRegex.flags
+        : this.tokenSplitRegex.flags + 'g'
+    );
+
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(text)) !== null) {
+      const piece = match[0];
+
+      // Guard against zero-length matches to prevent infinite loops
+      if (piece.length === 0) {
+        regex.lastIndex++;
+        continue;
+      }
+
+      // Check cache first (with LRU touch)
+      const cached = this.getFromCache(piece);
+      if (cached) {
+        count += cached.length;
+        if (count > limit) return { count, exceeded: true };
+        continue;
+      }
+
+      // Convert to UTF-8 bytes then to latin-1 key for vocab lookup
+      const pieceBytes = this.textEncoder.encode(piece);
+      const key = bytesToLatin1(pieceBytes);
+
+      // Try direct lookup first (most tokens are single entries)
+      const directRank = this.encoder.get(key);
+      if (directRank !== undefined) {
+        count += 1;
+        this.addToCache(piece, [directRank]);
+        if (count > limit) return { count, exceeded: true };
+        continue;
+      }
+
+      // BPE merge (can't early-exit within a piece, but pieces are small)
+      const pieceTokens = this.mergeBytePairs(pieceBytes);
+      count += pieceTokens.length;
+      this.addToCache(piece, pieceTokens);
+      if (count > limit) return { count, exceeded: true };
+    }
+
+    return { count, exceeded: false };
+  }
+
+  /**
    * Core BPE merge algorithm.
    */
   private mergeBytePairs(piece: Uint8Array): number[] {
