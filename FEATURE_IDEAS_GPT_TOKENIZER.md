@@ -22,11 +22,11 @@
    - Model→encoding mapping via `getOpenAIEncoding(...)`.
 5. ✅ **Synchronous load + sync API** (sync tokenization + estimation APIs).
 6. ✅ **Extended estimate() fields**: `outputTokens`, `cachedInputTokens`, `mode` inputs; `estimatedOutputCost`, `estimatedCachedInputCost`, `estimatedTotalCost` outputs.
+7. ✅ **Chat-aware tokenization**: `encodeChat` (encode chat messages into ChatML prompt tokens with special delimiters).
 
 ## Next (Highest Impact to Build)
 
-7. ⏳ **Fast token-limit check without full encode**: `isWithinTokenLimit` (early-exit counting; returns `false` when exceeded, else token count).
-8. ⏳ **Chat-aware tokenization**: `encodeChat` (tokenize chat payloads correctly for specific models).
+8. ⏳ **Fast token-limit check without full encode**: `isWithinTokenLimit` (early-exit counting; returns `false` when exceeded, else token count).
 
 ## Later (Valuable, but Lower ROI vs Above)
 
