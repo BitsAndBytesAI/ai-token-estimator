@@ -1,11 +1,11 @@
-# Implementation Plan: Browser-First Distribution with UMD Bundles
+# Implementation Plan: Browser-First Distribution with IIFE Global Bundles
 
 ## Goal
 
-Provide browser-ready UMD bundles for ai-token-estimator that can be used via unpkg/CDN, matching gpt-tokenizer's distribution pattern:
+Provide browser-ready IIFE global bundles for ai-token-estimator that can be used via unpkg/CDN:
 
 ```html
-<script src="https://unpkg.com/ai-token-estimator/dist/o200k_base.js"></script>
+<script src="https://unpkg.com/ai-token-estimator/dist/browser/o200k_base.js"></script>
 <script>
   const { encode, decode } = AITokenEstimator_o200k_base;
 </script>
@@ -20,31 +20,36 @@ Provide browser-ready UMD bundles for ai-token-estimator that can be used via un
 
 ## Design Decisions
 
-### 1. Per-Encoding UMD Bundles
+### 1. Per-Encoding IIFE Global Bundles
 
-Create separate UMD bundles for each encoding to avoid loading unnecessary vocabulary data:
+Create separate IIFE bundles for each encoding to avoid loading unnecessary vocabulary data.
+Output to `dist/browser/` to avoid collision with Node.js build artifacts (`dist/index.js`, etc.).
 
 | Bundle | Global Name | Primary Use Case |
 |--------|-------------|------------------|
-| `dist/o200k_base.js` | `AITokenEstimator_o200k_base` | GPT-4o, o1, o3, GPT-4.1 |
-| `dist/cl100k_base.js` | `AITokenEstimator_cl100k_base` | GPT-4, GPT-3.5-turbo |
-| `dist/p50k_base.js` | `AITokenEstimator_p50k_base` | Legacy models |
-| `dist/p50k_edit.js` | `AITokenEstimator_p50k_edit` | Legacy edit models |
-| `dist/r50k_base.js` | `AITokenEstimator_r50k_base` | Legacy GPT-2/3 |
+| `dist/browser/o200k_base.js` | `AITokenEstimator_o200k_base` | GPT-4o, o1, o3, GPT-4.1 |
+| `dist/browser/o200k_harmony.js` | `AITokenEstimator_o200k_harmony` | Harmony models (different special tokens) |
+| `dist/browser/cl100k_base.js` | `AITokenEstimator_cl100k_base` | GPT-4, GPT-3.5-turbo |
+| `dist/browser/p50k_base.js` | `AITokenEstimator_p50k_base` | Legacy models |
+| `dist/browser/p50k_edit.js` | `AITokenEstimator_p50k_edit` | Legacy edit models |
+| `dist/browser/r50k_base.js` | `AITokenEstimator_r50k_base` | Legacy GPT-2/3 |
 
-Note: `o200k_harmony` is re-exported from `o200k_base` (same vocab, different special tokens).
+Note: `o200k_harmony` gets its own bundle because it has different special tokens than `o200k_base`,
+even though they share the same vocabulary. The `o200k_harmony` entry imports vocab from `o200k_base`.
 
 ### 2. Bundle Contents (Per-Encoding)
 
 Each encoding bundle exports:
 - `encode(text, options?)` - Encode text to tokens
-- `decode(tokens, options?)` - Decode tokens to text
+- `decode(tokens)` - Decode tokens to text
 - `encodeChat(messages, options?)` - Encode chat messages (ChatML)
 - `encodeGenerator(text, options?)` - Streaming encode
 - `encodeChatGenerator(messages, options?)` - Streaming chat encode
-- `decodeGenerator(tokens, options?)` - Streaming decode
+- `decodeGenerator(tokens)` - Streaming decode
+- `decodeAsyncGenerator(tokens)` - Async streaming decode (for LLM response streams)
 - `isWithinTokenLimit(text, limit, options?)` - Fast limit check
-- `countTokens(input)` - Simple token counter
+- `isChatWithinTokenLimit(messages, limit, options?)` - Fast chat limit check
+- `countTokens(text: string): number` - Count tokens in text (encoding-fixed)
 
 **Excluded from browser bundles** (Node.js only):
 - SentencePiece APIs (require file system for model loading)
@@ -54,14 +59,9 @@ Each encoding bundle exports:
 
 ### 3. Build Approach
 
-Use **tsup** (already installed) with multiple entry points:
-
-```bash
-# Add to package.json scripts
-"build:umd": "tsup src/browser/o200k_base.ts src/browser/cl100k_base.ts ... --format iife --globalName AITokenEstimator_${encoding}"
-```
-
-tsup supports IIFE format which is equivalent to UMD for browser usage.
+Use **tsup** (already installed) with IIFE format. IIFE (Immediately Invoked Function Expression)
+creates a global-script bundle that assigns exports to a global variable. This is suitable for
+`<script>` tag usage but is NOT true UMD (no AMD/CJS detection).
 
 ### 4. Entry Point Structure
 
@@ -71,17 +71,24 @@ Create new browser-specific entry points:
 src/
 ├── browser/
 │   ├── o200k_base.ts      # Entry for o200k_base bundle
+│   ├── o200k_harmony.ts   # Entry for o200k_harmony bundle (imports vocab from o200k_base)
 │   ├── cl100k_base.ts     # Entry for cl100k_base bundle
 │   ├── p50k_base.ts       # Entry for p50k_base bundle
 │   ├── p50k_edit.ts       # Entry for p50k_edit bundle
 │   ├── r50k_base.ts       # Entry for r50k_base bundle
-│   └── shared.ts          # Shared browser-safe exports
+│   └── chat-encoding.ts   # Shared chat encoding logic for browser
 ```
 
 Each entry file:
 1. Imports only the vocabulary for that encoding
-2. Creates a pre-configured tokenizer
+2. Creates a pre-configured tokenizer with correct special tokens
 3. Exports browser-safe functions bound to that encoding
+
+### 5. No Package-Level unpkg/jsdelivr Fields
+
+Do NOT set `unpkg` or `jsdelivr` fields in package.json to point to a single encoding bundle.
+This would be surprising for consumers/tools that rely on those fields expecting the main entry.
+Instead, document explicit CDN URLs for each bundle in the README.
 
 ---
 
@@ -89,22 +96,7 @@ Each entry file:
 
 ### Phase 1: Create Browser Entry Points
 
-#### 1.1 Create `src/browser/shared.ts`
-
-Shared browser-safe utilities and types:
-
-```typescript
-// Re-export browser-safe types
-export type { ChatMessage } from '../types.js';
-export type { EncodeOptions, SpecialTokenHandling } from '../bpe/types.js';
-
-// Re-export core tokenizer class and utilities
-export { BPETokenizer } from '../bpe/core.js';
-export { getSpecialTokenMap } from '../bpe/special-tokens.js';
-export { getTokenSplitRegex } from '../encodings/regex.js';
-```
-
-#### 1.2 Create encoding-specific entry (example: `src/browser/o200k_base.ts`)
+#### 1.1 Create encoding-specific entry (example: `src/browser/o200k_base.ts`)
 
 ```typescript
 import { BPETokenizer } from '../bpe/core.js';
@@ -155,6 +147,12 @@ export function* decodeGenerator(
   yield* getTokenizer().decodeTokensGenerator(tokens);
 }
 
+export async function* decodeAsyncGenerator(
+  tokens: AsyncIterable<number | number[]>
+): AsyncGenerator<string, void, void> {
+  yield* getTokenizer().decodeTokensAsyncGenerator(tokens);
+}
+
 export function isWithinTokenLimit(
   text: string,
   limit: number,
@@ -168,16 +166,73 @@ export function countTokens(text: string): number {
   return getTokenizer().encodeText(text).length;
 }
 
-// encodeChat and encodeChatGenerator need to be implemented
-// by inlining the chat encoding logic (to avoid importing all encodings)
-// ... (see Phase 1.3)
+// encodeChat, encodeChatGenerator, isChatWithinTokenLimit
+// ... (see Phase 1.2)
 ```
 
-#### 1.3 Inline Chat Encoding for Browser Bundles
+#### 1.2 Create `src/browser/chat-encoding.ts`
 
-The current `encodeChat` imports `getOpenAIEncoding` which pulls in all encodings. For browser bundles, we need a simplified version that works with a fixed encoding.
+Shared chat encoding logic that works with a pre-configured tokenizer (avoids importing all encodings):
 
-Create chat encoding helpers in each browser entry that use the pre-configured tokenizer directly.
+```typescript
+import type { BPETokenizer } from '../bpe/core.js';
+import type { ChatMessage } from '../types.js';
+
+// ChatML special token IDs by encoding
+const CHAT_TOKENS: Record<string, { imStart: number; imEnd: number; imSep: number }> = {
+  cl100k_base: { imStart: 100264, imEnd: 100265, imSep: 100266 },
+  o200k_base: { imStart: 200264, imEnd: 200265, imSep: 200266 },
+  o200k_harmony: { start: 200006, end: 200007, message: 200008 },
+};
+
+export function createChatEncoder(tokenizer: BPETokenizer, encoding: string) {
+  const chatTokens = CHAT_TOKENS[encoding];
+  if (!chatTokens) {
+    throw new Error(`Encoding "${encoding}" does not support chat format.`);
+  }
+
+  return {
+    encodeChat(messages: ChatMessage[], options?: { primeAssistant?: boolean }): number[] {
+      // Implementation using tokenizer and chatTokens...
+    },
+    *encodeChatGenerator(messages: Iterable<ChatMessage>, options?: { primeAssistant?: boolean }) {
+      // Generator implementation...
+    },
+    isChatWithinTokenLimit(messages: ChatMessage[], limit: number, options?: { primeAssistant?: boolean }): number | false {
+      // Fast limit check implementation...
+    }
+  };
+}
+```
+
+#### 1.3 Create `src/browser/o200k_harmony.ts`
+
+Separate entry that imports vocab from o200k_base but uses different special tokens:
+
+```typescript
+import { BPETokenizer } from '../bpe/core.js';
+import { getSpecialTokenMap } from '../bpe/special-tokens.js';
+import { getTokenSplitRegex } from '../encodings/regex.js';
+// Import vocab from o200k_base (same vocabulary)
+import { O200K_BASE_VOCAB } from '../encodings/generated/o200k_base.js';
+
+const ENCODING = 'o200k_harmony' as const;
+
+let tokenizer: BPETokenizer | null = null;
+
+function getTokenizer(): BPETokenizer {
+  if (!tokenizer) {
+    tokenizer = new BPETokenizer({
+      vocabDecoder: O200K_BASE_VOCAB,
+      specialTokenMap: getSpecialTokenMap(ENCODING), // Different special tokens!
+      tokenSplitRegex: getTokenSplitRegex(ENCODING),
+    });
+  }
+  return tokenizer;
+}
+
+// ... same exports as o200k_base
+```
 
 ### Phase 2: Configure Build
 
@@ -187,30 +242,30 @@ Create chat encoding helpers in each browser entry that use the pre-configured t
 {
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
-    "build:browser": "npm run build:browser:o200k && npm run build:browser:cl100k && npm run build:browser:p50k && npm run build:browser:p50k_edit && npm run build:browser:r50k",
-    "build:browser:o200k": "tsup src/browser/o200k_base.ts --format iife --globalName AITokenEstimator_o200k_base --outDir dist --minify",
-    "build:browser:cl100k": "tsup src/browser/cl100k_base.ts --format iife --globalName AITokenEstimator_cl100k_base --outDir dist --minify",
-    "build:browser:p50k": "tsup src/browser/p50k_base.ts --format iife --globalName AITokenEstimator_p50k_base --outDir dist --minify",
-    "build:browser:p50k_edit": "tsup src/browser/p50k_edit.ts --format iife --globalName AITokenEstimator_p50k_edit --outDir dist --minify",
-    "build:browser:r50k": "tsup src/browser/r50k_base.ts --format iife --globalName AITokenEstimator_r50k_base --outDir dist --minify",
-    "build:all": "npm run build && npm run build:browser"
+    "build:browser": "npm run build:browser:o200k_base && npm run build:browser:o200k_harmony && npm run build:browser:cl100k && npm run build:browser:p50k && npm run build:browser:p50k_edit && npm run build:browser:r50k",
+    "build:browser:o200k_base": "tsup src/browser/o200k_base.ts --format iife --globalName AITokenEstimator_o200k_base --outDir dist/browser --minify",
+    "build:browser:o200k_harmony": "tsup src/browser/o200k_harmony.ts --format iife --globalName AITokenEstimator_o200k_harmony --outDir dist/browser --minify",
+    "build:browser:cl100k": "tsup src/browser/cl100k_base.ts --format iife --globalName AITokenEstimator_cl100k_base --outDir dist/browser --minify",
+    "build:browser:p50k": "tsup src/browser/p50k_base.ts --format iife --globalName AITokenEstimator_p50k_base --outDir dist/browser --minify",
+    "build:browser:p50k_edit": "tsup src/browser/p50k_edit.ts --format iife --globalName AITokenEstimator_p50k_edit --outDir dist/browser --minify",
+    "build:browser:r50k": "tsup src/browser/r50k_base.ts --format iife --globalName AITokenEstimator_r50k_base --outDir dist/browser --minify",
+    "build:all": "npm run build && npm run build:browser",
+    "test:browser-bundles": "npm run build:browser && node scripts/test-browser-bundles.mjs",
+    "prepublishOnly": "npm run lint && npm run test && npm run build:all && npm run test:dist && npm run test:browser-bundles && npm run verify:hashes"
   }
 }
 ```
 
-#### 2.2 Update `package.json` exports and unpkg field
+Key changes:
+- Output to `dist/browser/` (not `dist/`)
+- Separate `o200k_harmony` bundle
+- `build:all` runs both Node and browser builds
+- `test:browser-bundles` tests the actual IIFE artifacts
+- `prepublishOnly` includes browser builds and tests
 
-```json
-{
-  "unpkg": "dist/o200k_base.js",
-  "jsdelivr": "dist/o200k_base.js",
-  "files": [
-    "dist",
-    "LICENSE",
-    "README.md"
-  ]
-}
-```
+#### 2.2 Do NOT add unpkg/jsdelivr fields
+
+Do not set package-level `unpkg` or `jsdelivr` fields. Document explicit CDN URLs instead.
 
 ### Phase 3: Update Documentation
 
@@ -219,11 +274,11 @@ Create chat encoding helpers in each browser entry that use the pre-configured t
 ```markdown
 ## Browser Usage (CDN)
 
-Use ai-token-estimator directly in the browser via unpkg:
+Use ai-token-estimator directly in the browser via unpkg or jsdelivr:
 
 ```html
 <!-- For modern models (GPT-4o, o1, o3) -->
-<script src="https://unpkg.com/ai-token-estimator/dist/o200k_base.js"></script>
+<script src="https://unpkg.com/ai-token-estimator/dist/browser/o200k_base.js"></script>
 <script>
   const { encode, decode, countTokens } = AITokenEstimator_o200k_base;
 
@@ -235,12 +290,13 @@ Use ai-token-estimator directly in the browser via unpkg:
 
 ### Available Bundles
 
-| Bundle | Global Name | Models |
-|--------|-------------|--------|
-| `dist/o200k_base.js` | `AITokenEstimator_o200k_base` | GPT-4o, o1, o3, GPT-4.1 |
-| `dist/cl100k_base.js` | `AITokenEstimator_cl100k_base` | GPT-4, GPT-3.5-turbo |
-| `dist/p50k_base.js` | `AITokenEstimator_p50k_base` | text-davinci-003 |
-| `dist/r50k_base.js` | `AITokenEstimator_r50k_base` | GPT-2, GPT-3 |
+| CDN URL | Global Name | Models |
+|---------|-------------|--------|
+| `.../dist/browser/o200k_base.js` | `AITokenEstimator_o200k_base` | GPT-4o, o1, o3, GPT-4.1 |
+| `.../dist/browser/o200k_harmony.js` | `AITokenEstimator_o200k_harmony` | Harmony models |
+| `.../dist/browser/cl100k_base.js` | `AITokenEstimator_cl100k_base` | GPT-4, GPT-3.5-turbo |
+| `.../dist/browser/p50k_base.js` | `AITokenEstimator_p50k_base` | text-davinci-003 |
+| `.../dist/browser/r50k_base.js` | `AITokenEstimator_r50k_base` | GPT-2, GPT-3 |
 
 ### Browser API
 
@@ -249,29 +305,33 @@ Each bundle exports:
 - `decode(tokens)` - Decode token IDs to text
 - `encodeChat(messages, options?)` - Encode chat messages
 - `encodeGenerator(text, options?)` - Streaming encode
+- `encodeChatGenerator(messages, options?)` - Streaming chat encode
 - `decodeGenerator(tokens)` - Streaming decode
+- `decodeAsyncGenerator(tokens)` - Async streaming decode
 - `isWithinTokenLimit(text, limit, options?)` - Check if text fits within limit
-- `countTokens(text)` - Count tokens in text
+- `isChatWithinTokenLimit(messages, limit, options?)` - Check if chat fits within limit
+- `countTokens(text)` - Count tokens in text (returns number)
 ```
 
 ### Phase 4: Testing
 
-#### 4.1 Create browser bundle tests
+#### 4.1 Create source module tests (`tests/browser-bundles.test.ts`)
 
-Create `tests/browser-bundles.test.ts`:
+Test the TypeScript source modules for correctness:
 
 ```typescript
 import { describe, it, expect } from 'vitest';
 
-// Test that browser entry points export expected functions
-describe('browser bundle exports', () => {
+describe('browser entry point modules', () => {
   it('o200k_base exports all expected functions', async () => {
     const bundle = await import('../src/browser/o200k_base.js');
     expect(typeof bundle.encode).toBe('function');
     expect(typeof bundle.decode).toBe('function');
     expect(typeof bundle.encodeGenerator).toBe('function');
     expect(typeof bundle.decodeGenerator).toBe('function');
+    expect(typeof bundle.decodeAsyncGenerator).toBe('function');
     expect(typeof bundle.isWithinTokenLimit).toBe('function');
+    expect(typeof bundle.isChatWithinTokenLimit).toBe('function');
     expect(typeof bundle.countTokens).toBe('function');
     expect(typeof bundle.encodeChat).toBe('function');
     expect(typeof bundle.encodeChatGenerator).toBe('function');
@@ -291,12 +351,78 @@ describe('browser bundle exports', () => {
     const text = 'Test encoding parity';
     expect(browser.encode(text)).toEqual(main.encode(text, { encoding: 'o200k_base' }));
   });
+
+  it('o200k_harmony has different special tokens than o200k_base', async () => {
+    const base = await import('../src/browser/o200k_base.js');
+    const harmony = await import('../src/browser/o200k_harmony.js');
+
+    // Regular text should encode identically (same vocab)
+    const text = 'Hello world';
+    expect(harmony.encode(text)).toEqual(base.encode(text));
+
+    // But special token handling differs (tested via encodeChat behavior)
+  });
 });
 ```
 
-#### 4.2 Create bundle size test
+#### 4.2 Create IIFE bundle artifact tests (`scripts/test-browser-bundles.mjs`)
 
-Verify bundles are reasonably sized (not accidentally including all vocabs):
+Test the actual built IIFE bundles using node:vm to simulate browser global loading:
+
+```javascript
+import { createContext, runInContext } from 'node:vm';
+import { readFileSync } from 'node:fs';
+import { encode } from '../dist/index.js';
+
+const ENCODINGS = ['o200k_base', 'o200k_harmony', 'cl100k_base', 'p50k_base', 'p50k_edit', 'r50k_base'];
+
+for (const encoding of ENCODINGS) {
+  const bundlePath = `dist/browser/${encoding}.js`;
+  const bundleCode = readFileSync(bundlePath, 'utf-8');
+
+  // Create a fresh global context
+  const context = { globalThis: {} };
+  context.globalThis = context;
+  createContext(context);
+
+  // Run the IIFE bundle
+  runInContext(bundleCode, context);
+
+  // Access the global
+  const globalName = `AITokenEstimator_${encoding}`;
+  const bundle = context[globalName];
+
+  if (!bundle) {
+    throw new Error(`${bundlePath}: global ${globalName} not defined`);
+  }
+
+  // Test encode/decode parity with main API
+  const text = 'Hello, world! Testing browser bundle.';
+  const browserTokens = bundle.encode(text);
+  const mainTokens = encode(text, { encoding });
+
+  if (JSON.stringify(browserTokens) !== JSON.stringify(mainTokens)) {
+    throw new Error(`${bundlePath}: encode() output mismatch with main API`);
+  }
+
+  const decoded = bundle.decode(browserTokens);
+  if (decoded !== text) {
+    throw new Error(`${bundlePath}: decode() roundtrip failed`);
+  }
+
+  // Test countTokens
+  const count = bundle.countTokens(text);
+  if (count !== browserTokens.length) {
+    throw new Error(`${bundlePath}: countTokens() mismatch`);
+  }
+
+  console.log(`✓ ${bundlePath} (${globalName})`);
+}
+
+console.log('\nAll browser bundle tests passed!');
+```
+
+#### 4.3 Create bundle size test
 
 ```typescript
 import { statSync } from 'fs';
@@ -305,27 +431,35 @@ import { describe, it, expect } from 'vitest';
 describe('browser bundle sizes', () => {
   const MAX_BUNDLE_SIZE = 3 * 1024 * 1024; // 3MB max per bundle
 
-  it('o200k_base bundle is reasonably sized', () => {
-    const stats = statSync('dist/o200k_base.js');
-    expect(stats.size).toBeLessThan(MAX_BUNDLE_SIZE);
-  });
+  const bundles = [
+    'dist/browser/o200k_base.js',
+    'dist/browser/o200k_harmony.js',
+    'dist/browser/cl100k_base.js',
+    'dist/browser/p50k_base.js',
+    'dist/browser/p50k_edit.js',
+    'dist/browser/r50k_base.js',
+  ];
 
-  // Similar tests for other bundles...
+  for (const bundle of bundles) {
+    it(`${bundle} is reasonably sized`, () => {
+      const stats = statSync(bundle);
+      expect(stats.size).toBeLessThan(MAX_BUNDLE_SIZE);
+      console.log(`  ${bundle}: ${(stats.size / 1024).toFixed(1)} KB`);
+    });
+  }
 });
 ```
 
-### Phase 5: Minification and Optimization
+### Phase 5: Minification and Source Maps
 
 #### 5.1 Minify bundles
 
 tsup supports minification via `--minify` flag (already in build scripts above).
 
-#### 5.2 Consider source maps
-
-Add `--sourcemap` for debugging:
+#### 5.2 Add source maps for debugging
 
 ```json
-"build:browser:o200k": "tsup src/browser/o200k_base.ts --format iife --globalName AITokenEstimator_o200k_base --outDir dist --minify --sourcemap"
+"build:browser:o200k_base": "tsup src/browser/o200k_base.ts --format iife --globalName AITokenEstimator_o200k_base --outDir dist/browser --minify --sourcemap"
 ```
 
 ---
@@ -335,42 +469,29 @@ Add `--sourcemap` for debugging:
 | File | Action | Description |
 |------|--------|-------------|
 | `src/browser/o200k_base.ts` | Create | Browser entry for o200k_base encoding |
+| `src/browser/o200k_harmony.ts` | Create | Browser entry for o200k_harmony encoding |
 | `src/browser/cl100k_base.ts` | Create | Browser entry for cl100k_base encoding |
 | `src/browser/p50k_base.ts` | Create | Browser entry for p50k_base encoding |
 | `src/browser/p50k_edit.ts` | Create | Browser entry for p50k_edit encoding |
 | `src/browser/r50k_base.ts` | Create | Browser entry for r50k_base encoding |
 | `src/browser/chat-encoding.ts` | Create | Shared chat encoding logic for browser |
-| `package.json` | Modify | Add build:browser scripts, unpkg field |
+| `package.json` | Modify | Add build:browser scripts, update prepublishOnly |
 | `README.md` | Modify | Add Browser Usage section |
-| `tests/browser-bundles.test.ts` | Create | Tests for browser bundles |
+| `tests/browser-bundles.test.ts` | Create | Tests for browser source modules |
+| `scripts/test-browser-bundles.mjs` | Create | Tests for built IIFE artifacts via node:vm |
 | `.changeset/browser-bundles.md` | Create | Changeset for minor version bump |
 
 ---
 
 ## Expected Bundle Sizes (Estimated)
 
-| Bundle | Unminified | Minified | Gzipped |
-|--------|------------|----------|---------|
-| o200k_base.js | ~2.5MB | ~1.8MB | ~400KB |
-| cl100k_base.js | ~1.0MB | ~700KB | ~200KB |
-| p50k_base.js | ~500KB | ~350KB | ~100KB |
-| p50k_edit.js | ~500KB | ~350KB | ~100KB |
-| r50k_base.js | ~500KB | ~350KB | ~100KB |
+| Bundle | Minified | Gzipped |
+|--------|----------|---------|
+| o200k_base.js | ~1.8MB | ~400KB |
+| o200k_harmony.js | ~1.8MB | ~400KB |
+| cl100k_base.js | ~700KB | ~200KB |
+| p50k_base.js | ~350KB | ~100KB |
+| p50k_edit.js | ~350KB | ~100KB |
+| r50k_base.js | ~350KB | ~100KB |
 
 Note: These are estimates. Actual sizes depend on vocabulary compression in the bundled output.
-
----
-
-## Open Questions / Decisions Needed
-
-1. **o200k_harmony**: Should it have its own bundle or be included in o200k_base?
-   - Recommendation: Include in o200k_base since vocab is identical (just re-export with different default)
-
-2. **Default bundle for unpkg field**: Which encoding should `unpkg: "dist/???.js"` point to?
-   - Recommendation: `o200k_base` (most modern, used by GPT-4o)
-
-3. **isChatWithinTokenLimit**: Include in browser bundles?
-   - Recommendation: Yes, it's useful for browser apps
-
-4. **Async generator (decodeAsyncGenerator)**: Include in browser bundles?
-   - Recommendation: Yes, useful for streaming LLM responses in browser
