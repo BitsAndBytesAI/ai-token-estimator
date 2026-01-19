@@ -572,27 +572,29 @@ for (const expected of EXPECTED_BUNDLES) {
     continue;
   }
 
-  // tsup may output as <name>.global.js or <name>.iife.js - try to find and rename
+  // tsup may output as <name>.global.js or <name>.iife.js - find exactly one
   const baseName = expected.replace('.js', '');
   const alternatives = [
     `${baseName}.global.js`,
     `${baseName}.iife.js`,
   ];
 
-  let found = false;
-  for (const alt of alternatives) {
-    const altPath = `${DIST_BROWSER}/${alt}`;
-    if (existsSync(altPath)) {
-      console.log(`  Renaming ${alt} -> ${expected}`);
-      renameBundle(alt, expected);
-      found = true;
-      break;
-    }
-  }
+  const matches = alternatives.filter(alt => existsSync(`${DIST_BROWSER}/${alt}`));
 
-  if (!found) {
+  if (matches.length === 0) {
     throw new Error(`Missing browser bundle: ${expected} (checked: ${alternatives.join(', ')})`);
   }
+
+  if (matches.length > 1) {
+    throw new Error(
+      `Ambiguous browser bundle for ${expected}: found multiple candidates: ${matches.join(', ')}. ` +
+      `Delete stale files or check tsup configuration.`
+    );
+  }
+
+  const match = matches[0];
+  console.log(`  Renaming ${match} -> ${expected}`);
+  renameBundle(match, expected);
 
   console.log(`✓ ${expected}`);
 }
