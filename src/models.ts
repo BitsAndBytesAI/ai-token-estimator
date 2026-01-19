@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-01-14
+ * Last updated: 2026-01-19
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-01-14';
+export const LAST_UPDATED = '2026-01-19';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -117,10 +117,10 @@ const models: Record<string, ModelConfig> = {
   'gpt-4o': {
     charsPerToken: 4,
     inputCostPerMillion: 2.5,
-    outputCostPerMillion: 10.0,
+    outputCostPerMillion: 10,
     cachedInputCostPerMillion: 1.25,
     batchInputCostPerMillion: 1.25,
-    batchOutputCostPerMillion: 5.0,
+    batchOutputCostPerMillion: 5,
   },
   'gpt-4o-2024-05-13': {
     charsPerToken: 4,
@@ -162,6 +162,14 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 1.25,
   },
+  'gpt-5-chat-latest': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.25,
+  },
+  'gpt-5-codex': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.25,
+  },
   'gpt-5-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 0.25,
@@ -197,14 +205,6 @@ const models: Record<string, ModelConfig> = {
   'gpt-5.1-codex-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 0.25,
-  },
-  'gpt-5-chat-latest': {
-    charsPerToken: 4,
-    inputCostPerMillion: 1.25,
-  },
-  'gpt-5-codex': {
-    charsPerToken: 4,
-    inputCostPerMillion: 1.25,
   },
   'gpt-5.2': {
     charsPerToken: 4,
