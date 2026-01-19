@@ -466,7 +466,7 @@ function getChatEncoder() {
 {
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
-    "build:browser:clean": "rm -rf dist/browser && mkdir -p dist/browser",
+    "build:browser:clean": "node scripts/clean-dist-browser.mjs",
     "build:browser": "npm run build:browser:clean && npm run build:browser:o200k_base && npm run build:browser:o200k_harmony && npm run build:browser:cl100k && npm run build:browser:p50k && npm run build:browser:p50k_edit && npm run build:browser:r50k && npm run build:browser:verify",
     "build:browser:o200k_base": "tsup src/browser/o200k_base.ts --format iife --globalName AITokenEstimator_o200k_base --outDir dist/browser --minify",
     "build:browser:o200k_harmony": "tsup src/browser/o200k_harmony.ts --format iife --globalName AITokenEstimator_o200k_harmony --outDir dist/browser --minify",
@@ -483,7 +483,7 @@ function getChatEncoder() {
 ```
 
 Key changes:
-- `build:browser:clean` removes and recreates `dist/browser/` before building (prevents stale files)
+- `build:browser:clean` uses a Node script (cross-platform, works on Windows)
 - `build:browser:verify` runs after all bundles to verify expected output filenames exist
 - Output to `dist/browser/` (not `dist/`)
 - Separate `o200k_harmony` bundle
@@ -491,12 +491,31 @@ Key changes:
 - `test:browser-bundles` runs `build:all` first (so main API is available for parity tests)
 - `prepublishOnly` includes browser builds and tests
 
-#### 2.2 Create `scripts/verify-browser-bundles.mjs`
+#### 2.2 Create `scripts/clean-dist-browser.mjs`
 
-Verify that tsup produced the expected output filenames (tsup IIFE output naming can vary):
+Cross-platform clean script (works on Windows, macOS, Linux):
 
 ```javascript
-import { existsSync, readdirSync, renameSync } from 'node:fs';
+import { rm, mkdir } from 'node:fs/promises';
+
+const DIST_BROWSER = 'dist/browser';
+
+// Remove dist/browser if it exists (recursive, force ignores ENOENT)
+await rm(DIST_BROWSER, { recursive: true, force: true });
+
+// Recreate the directory
+await mkdir(DIST_BROWSER, { recursive: true });
+
+console.log('✓ Cleaned dist/browser/');
+```
+
+#### 2.3 Create `scripts/verify-browser-bundles.mjs`
+
+Verify that tsup produced the expected output filenames (tsup IIFE output naming can vary).
+Also handles sourcemap files if present:
+
+```javascript
+import { existsSync, readdirSync, renameSync, readFileSync, writeFileSync } from 'node:fs';
 
 const EXPECTED_BUNDLES = [
   'o200k_base.js',
@@ -512,6 +531,38 @@ const DIST_BROWSER = 'dist/browser';
 // Check what files exist
 const files = readdirSync(DIST_BROWSER);
 console.log('Files in dist/browser:', files);
+
+/**
+ * Rename a bundle file and its sourcemap (if present).
+ * Also updates the sourceMappingURL comment in the JS file.
+ */
+function renameBundle(fromJs, toJs) {
+  const fromPath = `${DIST_BROWSER}/${fromJs}`;
+  const toPath = `${DIST_BROWSER}/${toJs}`;
+
+  // Rename the JS file
+  renameSync(fromPath, toPath);
+
+  // Check for corresponding sourcemap
+  const fromMap = fromJs + '.map';
+  const toMap = toJs + '.map';
+  const fromMapPath = `${DIST_BROWSER}/${fromMap}`;
+  const toMapPath = `${DIST_BROWSER}/${toMap}`;
+
+  if (existsSync(fromMapPath)) {
+    // Rename the sourcemap file
+    renameSync(fromMapPath, toMapPath);
+
+    // Update the sourceMappingURL comment in the JS file
+    let jsContent = readFileSync(toPath, 'utf-8');
+    jsContent = jsContent.replace(
+      `//# sourceMappingURL=${fromMap}`,
+      `//# sourceMappingURL=${toMap}`
+    );
+    writeFileSync(toPath, jsContent);
+    console.log(`  Also renamed ${fromMap} -> ${toMap} and updated sourceMappingURL`);
+  }
+}
 
 for (const expected of EXPECTED_BUNDLES) {
   const expectedPath = `${DIST_BROWSER}/${expected}`;
@@ -533,7 +584,7 @@ for (const expected of EXPECTED_BUNDLES) {
     const altPath = `${DIST_BROWSER}/${alt}`;
     if (existsSync(altPath)) {
       console.log(`  Renaming ${alt} -> ${expected}`);
-      renameSync(altPath, expectedPath);
+      renameBundle(alt, expected);
       found = true;
       break;
     }
@@ -549,7 +600,7 @@ for (const expected of EXPECTED_BUNDLES) {
 console.log('\n✓ All browser bundles verified');
 ```
 
-#### 2.3 Do NOT add unpkg/jsdelivr fields
+#### 2.4 Do NOT add unpkg/jsdelivr fields
 
 Do not set package-level `unpkg` or `jsdelivr` fields. Document explicit CDN URLs instead.
 
@@ -802,7 +853,18 @@ for (const encoding of ENCODINGS) {
     if (chatExceedsLimit !== false) {
       throw new Error(`${encoding}: isChatWithinTokenLimit() should return false when exceeded`);
     }
-    console.log(`  ✓ isChatWithinTokenLimit()`);
+
+    // Test primeAssistant: false branch
+    const withoutPriming = bundle.isChatWithinTokenLimit({ messages, tokenLimit: 1000, primeAssistant: false });
+    const withPriming = bundle.isChatWithinTokenLimit({ messages, tokenLimit: 1000, primeAssistant: true });
+    if (withoutPriming === false || withPriming === false) {
+      throw new Error(`${encoding}: isChatWithinTokenLimit() should not exceed 1000 token limit`);
+    }
+    // Without priming should have fewer tokens (no assistant prefix)
+    if (withoutPriming >= withPriming) {
+      throw new Error(`${encoding}: isChatWithinTokenLimit({ primeAssistant: false }) should return fewer tokens`);
+    }
+    console.log(`  ✓ isChatWithinTokenLimit() with primeAssistant: false`);
   }
 
   console.log(`  ✓ All tests passed for ${encoding}`);
@@ -867,7 +929,8 @@ tsup supports minification via `--minify` flag (already in build scripts above).
 | `package.json` | Modify | Add build:browser scripts, update prepublishOnly |
 | `README.md` | Modify | Add Browser Usage section |
 | `tests/browser-bundles.test.ts` | Create | Tests for browser source modules |
-| `scripts/verify-browser-bundles.mjs` | Create | Verify/rename bundle output filenames |
+| `scripts/clean-dist-browser.mjs` | Create | Cross-platform clean script |
+| `scripts/verify-browser-bundles.mjs` | Create | Verify/rename bundle output filenames + sourcemaps |
 | `scripts/test-browser-bundles.mjs` | Create | Tests for built IIFE artifacts via node:vm |
 | `.changeset/browser-bundles.md` | Create | Changeset for minor version bump |
 
