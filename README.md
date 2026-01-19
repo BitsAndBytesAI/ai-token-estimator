@@ -579,7 +579,7 @@ Decodes OpenAI token IDs back into text using the selected encoding/model.
 
 ### `encodeChat(messages: ChatMessage[], options?: EncodeChatOptions): number[]`
 
-Encodes chat messages into **exact token IDs** using ChatML format. Returns the token sequence that OpenAI models expect for chat completions, including special delimiter tokens (`<|im_start|>`, `<|im_sep|>`, `<|im_end|>`).
+Encodes chat messages into **exact token IDs** using ChatML format. Returns the ChatML message prompt tokens (messages + optional assistant priming), including special delimiter tokens (`<|im_start|>`, `<|im_sep|>`, `<|im_end|>`).
 
 ```ts
 import { encodeChat, decode } from 'ai-token-estimator';
@@ -615,7 +615,9 @@ interface EncodeChatOptions {
 - **Legacy functions API only** — throws for tool_calls, tool_call_id
 - **Text content only** — throws for multimodal content (arrays)
 
-**Note on function_call:** Messages with `function_call` are encoded with the function name and arguments as content. The token count may differ from `countChatCompletionTokens()` because the latter includes additional API-level overhead (`FUNCTION_CALL_METADATA_TOKEN_OVERHEAD`) that isn't part of the actual ChatML token sequence.
+**Note on function_call:** Messages with `function_call` are encoded with the function name and arguments as content. The token count differs from `countChatCompletionTokens()` because the latter includes `FUNCTION_CALL_METADATA_TOKEN_OVERHEAD` (3 tokens) for API accounting. The exact difference depends on whether both name and arguments are present (2 token difference due to newline separator) or only one field is present (3 token difference).
+
+**Note on o200k_harmony:** Support for `o200k_harmony` encoding is experimental. The token structure may not match actual API behavior.
 
 ### `isWithinTokenLimit(text, tokenLimit, options?): false | number`
 

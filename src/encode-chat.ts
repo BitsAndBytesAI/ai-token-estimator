@@ -1,11 +1,17 @@
 /**
  * Chat-aware tokenization using ChatML format.
  *
- * Encodes chat messages into exact token IDs including special message
+ * Encodes chat messages into ChatML message prompt tokens including special
  * delimiter tokens (<|im_start|>, <|im_sep|>, <|im_end|>).
  */
 
 import { encode, getOpenAIEncoding } from './openai-bpe.js';
+import {
+  isChatModel,
+  isAnthropicModel,
+  isGoogleModel,
+} from './mappings/chat-models.js';
+import { isKnownModel } from './mappings/model-to-encoding.js';
 import type { OpenAIEncoding } from './bpe/types.js';
 import type { ChatMessage } from './types.js';
 
@@ -76,12 +82,20 @@ export function encodeChat(
   const { model, encoding: encodingOverride, primeAssistant = true } =
     options ?? {};
 
-  // Validate non-OpenAI models
-  validateChatModel(model);
+  // Validate model
+  validateChatModel(model, encodingOverride);
 
   // Resolve encoding
   const encoding =
     encodingOverride ?? (model ? getOpenAIEncoding({ model }) : 'o200k_base');
+
+  // Warn about experimental o200k_harmony support
+  if (encoding === 'o200k_harmony') {
+    console.warn(
+      '[ai-token-estimator] o200k_harmony support is experimental. ' +
+        'Token structure may not match actual API behavior.'
+    );
+  }
 
   // Get chat tokens for this encoding
   const chatTokens = getChatTokens(encoding);
@@ -147,19 +161,53 @@ export function encodeChat(
 }
 
 /**
- * Validate that the model is not a known non-OpenAI model.
+ * Validate that the model is a supported OpenAI chat model.
+ * Uses the same validation philosophy as countChatCompletionTokens.
  */
-function validateChatModel(model: string | undefined): void {
-  if (!model) return;
+function validateChatModel(
+  model: string | undefined,
+  encodingOverride: OpenAIEncoding | undefined
+): void {
+  // Always reject known non-OpenAI models (even with encoding override)
+  if (model) {
+    if (isAnthropicModel(model)) {
+      throw new Error(
+        `Model "${model}" is an Anthropic model. encodeChat only supports OpenAI models.`
+      );
+    }
+    if (isGoogleModel(model)) {
+      throw new Error(
+        `Model "${model}" is a Google model. encodeChat only supports OpenAI models.`
+      );
+    }
 
-  if (model.startsWith('claude-')) {
+    // Always reject known non-chat OpenAI models (even with encoding override)
+    if (isKnownModel(model) && !isChatModel(model)) {
+      throw new Error(
+        `Model "${model}" is not a chat completion model. ` +
+          'encodeChat only supports chat models (e.g., gpt-4o, gpt-3.5-turbo).'
+      );
+    }
+  }
+
+  // If encoding override provided, allow unrecognized models
+  if (encodingOverride) {
+    return;
+  }
+
+  // Without encoding override, require model to be a known chat model
+  if (!model) {
     throw new Error(
-      `Model "${model}" is an Anthropic model. encodeChat only supports OpenAI models.`
+      'Either model or encoding must be provided. ' +
+        'Provide a known OpenAI chat model (e.g., gpt-4o) or an explicit encoding (e.g., o200k_base).'
     );
   }
-  if (model.startsWith('gemini-')) {
+
+  if (!isChatModel(model)) {
     throw new Error(
-      `Model "${model}" is a Google model. encodeChat only supports OpenAI models.`
+      `Model "${model}" is not recognized as an OpenAI chat model. ` +
+        'If this is a new OpenAI model, provide the encoding option explicitly ' +
+        '(e.g., encoding: "o200k_base").'
     );
   }
 }

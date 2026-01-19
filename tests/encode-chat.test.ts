@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   encodeChat,
   decode,
@@ -194,15 +194,21 @@ describe('encodeChat', () => {
       expect(tokens[0]).toBe(100264); // cl100k, not o200k
     });
 
-    it('defaults to o200k_base when no model or encoding specified', () => {
-      const tokens = encodeChat([{ role: 'user', content: 'Hi' }]);
+    it('allows unrecognized model when encoding is provided', () => {
+      // Unknown model with explicit encoding should work
+      const tokens = encodeChat(
+        [{ role: 'user', content: 'Hi' }],
+        { model: 'some-new-model', encoding: 'o200k_base' }
+      );
 
-      expect(tokens[0]).toBe(200264); // o200k <|im_start|>
+      expect(tokens[0]).toBe(200264);
     });
   });
 
-  describe('o200k_harmony support', () => {
+  describe('o200k_harmony support (experimental)', () => {
     it('uses harmony tokens for o200k_harmony encoding', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
       const tokens = encodeChat(
         [{ role: 'user', content: 'Hi' }],
         { encoding: 'o200k_harmony' }
@@ -210,6 +216,23 @@ describe('encodeChat', () => {
 
       // Harmony uses <|start|> (200006) instead of <|im_start|>
       expect(tokens[0]).toBe(200006); // <|start|>
+
+      warnSpy.mockRestore();
+    });
+
+    it('emits experimental warning for o200k_harmony', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      encodeChat(
+        [{ role: 'user', content: 'Hi' }],
+        { encoding: 'o200k_harmony' }
+      );
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('experimental')
+      );
+
+      warnSpy.mockRestore();
     });
   });
 
@@ -224,6 +247,36 @@ describe('encodeChat', () => {
       expect(() =>
         encodeChat([], { model: 'gemini-2.0-flash' })
       ).toThrow(/Google/);
+    });
+
+    it('throws for non-chat OpenAI models (davinci-002)', () => {
+      expect(() =>
+        encodeChat([], { model: 'davinci-002' })
+      ).toThrow(/not a chat completion model/);
+    });
+
+    it('throws for non-chat OpenAI models (babbage-002)', () => {
+      expect(() =>
+        encodeChat([], { model: 'babbage-002' })
+      ).toThrow(/not a chat completion model/);
+    });
+
+    it('throws for non-chat OpenAI models even with encoding override', () => {
+      expect(() =>
+        encodeChat([], { model: 'davinci-002', encoding: 'o200k_base' })
+      ).toThrow(/not a chat completion model/);
+    });
+
+    it('throws for unrecognized models without encoding override', () => {
+      expect(() =>
+        encodeChat([], { model: 'llama3' })
+      ).toThrow(/not recognized as an OpenAI chat model/);
+    });
+
+    it('throws when neither model nor encoding is provided', () => {
+      expect(() =>
+        encodeChat([])
+      ).toThrow(/Either model or encoding must be provided/);
     });
 
     it('throws for non-chat encodings', () => {
@@ -307,10 +360,10 @@ describe('encodeChat', () => {
       expect(encoded.length).toBe(counted.totalTokens);
     });
 
-    it('function_call messages have expected overhead difference from countChatCompletionTokens', () => {
-      // Note: countChatCompletionTokens includes FUNCTION_CALL_METADATA_TOKEN_OVERHEAD (3)
-      // which represents API-level overhead, not actual ChatML tokens.
-      // encodeChat produces the actual ChatML token sequence.
+    it('function_call with name+arguments: difference is OVERHEAD - NEWLINE', () => {
+      // countChatCompletionTokens adds FUNCTION_CALL_METADATA_TOKEN_OVERHEAD (3)
+      // encodeChat adds 1 newline token between name and arguments
+      // Net difference: 3 - 1 = 2
       const messages: ChatMessage[] = [
         {
           role: 'assistant',
@@ -322,14 +375,50 @@ describe('encodeChat', () => {
       const encoded = encodeChat(messages, { model: 'gpt-4o' });
       const counted = countChatCompletionTokens({ messages, model: 'gpt-4o' });
 
-      // encodeChat is 2 tokens less because:
-      // - countChatCompletionTokens adds FUNCTION_CALL_METADATA_TOKEN_OVERHEAD (3)
-      // - encodeChat adds 1 token for newline between name and arguments
-      // Net difference: 3 - 1 = 2
       const FUNCTION_CALL_METADATA_OVERHEAD = 3;
       const NEWLINE_TOKEN = 1;
       expect(encoded.length).toBe(
         counted.totalTokens - FUNCTION_CALL_METADATA_OVERHEAD + NEWLINE_TOKEN
+      );
+    });
+
+    it('function_call with name only: difference is full OVERHEAD (no newline inserted)', () => {
+      // When only name is present, no newline is inserted
+      // Net difference: 3 - 0 = 3
+      const messages: ChatMessage[] = [
+        {
+          role: 'assistant',
+          content: null,
+          function_call: { name: 'get_weather', arguments: '' },
+        },
+      ];
+
+      const encoded = encodeChat(messages, { model: 'gpt-4o' });
+      const counted = countChatCompletionTokens({ messages, model: 'gpt-4o' });
+
+      const FUNCTION_CALL_METADATA_OVERHEAD = 3;
+      expect(encoded.length).toBe(
+        counted.totalTokens - FUNCTION_CALL_METADATA_OVERHEAD
+      );
+    });
+
+    it('function_call with arguments only: difference is full OVERHEAD (no newline inserted)', () => {
+      // When only arguments is present, no newline is inserted
+      // Net difference: 3 - 0 = 3
+      const messages: ChatMessage[] = [
+        {
+          role: 'assistant',
+          content: null,
+          function_call: { name: '', arguments: '{"location":"NYC"}' },
+        },
+      ];
+
+      const encoded = encodeChat(messages, { model: 'gpt-4o' });
+      const counted = countChatCompletionTokens({ messages, model: 'gpt-4o' });
+
+      const FUNCTION_CALL_METADATA_OVERHEAD = 3;
+      expect(encoded.length).toBe(
+        counted.totalTokens - FUNCTION_CALL_METADATA_OVERHEAD
       );
     });
 
