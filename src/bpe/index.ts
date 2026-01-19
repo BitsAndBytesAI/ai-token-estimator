@@ -101,6 +101,11 @@ export async function getTokenizerAsync(encoding: OpenAIEncoding): Promise<Encod
     encode: (text: string, allowedSpecial?: Set<string> | 'all' | 'skip') =>
       tokenizer!.encodeText(text, allowedSpecial),
     decode: (tokens: Iterable<number>) => tokenizer!.decodeTokens(tokens),
+    encodeTextWithLimit: (
+      text: string,
+      limit: number,
+      allowedSpecial?: Set<string> | 'all' | 'skip'
+    ) => tokenizer!.encodeTextWithLimit(text, limit, allowedSpecial),
   };
 }
 
@@ -120,6 +125,11 @@ export function getTokenizer(encoding: OpenAIEncoding): EncodingApi {
     encode: (text: string, allowedSpecial?: Set<string> | 'all' | 'skip') =>
       tokenizer!.encodeText(text, allowedSpecial),
     decode: (tokens: Iterable<number>) => tokenizer!.decodeTokens(tokens),
+    encodeTextWithLimit: (
+      text: string,
+      limit: number,
+      allowedSpecial?: Set<string> | 'all' | 'skip'
+    ) => tokenizer!.encodeTextWithLimit(text, limit, allowedSpecial),
   };
 }
 

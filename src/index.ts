@@ -12,9 +12,12 @@ export {
   DEFAULT_MODELS,
   LAST_UPDATED,
 } from './models.js';
-export { encode, decode, getOpenAIEncoding } from './openai-bpe.js';
+export { encode, decode, getOpenAIEncoding, isWithinTokenLimit } from './openai-bpe.js';
 export { countTokens } from './token-counter.js';
-export { countChatCompletionTokens } from './chat-completion-tokens.js';
+export {
+  countChatCompletionTokens,
+  isChatWithinTokenLimit,
+} from './chat-completion-tokens.js';
 export { countAnthropicInputTokens } from './providers/anthropic.js';
 export { countGeminiTokens } from './providers/gemini.js';
 export { countGemmaSentencePieceTokens } from './providers/gemma-sentencepiece.js';
@@ -48,7 +51,8 @@ export type {
   ChatCompletionTokenCountInput,
   ChatCompletionTokenCountOutput,
 } from './types.js';
-export type { EncodeOptions, OpenAIEncoding, SpecialTokenHandling } from './openai-bpe.js';
+export type { EncodeOptions, OpenAIEncoding, SpecialTokenHandling, IsWithinTokenLimitOptions } from './openai-bpe.js';
+export type { IsChatWithinTokenLimitInput } from './chat-completion-tokens.js';
 export type { TokenCountInput, TokenCountOutput } from './token-counter.js';
 export type {
   EstimateCostInput,

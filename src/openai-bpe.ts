@@ -92,3 +92,111 @@ export function decode(
   const api = getTokenizer(encoding);
   return api.decode(tokens);
 }
+
+// =============================================================================
+// isWithinTokenLimit API
+// =============================================================================
+
+/**
+ * Options for isWithinTokenLimit.
+ */
+export interface IsWithinTokenLimitOptions {
+  /**
+   * Explicit OpenAI encoding override.
+   * When provided, this takes precedence over `model`.
+   */
+  encoding?: OpenAIEncoding;
+  /**
+   * OpenAI model ID used to select the appropriate encoding.
+   * Note: Non-OpenAI models (claude-*, gemini-*) are rejected.
+   */
+  model?: string;
+  /**
+   * How special tokens are handled.
+   * - `none_raise` (default): throw if special tokens appear
+   * - `none`: treat special tokens as regular text
+   * - `all`: allow special tokens and encode them as special token IDs
+   */
+  allowSpecial?: SpecialTokenHandling;
+}
+
+/**
+ * Validate tokenLimit is a non-negative finite integer.
+ */
+function validateTokenLimit(tokenLimit: number): void {
+  if (!Number.isFinite(tokenLimit)) {
+    throw new Error('tokenLimit must be a finite number');
+  }
+  if (!Number.isInteger(tokenLimit)) {
+    throw new Error('tokenLimit must be an integer');
+  }
+  if (tokenLimit < 0) {
+    throw new Error('tokenLimit must be non-negative');
+  }
+}
+
+/**
+ * Reject known non-OpenAI models.
+ * Must be called BEFORE resolveEncoding() since that defaults to o200k_base for unknown models.
+ */
+function rejectNonOpenAIModel(model: string | undefined): void {
+  if (!model) return;
+  if (model.startsWith('claude-')) {
+    throw new Error(
+      `Model "${model}" is an Anthropic model. isWithinTokenLimit only supports OpenAI models. ` +
+        "Use the Anthropic API's count_tokens endpoint via estimateAsync() instead."
+    );
+  }
+  if (model.startsWith('gemini-')) {
+    throw new Error(
+      `Model "${model}" is a Google model. isWithinTokenLimit only supports OpenAI models. ` +
+        "Use the Gemini API's countTokens endpoint via estimateAsync() instead."
+    );
+  }
+}
+
+/**
+ * Check if text is within a token limit, with early exit optimization.
+ *
+ * Returns `false` if the token count exceeds the limit, otherwise returns the
+ * actual token count. This is significantly faster than full tokenization when
+ * the limit is exceeded early in the text.
+ *
+ * @param text - The text to check
+ * @param tokenLimit - Maximum allowed tokens (must be non-negative finite integer)
+ * @param options - Encoding options
+ * @returns `false` if exceeded, or the actual token count if within limit
+ * @throws Error if tokenLimit is invalid (NaN, Infinity, negative, non-integer)
+ * @throws Error if model is a known non-OpenAI model (claude-*, gemini-*)
+ *
+ * @example
+ * ```typescript
+ * // Returns token count if within limit
+ * const count = isWithinTokenLimit('Hello, world!', 100, { model: 'gpt-4o' });
+ * if (count !== false) {
+ *   console.log(`Text has ${count} tokens`);
+ * }
+ *
+ * // Returns false if exceeds limit
+ * const result = isWithinTokenLimit(longText, 10, { model: 'gpt-4o' });
+ * if (result === false) {
+ *   console.log('Text exceeds 10 tokens');
+ * }
+ * ```
+ */
+export function isWithinTokenLimit(
+  text: string,
+  tokenLimit: number,
+  options?: IsWithinTokenLimitOptions
+): false | number {
+  validateTokenLimit(tokenLimit);
+  rejectNonOpenAIModel(options?.model);
+
+  const encoding = resolveEncoding(options);
+  const api = getTokenizer(encoding);
+  const allowedSpecial = resolveAllowedSpecial(options?.allowSpecial);
+
+  const result = api.encodeTextWithLimit(text, tokenLimit, allowedSpecial);
+
+  return result.exceeded ? false : result.count;
+}

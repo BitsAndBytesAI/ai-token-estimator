@@ -561,6 +561,87 @@ Encodes text into **OpenAI token IDs** using tiktoken-compatible BPE tokenizatio
 
 Decodes OpenAI token IDs back into text using the selected encoding/model.
 
+### `isWithinTokenLimit(text, tokenLimit, options?): false | number`
+
+Checks if text is within a token limit with **early exit optimization**. Returns `false` if the limit is exceeded, or the actual token count if within limit.
+
+This is significantly faster than full tokenization when the limit is exceeded early in the text (up to 1000x+ faster for large texts with small limits).
+
+```typescript
+import { isWithinTokenLimit } from 'ai-token-estimator';
+
+// Returns token count if within limit
+const count = isWithinTokenLimit('Hello, world!', 100, { model: 'gpt-4o' });
+if (count !== false) {
+  console.log(`Text has ${count} tokens`);
+}
+
+// Returns false if exceeds limit (with early exit)
+const result = isWithinTokenLimit(longText, 10, { model: 'gpt-4o' });
+if (result === false) {
+  console.log('Text exceeds 10 tokens');
+}
+```
+
+**Parameters:**
+
+```typescript
+interface IsWithinTokenLimitOptions {
+  model?: string;              // OpenAI model (e.g., 'gpt-4o')
+  encoding?: OpenAIEncoding;   // Explicit encoding override
+  allowSpecial?: SpecialTokenHandling;  // How to handle special tokens
+}
+```
+
+**Throws:**
+- `Error` if `tokenLimit` is invalid (NaN, Infinity, negative, non-integer)
+- `Error` if `model` is a known non-OpenAI model (claude-*, gemini-*)
+
+### `isChatWithinTokenLimit(input): false | number`
+
+Checks if chat messages are within a token limit with **early exit optimization**. Returns `false` if exceeded, or the actual token count if within limit.
+
+Uses the same token counting logic as `countChatCompletionTokens()` but exits early when the limit is exceeded.
+
+```typescript
+import { isChatWithinTokenLimit } from 'ai-token-estimator';
+
+const result = isChatWithinTokenLimit({
+  messages: [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: 'Hello!' }
+  ],
+  model: 'gpt-4o',
+  tokenLimit: 100,
+  functions: [{ name: 'get_weather', parameters: { type: 'object' } }],
+});
+
+if (result === false) {
+  console.log('Messages exceed token limit');
+} else {
+  console.log(`Messages use ${result} tokens`);
+}
+```
+
+**Parameters:**
+
+```typescript
+interface IsChatWithinTokenLimitInput {
+  messages: ChatMessage[];
+  model: string;
+  tokenLimit: number;
+  encoding?: OpenAIEncoding;
+  functions?: FunctionDefinition[];
+  function_call?: FunctionCallOption;
+}
+```
+
+**Throws:**
+- `Error` if `tokenLimit` is invalid (NaN, Infinity, negative, non-integer)
+- `Error` if model is not an OpenAI model (unless encoding override provided)
+- `Error` if tools, tool_choice, tool_calls, or tool_call_id are present
+- `Error` if any message has non-string content
+
 ### `getModelConfig(model: string): ModelConfig`
 
 Returns the configuration for a specific model. Throws if the model is not found.
