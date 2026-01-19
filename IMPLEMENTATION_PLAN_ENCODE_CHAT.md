@@ -42,7 +42,7 @@ OpenAI chat models use **ChatML** (Chat Markup Language) format internally. Each
 | `<|im_end|>` | 100265 | 200265 |
 | `<|im_sep|>` | 100266 | 200266 |
 
-**Note**: These tokens are NOT in the default tiktoken special token sets. They must be added for chat encoding.
+**Note**: These tokens are already defined in `src/bpe/special-tokens.ts` for cl100k_base and o200k_base encodings.
 
 ## Design Decisions
 
@@ -79,10 +79,16 @@ Each message becomes:
 <|im_start|>{role}<|im_sep|>{content}<|im_end|>
 ```
 
-For messages with `name` field:
+For messages with `name` field (non-function roles):
 ```
 <|im_start|>{role}:{name}<|im_sep|>{content}<|im_end|>
 ```
+
+**Special case for `role='function'`** (function result messages):
+```
+<|im_start|>{name}<|im_sep|>{content}<|im_end|>
+```
+The function name becomes the role string directly (not `function:{name}`). This matches the token counting behavior in `countChatCompletionTokens`.
 
 ### 3. Assistant Priming
 
@@ -123,21 +129,9 @@ encodeChat([]) // Returns tokens for: <|im_start|>assistant<|im_sep|>
 
 ## Implementation Details
 
-### Phase 1: Add ChatML Special Tokens
+### Phase 1: ChatML Special Tokens ✅
 
-Update `src/bpe/special-tokens.ts`:
-
-```typescript
-// Add to CL100K_BASE_SPECIAL_TOKENS
-['<|im_start|>', 100264],
-['<|im_end|>', 100265],
-['<|im_sep|>', 100266],
-
-// Add to O200K_BASE_SPECIAL_TOKENS
-['<|im_start|>', 200264],
-['<|im_end|>', 200265],
-['<|im_sep|>', 200266],
-```
+**Already complete.** The ChatML tokens (`<|im_start|>`, `<|im_end|>`, `<|im_sep|>`) are already defined in `src/bpe/special-tokens.ts` for both cl100k_base and o200k_base encodings.
 
 ### Phase 2: Create `encodeChat` Function
 
@@ -209,8 +203,18 @@ export function encodeChat(
     // <|im_start|>
     tokens.push(imStart);
 
-    // role (or role:name)
-    const roleStr = message.name ? `${message.role}:${message.name}` : message.role;
+    // role string depends on message type:
+    // - function role: use name directly (not "function:name")
+    // - other roles with name: use "role:name"
+    // - other roles without name: use "role"
+    let roleStr: string;
+    if (message.role === 'function' && message.name) {
+      roleStr = message.name;
+    } else if (message.name) {
+      roleStr = `${message.role}:${message.name}`;
+    } else {
+      roleStr = message.role;
+    }
     tokens.push(...encode(roleStr, { encoding, allowSpecial: 'none' }));
 
     // <|im_sep|>
@@ -396,7 +400,7 @@ describe('encodeChat', () => {
   });
 
   describe('message name handling', () => {
-    it('includes name in role position', () => {
+    it('includes name in role position for non-function roles', () => {
       const tokens = encodeChat([
         { role: 'user', content: 'Hi', name: 'alice' }
       ], { model: 'gpt-4o' });
@@ -404,6 +408,17 @@ describe('encodeChat', () => {
       // Should encode "user:alice" not just "user"
       const decoded = decode(tokens, { encoding: 'o200k_base' });
       expect(decoded).toContain('user:alice');
+    });
+
+    it('uses name directly as role for function messages', () => {
+      const tokens = encodeChat([
+        { role: 'function', content: '{"temp": 72}', name: 'get_weather' }
+      ], { model: 'gpt-4o' });
+
+      // Should encode "get_weather" as role, NOT "function:get_weather"
+      const decoded = decode(tokens, { encoding: 'o200k_base' });
+      expect(decoded).toContain('get_weather');
+      expect(decoded).not.toContain('function:');
     });
   });
 
@@ -498,7 +513,6 @@ Create test fixtures by comparing with gpt-tokenizer output:
 
 | File | Change |
 |------|--------|
-| `src/bpe/special-tokens.ts` | Add `<\|im_start\|>`, `<\|im_end\|>`, `<\|im_sep\|>` tokens |
 | `src/encode-chat.ts` | New file: `encodeChat` function |
 | `src/index.ts` | Export `encodeChat` and `EncodeChatOptions` |
 | `tests/encode-chat.test.ts` | New test file |
@@ -509,7 +523,7 @@ Create test fixtures by comparing with gpt-tokenizer output:
 
 | Phase | Scope | Files |
 |-------|-------|-------|
-| Phase 1 | Add ChatML special tokens to encodings | `src/bpe/special-tokens.ts` |
+| Phase 1 | ✅ ChatML special tokens already exist | `src/bpe/special-tokens.ts` |
 | Phase 2 | Implement `encodeChat` function | `src/encode-chat.ts` |
 | Phase 3 | Handle o200k_harmony format | `src/encode-chat.ts` |
 | Phase 4 | Tests and parity verification | `tests/encode-chat.test.ts` |
