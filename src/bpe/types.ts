@@ -110,4 +110,29 @@ export interface EncodingApi {
     limit: number,
     allowedSpecial?: Set<string> | 'all' | 'skip'
   ) => EncodeWithLimitResult;
+
+  // Generator methods
+
+  /**
+   * Generator version of encode. Yields token arrays per regex-matched piece.
+   * Returns total token count.
+   */
+  encodeGenerator: (
+    text: string,
+    allowedSpecial?: Set<string> | 'all' | 'skip'
+  ) => Generator<number[], number, undefined>;
+
+  /**
+   * Generator version of decode. Yields text chunks.
+   * May yield empty strings when buffering incomplete UTF-8 sequences.
+   */
+  decodeGenerator: (tokens: Iterable<number>) => Generator<string, void, void>;
+
+  /**
+   * Async generator version of decode.
+   * Accepts single tokens or token arrays for flexibility with streaming APIs.
+   */
+  decodeAsyncGenerator: (
+    tokens: AsyncIterable<number | number[]>
+  ) => AsyncGenerator<string, void, void>;
 }

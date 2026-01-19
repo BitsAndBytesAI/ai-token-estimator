@@ -106,6 +106,14 @@ export async function getTokenizerAsync(encoding: OpenAIEncoding): Promise<Encod
       limit: number,
       allowedSpecial?: Set<string> | 'all' | 'skip'
     ) => tokenizer!.encodeTextWithLimit(text, limit, allowedSpecial),
+
+    // Generator methods - delegate to BPETokenizer
+    encodeGenerator: (text: string, allowedSpecial?: Set<string> | 'all' | 'skip') =>
+      tokenizer!.encodeTextGenerator(text, allowedSpecial),
+    decodeGenerator: (tokens: Iterable<number>) =>
+      tokenizer!.decodeTokensGenerator(tokens),
+    decodeAsyncGenerator: (tokens: AsyncIterable<number | number[]>) =>
+      tokenizer!.decodeTokensAsyncGenerator(tokens),
   };
 }
 
@@ -130,6 +138,14 @@ export function getTokenizer(encoding: OpenAIEncoding): EncodingApi {
       limit: number,
       allowedSpecial?: Set<string> | 'all' | 'skip'
     ) => tokenizer!.encodeTextWithLimit(text, limit, allowedSpecial),
+
+    // Generator methods - delegate to BPETokenizer
+    encodeGenerator: (text: string, allowedSpecial?: Set<string> | 'all' | 'skip') =>
+      tokenizer!.encodeTextGenerator(text, allowedSpecial),
+    decodeGenerator: (tokens: Iterable<number>) =>
+      tokenizer!.decodeTokensGenerator(tokens),
+    decodeAsyncGenerator: (tokens: AsyncIterable<number | number[]>) =>
+      tokenizer!.decodeTokensAsyncGenerator(tokens),
   };
 }
 

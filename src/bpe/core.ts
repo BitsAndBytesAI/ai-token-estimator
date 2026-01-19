@@ -473,6 +473,7 @@ export class BPETokenizer {
 
   /**
    * Add an entry to the cache, evicting LRU entries if necessary.
+   * Freezes the array to prevent mutation by consumers (especially generator yields).
    */
   private addToCache(key: string, value: number[]): void {
     if (this.cacheCapacity <= 0) return;
@@ -488,6 +489,8 @@ export class BPETokenizer {
       }
     }
 
+    // Freeze to prevent mutation via yielded references (generator safety)
+    Object.freeze(value);
     this.tokenCache.set(key, value);
   }
 
@@ -535,5 +538,212 @@ export class BPETokenizer {
    */
   clearCache(): void {
     this.tokenCache.clear();
+  }
+
+  // ===========================================================================
+  // Generator Methods
+  // ===========================================================================
+
+  /**
+   * Generator version of encodeText. Yields token arrays per regex-matched piece.
+   * Returns total token count.
+   *
+   * @param text - The text to encode
+   * @param allowedSpecial - Controls special token handling (same as encodeText)
+   * @returns Generator that yields token arrays and returns total count
+   */
+  *encodeTextGenerator(
+    text: string,
+    allowedSpecial?: Set<string> | 'all' | 'skip'
+  ): Generator<number[], number, undefined> {
+    if (!text) return 0;
+
+    let totalTokens = 0;
+
+    // Skip special token handling if requested
+    if (allowedSpecial === 'skip') {
+      const gen = this.encodeOrdinaryGenerator(text);
+      let result = gen.next();
+      while (!result.done) {
+        yield result.value;
+        totalTokens += result.value.length;
+        result = gen.next();
+      }
+      return totalTokens;
+    }
+
+    // Process special tokens (reuse exact same splitOnSpecialTokens logic)
+    if (this.specialTokenMap.size > 0) {
+      const parts = this.splitOnSpecialTokens(text, allowedSpecial);
+
+      for (const part of parts) {
+        if (part.isSpecial) {
+          const tokenId = this.specialTokenMap.get(part.text)!;
+          yield [tokenId];
+          totalTokens += 1;
+        } else {
+          const gen = this.encodeOrdinaryGenerator(part.text);
+          let result = gen.next();
+          while (!result.done) {
+            yield result.value;
+            totalTokens += result.value.length;
+            result = gen.next();
+          }
+        }
+      }
+    } else {
+      const gen = this.encodeOrdinaryGenerator(text);
+      let result = gen.next();
+      while (!result.done) {
+        yield result.value;
+        totalTokens += result.value.length;
+        result = gen.next();
+      }
+    }
+
+    return totalTokens;
+  }
+
+  /**
+   * Generator version of encodeOrdinary. Yields token arrays per regex piece.
+   * Uses same cache logic as encodeOrdinary.
+   */
+  private *encodeOrdinaryGenerator(text: string): Generator<number[], void, void> {
+    if (!text) return;
+
+    // Clone regex to avoid reentrancy issues (same as encodeOrdinaryWithLimit)
+    const regex = new RegExp(
+      this.tokenSplitRegex.source,
+      this.tokenSplitRegex.flags.includes('g')
+        ? this.tokenSplitRegex.flags
+        : this.tokenSplitRegex.flags + 'g'
+    );
+
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(text)) !== null) {
+      const piece = match[0];
+
+      if (piece.length === 0) {
+        regex.lastIndex++;
+        continue;
+      }
+
+      // Check cache first (with LRU touch) - same as encodeOrdinary
+      const cached = this.getFromCache(piece);
+      if (cached) {
+        yield cached;
+        continue;
+      }
+
+      // Convert to UTF-8 bytes then to latin-1 key for vocab lookup
+      const pieceBytes = this.textEncoder.encode(piece);
+      const key = bytesToLatin1(pieceBytes);
+
+      // Try direct lookup first (most tokens are single entries)
+      const directRank = this.encoder.get(key);
+      if (directRank !== undefined) {
+        const tokens = [directRank];
+        this.addToCache(piece, tokens);
+        yield tokens;
+        continue;
+      }
+
+      // BPE merge
+      const pieceTokens = this.mergeBytePairs(pieceBytes);
+      this.addToCache(piece, pieceTokens);
+      yield pieceTokens;
+    }
+  }
+
+  /**
+   * Generator version of decodeTokens. Yields text chunks.
+   * Uses TextDecoder streaming mode to handle partial UTF-8 correctly.
+   * May yield empty strings when buffering incomplete sequences.
+   *
+   * Streaming semantics:
+   * - During iteration: decode(bytes, { stream: true }) - buffers incomplete UTF-8
+   * - At end/flush: decode() with no stream flag (defaults to false) - emits buffered bytes
+   */
+  *decodeTokensGenerator(tokens: Iterable<number>): Generator<string, void, void> {
+    // Use streaming mode: decoder buffers incomplete UTF-8 sequences
+    const streamingDecoder = new TextDecoder('utf-8', { fatal: false });
+
+    for (const token of tokens) {
+      // Check special tokens first
+      const specialToken = this.specialTokenDecoder.get(token);
+      if (specialToken !== undefined) {
+        // Flush any pending bytes before special token (no stream flag = flush)
+        const flushed = streamingDecoder.decode(new Uint8Array(0));
+        if (flushed) yield flushed;
+
+        // Special tokens are always complete UTF-8
+        yield specialToken;
+        continue;
+      }
+
+      // Regular token
+      const tokenBytes = this.decoder.get(token);
+      if (!tokenBytes) {
+        throw new Error(
+          `Invalid token ID: ${token}. Token not found in vocabulary or special tokens.`
+        );
+      }
+
+      // Decode with stream:true - decoder buffers incomplete sequences
+      const decoded = streamingDecoder.decode(tokenBytes, { stream: true });
+      // May be empty string if bytes form incomplete UTF-8 sequence
+      yield decoded;
+    }
+
+    // Flush any remaining buffered bytes (no stream flag = stream: false)
+    const final = streamingDecoder.decode();
+    if (final) yield final;
+  }
+
+  /**
+   * Async generator version of decodeTokens.
+   * Accepts AsyncIterable<number | number[]> for flexibility.
+   *
+   * Streaming semantics:
+   * - During iteration: decode(bytes, { stream: true }) - buffers incomplete UTF-8
+   * - At end/flush: decode() with no stream flag (defaults to false) - emits buffered bytes
+   */
+  async *decodeTokensAsyncGenerator(
+    tokens: AsyncIterable<number | number[]>
+  ): AsyncGenerator<string, void, void> {
+    const streamingDecoder = new TextDecoder('utf-8', { fatal: false });
+
+    for await (const tokenOrChunk of tokens) {
+      // Normalize to array
+      const tokenArray = typeof tokenOrChunk === 'number' ? [tokenOrChunk] : tokenOrChunk;
+
+      for (const token of tokenArray) {
+        // Check special tokens first
+        const specialToken = this.specialTokenDecoder.get(token);
+        if (specialToken !== undefined) {
+          // Flush any pending bytes before special token (no stream flag = flush)
+          const flushed = streamingDecoder.decode(new Uint8Array(0));
+          if (flushed) yield flushed;
+          yield specialToken;
+          continue;
+        }
+
+        // Regular token
+        const tokenBytes = this.decoder.get(token);
+        if (!tokenBytes) {
+          throw new Error(
+            `Invalid token ID: ${token}. Token not found in vocabulary or special tokens.`
+          );
+        }
+
+        const decoded = streamingDecoder.decode(tokenBytes, { stream: true });
+        yield decoded;
+      }
+    }
+
+    // Flush remaining buffered bytes (no stream flag = stream: false)
+    const final = streamingDecoder.decode();
+    if (final) yield final;
   }
 }

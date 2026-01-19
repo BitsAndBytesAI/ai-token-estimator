@@ -23,14 +23,14 @@
 5. ✅ **Synchronous load + sync API** (sync tokenization + estimation APIs).
 6. ✅ **Extended estimate() fields**: `outputTokens`, `cachedInputTokens`, `mode` inputs; `estimatedOutputCost`, `estimatedCachedInputCost`, `estimatedTotalCost` outputs.
 7. ✅ **Chat-aware tokenization**: `encodeChat` (encode chat messages into ChatML prompt tokens with special delimiters).
+8. ✅ **Fast token-limit check**: `isWithinTokenLimit`, `isChatWithinTokenLimit` (early-exit counting; returns `false` when exceeded, else token count).
 
 ## Next (Highest Impact to Build)
 
-8. ⏳ **Fast token-limit check without full encode**: `isWithinTokenLimit` (early-exit counting; returns `false` when exceeded, else token count).
+9. ⏳ **Generator-based APIs**: `encodeGenerator`, `encodeChatGenerator`, `decodeGenerator`.
 
 ## Later (Valuable, but Lower ROI vs Above)
 
-9. ⏳ **Generator-based APIs**: `encodeGenerator`, `encodeChatGenerator`, `decodeGenerator`.
 10. ⏳ **Async stream decoding**: `decodeAsyncGenerator` / `decodeGenerator` with any iterable input.
 11. ⏳ **Browser-first distribution options**:
     - Works in the browser out-of-the-box
