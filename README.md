@@ -12,6 +12,7 @@ The best way to estimate **tokens + input cost** for LLM calls — with **exact 
 
 - **Exact OpenAI tokenization** (tiktoken-compatible BPE): `encode()` / `decode()` / `openai_exact`
 - **Chat-aware tokenization**: `encodeChat()` returns exact token IDs for chat messages using ChatML format
+- **Fast token limit checking**: `isWithinTokenLimit()` / `isChatWithinTokenLimit()` with early-exit optimization (up to 1000x faster for large texts)
 - **OpenAI chat completion token counting** (legacy `functions` API): `countChatCompletionTokens()` with optional per-message breakdown
 - **Pure TypeScript SentencePiece tokenizer** (no native dependencies):
   - Supports `.model` files (protobuf format)
@@ -88,6 +89,23 @@ import { countChatCompletionTokens } from 'ai-token-estimator';
 const { totalTokens } = countChatCompletionTokens({
   model: 'gpt-4o',
   messages: [{ role: 'user', content: 'Hello!' }],
+});
+```
+
+### Fast token limit checking (early exit)
+
+```ts
+import { isWithinTokenLimit, isChatWithinTokenLimit } from 'ai-token-estimator';
+
+// Plain text - returns token count or false if exceeded
+const count = isWithinTokenLimit(longText, 4096, { model: 'gpt-4o' });
+if (count === false) console.log('Text exceeds limit');
+
+// Chat messages - same early-exit optimization
+const chatCount = isChatWithinTokenLimit({
+  messages: [{ role: 'user', content: longText }],
+  model: 'gpt-4o',
+  tokenLimit: 4096,
 });
 ```
 
