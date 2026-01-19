@@ -466,13 +466,15 @@ function getChatEncoder() {
 {
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
-    "build:browser": "npm run build:browser:o200k_base && npm run build:browser:o200k_harmony && npm run build:browser:cl100k && npm run build:browser:p50k && npm run build:browser:p50k_edit && npm run build:browser:r50k",
+    "build:browser:clean": "rm -rf dist/browser && mkdir -p dist/browser",
+    "build:browser": "npm run build:browser:clean && npm run build:browser:o200k_base && npm run build:browser:o200k_harmony && npm run build:browser:cl100k && npm run build:browser:p50k && npm run build:browser:p50k_edit && npm run build:browser:r50k && npm run build:browser:verify",
     "build:browser:o200k_base": "tsup src/browser/o200k_base.ts --format iife --globalName AITokenEstimator_o200k_base --outDir dist/browser --minify",
     "build:browser:o200k_harmony": "tsup src/browser/o200k_harmony.ts --format iife --globalName AITokenEstimator_o200k_harmony --outDir dist/browser --minify",
     "build:browser:cl100k": "tsup src/browser/cl100k_base.ts --format iife --globalName AITokenEstimator_cl100k_base --outDir dist/browser --minify",
     "build:browser:p50k": "tsup src/browser/p50k_base.ts --format iife --globalName AITokenEstimator_p50k_base --outDir dist/browser --minify",
     "build:browser:p50k_edit": "tsup src/browser/p50k_edit.ts --format iife --globalName AITokenEstimator_p50k_edit --outDir dist/browser --minify",
     "build:browser:r50k": "tsup src/browser/r50k_base.ts --format iife --globalName AITokenEstimator_r50k_base --outDir dist/browser --minify",
+    "build:browser:verify": "node scripts/verify-browser-bundles.mjs",
     "build:all": "npm run build && npm run build:browser",
     "test:browser-bundles": "npm run build:all && node scripts/test-browser-bundles.mjs",
     "prepublishOnly": "npm run lint && npm run test && npm run build:all && npm run test:dist && npm run test:browser-bundles && npm run verify:hashes"
@@ -481,13 +483,73 @@ function getChatEncoder() {
 ```
 
 Key changes:
+- `build:browser:clean` removes and recreates `dist/browser/` before building (prevents stale files)
+- `build:browser:verify` runs after all bundles to verify expected output filenames exist
 - Output to `dist/browser/` (not `dist/`)
 - Separate `o200k_harmony` bundle
 - `build:all` runs both Node and browser builds
 - `test:browser-bundles` runs `build:all` first (so main API is available for parity tests)
 - `prepublishOnly` includes browser builds and tests
 
-#### 2.2 Do NOT add unpkg/jsdelivr fields
+#### 2.2 Create `scripts/verify-browser-bundles.mjs`
+
+Verify that tsup produced the expected output filenames (tsup IIFE output naming can vary):
+
+```javascript
+import { existsSync, readdirSync, renameSync } from 'node:fs';
+
+const EXPECTED_BUNDLES = [
+  'o200k_base.js',
+  'o200k_harmony.js',
+  'cl100k_base.js',
+  'p50k_base.js',
+  'p50k_edit.js',
+  'r50k_base.js',
+];
+
+const DIST_BROWSER = 'dist/browser';
+
+// Check what files exist
+const files = readdirSync(DIST_BROWSER);
+console.log('Files in dist/browser:', files);
+
+for (const expected of EXPECTED_BUNDLES) {
+  const expectedPath = `${DIST_BROWSER}/${expected}`;
+
+  if (existsSync(expectedPath)) {
+    console.log(`✓ ${expected}`);
+    continue;
+  }
+
+  // tsup may output as <name>.global.js or <name>.iife.js - try to find and rename
+  const baseName = expected.replace('.js', '');
+  const alternatives = [
+    `${baseName}.global.js`,
+    `${baseName}.iife.js`,
+  ];
+
+  let found = false;
+  for (const alt of alternatives) {
+    const altPath = `${DIST_BROWSER}/${alt}`;
+    if (existsSync(altPath)) {
+      console.log(`  Renaming ${alt} -> ${expected}`);
+      renameSync(altPath, expectedPath);
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    throw new Error(`Missing browser bundle: ${expected} (checked: ${alternatives.join(', ')})`);
+  }
+
+  console.log(`✓ ${expected}`);
+}
+
+console.log('\n✓ All browser bundles verified');
+```
+
+#### 2.3 Do NOT add unpkg/jsdelivr fields
 
 Do not set package-level `unpkg` or `jsdelivr` fields. Document explicit CDN URLs instead.
 
@@ -674,7 +736,29 @@ for (const encoding of ENCODINGS) {
   }
   console.log(`  ✓ decodeGenerator() joined equals decode()`);
 
-  // 5. Test isWithinTokenLimit
+  // 5. Test decodeAsyncGenerator - async stream of token chunks
+  {
+    // Create async iterable that yields token arrays (simulating streaming LLM response)
+    async function* tokenChunkStream() {
+      // Split tokens into chunks to simulate streaming
+      const chunkSize = Math.ceil(browserTokens.length / 3);
+      for (let i = 0; i < browserTokens.length; i += chunkSize) {
+        yield browserTokens.slice(i, i + chunkSize);
+      }
+    }
+
+    const asyncDecodeChunks = [];
+    for await (const chunk of bundle.decodeAsyncGenerator(tokenChunkStream())) {
+      asyncDecodeChunks.push(chunk);
+    }
+    const asyncDecodeJoined = asyncDecodeChunks.join('');
+    if (asyncDecodeJoined !== text) {
+      throw new Error(`${encoding}: decodeAsyncGenerator() joined output mismatch`);
+    }
+    console.log(`  ✓ decodeAsyncGenerator() joined equals decode()`);
+  }
+
+  // 7. Test isWithinTokenLimit
   const withinLimit = bundle.isWithinTokenLimit(text, 1000);
   const mainWithinLimit = isWithinTokenLimit(text, 1000, { encoding });
   if (withinLimit !== mainWithinLimit) {
@@ -686,7 +770,7 @@ for (const encoding of ENCODINGS) {
   }
   console.log(`  ✓ isWithinTokenLimit()`);
 
-  // 6. Test chat functions (only for chat-capable encodings)
+  // 8. Test chat functions (only for chat-capable encodings)
   if (CHAT_ENCODINGS.has(encoding)) {
     const messages = [
       { role: 'system', content: 'You are helpful.' },
@@ -783,6 +867,7 @@ tsup supports minification via `--minify` flag (already in build scripts above).
 | `package.json` | Modify | Add build:browser scripts, update prepublishOnly |
 | `README.md` | Modify | Add Browser Usage section |
 | `tests/browser-bundles.test.ts` | Create | Tests for browser source modules |
+| `scripts/verify-browser-bundles.mjs` | Create | Verify/rename bundle output filenames |
 | `scripts/test-browser-bundles.mjs` | Create | Tests for built IIFE artifacts via node:vm |
 | `.changeset/browser-bundles.md` | Create | Changeset for minor version bump |
 
