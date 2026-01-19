@@ -1,5 +1,25 @@
 # ai-token-estimator
 
+## 1.7.0
+
+### Minor Changes
+
+- 53bf3fd: Add generator-based APIs for memory-efficient streaming tokenization
+
+  New functions:
+
+  - `encodeGenerator(text, options)` - Yields token chunks during encoding
+  - `encodeChatGenerator(messages, options)` - Yields token chunks for chat messages
+  - `decodeGenerator(tokens, options)` - Yields text chunks during decoding
+  - `decodeAsyncGenerator(tokens, options)` - Yields text chunks from async token streams
+
+  These generators are useful for:
+
+  - Processing large inputs without loading all tokens into memory
+  - Streaming pipelines with other generators/transforms
+  - Progress tracking during encoding
+  - Decoding streaming LLM responses
+
 ## 1.6.0
 
 ### Minor Changes
