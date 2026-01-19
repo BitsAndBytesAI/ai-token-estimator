@@ -43,6 +43,10 @@ const CL100K_BASE_SPECIAL_TOKENS: readonly SpecialTokenEntry[] = [
   ['<|fim_prefix|>', 100258],
   ['<|fim_middle|>', 100259],
   ['<|fim_suffix|>', 100260],
+  // ChatML tokens for chat completion
+  ['<|im_start|>', 100264],
+  ['<|im_end|>', 100265],
+  ['<|im_sep|>', 100266],
   ['<|endofprompt|>', 100276],
 ];
 
@@ -51,6 +55,10 @@ const CL100K_BASE_SPECIAL_TOKENS: readonly SpecialTokenEntry[] = [
  */
 const O200K_BASE_SPECIAL_TOKENS: readonly SpecialTokenEntry[] = [
   ['<|endoftext|>', 199999],
+  // ChatML tokens for chat completion
+  ['<|im_start|>', 200264],
+  ['<|im_end|>', 200265],
+  ['<|im_sep|>', 200266],
   ['<|endofprompt|>', 200018],
 ];
 
@@ -141,4 +149,8 @@ export const ALL_SPECIAL_TOKEN_STRINGS = new Set([
   '<|end|>',
   '<|message|>',
   '<|call|>',
+  // ChatML tokens
+  '<|im_start|>',
+  '<|im_end|>',
+  '<|im_sep|>',
 ]);

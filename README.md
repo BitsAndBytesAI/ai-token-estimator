@@ -11,6 +11,7 @@ The best way to estimate **tokens + input cost** for LLM calls — with **exact 
 ## Features
 
 - **Exact OpenAI tokenization** (tiktoken-compatible BPE): `encode()` / `decode()` / `openai_exact`
+- **Chat-aware tokenization**: `encodeChat()` returns exact token IDs for chat messages using ChatML format
 - **OpenAI chat completion token counting** (legacy `functions` API): `countChatCompletionTokens()` with optional per-message breakdown
 - **Pure TypeScript SentencePiece tokenizer** (no native dependencies):
   - Supports `.model` files (protobuf format)
@@ -63,6 +64,21 @@ console.log(countTokens({ text: 'Hello, world!', model: 'gpt-5.1' }));
 ```
 
 ## Quick Recipes
+
+### Encode chat messages to tokens (ChatML format)
+
+```ts
+import { encodeChat, decode } from 'ai-token-estimator';
+
+const tokens = encodeChat([
+  { role: 'system', content: 'You are helpful.' },
+  { role: 'user', content: 'Hello!' }
+], { model: 'gpt-4o' });
+
+console.log(tokens); // [200264, 9125, 200266, 2610, 525, 11190, 13, 200265, ...]
+console.log(decode(tokens, { encoding: 'o200k_base' }));
+// <|im_start|>system<|im_sep|>You are helpful.<|im_end|>...
+```
 
 ### OpenAI chat completion tokens (legacy functions API)
 
@@ -560,6 +576,48 @@ Encodes text into **OpenAI token IDs** using tiktoken-compatible BPE tokenizatio
 ### `decode(tokens: Iterable<number>, options?: { encoding?: OpenAIEncoding; model?: string }): string`
 
 Decodes OpenAI token IDs back into text using the selected encoding/model.
+
+### `encodeChat(messages: ChatMessage[], options?: EncodeChatOptions): number[]`
+
+Encodes chat messages into **exact token IDs** using ChatML format. Returns the ChatML message prompt tokens (messages + optional assistant priming), including special delimiter tokens (`<|im_start|>`, `<|im_sep|>`, `<|im_end|>`).
+
+```ts
+import { encodeChat, decode } from 'ai-token-estimator';
+
+const tokens = encodeChat([
+  { role: 'system', content: 'You are helpful.' },
+  { role: 'user', content: 'Hello!' }
+], { model: 'gpt-4o' });
+
+// Tokens include ChatML structure:
+// <|im_start|>system<|im_sep|>You are helpful.<|im_end|>
+// <|im_start|>user<|im_sep|>Hello!<|im_end|>
+// <|im_start|>assistant<|im_sep|>  (priming)
+```
+
+**Parameters:**
+
+```typescript
+interface EncodeChatOptions {
+  model?: string;              // OpenAI model (e.g., 'gpt-4o')
+  encoding?: OpenAIEncoding;   // Explicit encoding override
+  primeAssistant?: boolean;    // Append assistant priming (default: true)
+}
+```
+
+**Supported encodings:**
+- `cl100k_base` (GPT-4, GPT-3.5-turbo)
+- `o200k_base` (GPT-4o, GPT-4o-mini)
+- `o200k_harmony` (experimental)
+
+**Limitations:**
+- **OpenAI models only** — throws for claude-*, gemini-*
+- **Legacy functions API only** — throws for tool_calls, tool_call_id
+- **Text content only** — throws for multimodal content (arrays)
+
+**Note on function_call:** Messages with `function_call` are encoded with the function name and arguments as content. The token count differs from `countChatCompletionTokens()` because the latter includes `FUNCTION_CALL_METADATA_TOKEN_OVERHEAD` (3 tokens) for API accounting. The exact difference depends on whether both name and arguments are present (2 token difference due to newline separator) or only one field is present (3 token difference).
+
+**Note on o200k_harmony:** Support for `o200k_harmony` encoding is experimental. The token structure may not match actual API behavior.
 
 ### `isWithinTokenLimit(text, tokenLimit, options?): false | number`
 

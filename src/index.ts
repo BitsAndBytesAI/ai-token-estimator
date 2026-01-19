@@ -18,6 +18,7 @@ export {
   countChatCompletionTokens,
   isChatWithinTokenLimit,
 } from './chat-completion-tokens.js';
+export { encodeChat } from './encode-chat.js';
 export { countAnthropicInputTokens } from './providers/anthropic.js';
 export { countGeminiTokens } from './providers/gemini.js';
 export { countGemmaSentencePieceTokens } from './providers/gemma-sentencepiece.js';
@@ -53,6 +54,7 @@ export type {
 } from './types.js';
 export type { EncodeOptions, OpenAIEncoding, SpecialTokenHandling, IsWithinTokenLimitOptions } from './openai-bpe.js';
 export type { IsChatWithinTokenLimitInput } from './chat-completion-tokens.js';
+export type { EncodeChatOptions } from './encode-chat.js';
 export type { TokenCountInput, TokenCountOutput } from './token-counter.js';
 export type {
   EstimateCostInput,
