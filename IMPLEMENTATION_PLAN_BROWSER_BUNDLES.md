@@ -48,7 +48,7 @@ Each encoding bundle exports:
 - `decodeGenerator(tokens)` - Streaming decode
 - `decodeAsyncGenerator(tokens)` - Async streaming decode (for LLM response streams)
 - `isWithinTokenLimit(text, limit, options?)` - Fast limit check
-- `isChatWithinTokenLimit(messages, limit, options?)` - Fast chat limit check
+- `isChatWithinTokenLimit(input)` - Fast chat limit check (object-style: `{ messages, tokenLimit, primeAssistant? }`)
 - `countTokens(text: string): number` - Count tokens in text (encoding-fixed)
 
 **Excluded from browser bundles** (Node.js only):
@@ -102,7 +102,9 @@ Instead, document explicit CDN URLs for each bundle in the README.
 import { BPETokenizer } from '../bpe/core.js';
 import { getSpecialTokenMap } from '../bpe/special-tokens.js';
 import { getTokenSplitRegex } from '../encodings/regex.js';
-import { O200K_BASE_VOCAB } from '../encodings/generated/o200k_base.js';
+// Note: The generated module exports VOCAB, not O200K_BASE_VOCAB
+import { VOCAB } from '../encodings/generated/o200k_base.js';
+import { createChatEncoder } from './chat-encoding.js';
 import type { ChatMessage } from '../types.js';
 import type { SpecialTokenHandling } from '../bpe/types.js';
 
@@ -110,16 +112,24 @@ const ENCODING = 'o200k_base' as const;
 
 // Lazily initialized tokenizer
 let tokenizer: BPETokenizer | null = null;
+let chatEncoder: ReturnType<typeof createChatEncoder> | null = null;
 
 function getTokenizer(): BPETokenizer {
   if (!tokenizer) {
     tokenizer = new BPETokenizer({
-      vocabDecoder: O200K_BASE_VOCAB,
+      vocabDecoder: VOCAB,
       specialTokenMap: getSpecialTokenMap(ENCODING),
       tokenSplitRegex: getTokenSplitRegex(ENCODING),
     });
   }
   return tokenizer;
+}
+
+function getChatEncoder() {
+  if (!chatEncoder) {
+    chatEncoder = createChatEncoder(getTokenizer(), ENCODING);
+  }
+  return chatEncoder;
 }
 
 // Public API
@@ -166,41 +176,244 @@ export function countTokens(text: string): number {
   return getTokenizer().encodeText(text).length;
 }
 
-// encodeChat, encodeChatGenerator, isChatWithinTokenLimit
-// ... (see Phase 1.2)
+// Chat encoding functions (delegate to chat encoder)
+export function encodeChat(
+  messages: ChatMessage[],
+  options?: { primeAssistant?: boolean }
+): number[] {
+  return getChatEncoder().encodeChat(messages, options);
+}
+
+export function* encodeChatGenerator(
+  messages: Iterable<ChatMessage>,
+  options?: { primeAssistant?: boolean }
+): Generator<number[], number, undefined> {
+  return yield* getChatEncoder().encodeChatGenerator(messages, options);
+}
+
+/**
+ * Check if chat messages fit within a token limit.
+ * Object-style input to match main library API.
+ */
+export function isChatWithinTokenLimit(input: {
+  messages: ChatMessage[];
+  tokenLimit: number;
+  primeAssistant?: boolean;
+}): number | false {
+  return getChatEncoder().isChatWithinTokenLimit(input);
+}
 ```
 
 #### 1.2 Create `src/browser/chat-encoding.ts`
 
-Shared chat encoding logic that works with a pre-configured tokenizer (avoids importing all encodings):
+Shared chat encoding logic that derives special token IDs from the encoding's specialTokenMap
+(to avoid hardcoding numeric IDs that could drift):
 
 ```typescript
 import type { BPETokenizer } from '../bpe/core.js';
 import type { ChatMessage } from '../types.js';
+import { getSpecialTokenMap } from '../bpe/special-tokens.js';
+import type { OpenAIEncoding } from '../bpe/types.js';
 
-// ChatML special token IDs by encoding
-const CHAT_TOKENS: Record<string, { imStart: number; imEnd: number; imSep: number }> = {
-  cl100k_base: { imStart: 100264, imEnd: 100265, imSep: 100266 },
-  o200k_base: { imStart: 200264, imEnd: 200265, imSep: 200266 },
-  o200k_harmony: { start: 200006, end: 200007, message: 200008 },
+/**
+ * ChatML token names by encoding.
+ * Maps encoding to the special token strings used for chat formatting.
+ */
+const CHAT_TOKEN_NAMES: Record<string, { start: string; end: string; sep: string }> = {
+  cl100k_base: { start: '<|im_start|>', end: '<|im_end|>', sep: '<|im_sep|>' },
+  o200k_base: { start: '<|im_start|>', end: '<|im_end|>', sep: '<|im_sep|>' },
+  // o200k_harmony uses different token names
+  o200k_harmony: { start: '<|start|>', end: '<|end|>', sep: '<|message|>' },
 };
 
-export function createChatEncoder(tokenizer: BPETokenizer, encoding: string) {
-  const chatTokens = CHAT_TOKENS[encoding];
+/**
+ * Get ChatML token IDs for an encoding by looking them up in the special token map.
+ * This ensures we don't hardcode numeric IDs that could drift.
+ */
+function getChatTokenIds(encoding: OpenAIEncoding): { imStart: number; imEnd: number; imSep: number } | null {
+  const tokenNames = CHAT_TOKEN_NAMES[encoding];
+  if (!tokenNames) return null;
+
+  const specialTokenMap = getSpecialTokenMap(encoding);
+  const imStart = specialTokenMap.get(tokenNames.start);
+  const imEnd = specialTokenMap.get(tokenNames.end);
+  const imSep = specialTokenMap.get(tokenNames.sep);
+
+  if (imStart === undefined || imEnd === undefined || imSep === undefined) {
+    return null;
+  }
+
+  return { imStart, imEnd, imSep };
+}
+
+export function createChatEncoder(tokenizer: BPETokenizer, encoding: OpenAIEncoding) {
+  const chatTokens = getChatTokenIds(encoding);
   if (!chatTokens) {
-    throw new Error(`Encoding "${encoding}" does not support chat format.`);
+    // Return stubs that throw for encodings without chat support
+    const notSupported = () => {
+      throw new Error(`Encoding "${encoding}" does not support chat format.`);
+    };
+    return {
+      encodeChat: notSupported as () => number[],
+      encodeChatGenerator: notSupported as () => Generator<number[], number, undefined>,
+      isChatWithinTokenLimit: notSupported as () => number | false,
+    };
+  }
+
+  const { imStart, imEnd, imSep } = chatTokens;
+
+  /**
+   * Get role string from message.
+   */
+  function getRoleString(message: ChatMessage): string {
+    if (message.role === 'function' && message.name) {
+      return message.name;
+    } else if (message.name) {
+      return `${message.role}:${message.name}`;
+    }
+    return message.role;
+  }
+
+  /**
+   * Format function_call for encoding.
+   */
+  function formatFunctionCall(fc: { name: string; arguments: string }): string {
+    const parts: string[] = [];
+    if (fc.name) parts.push(fc.name);
+    if (fc.arguments) parts.push(fc.arguments);
+    return parts.join('\n');
   }
 
   return {
     encodeChat(messages: ChatMessage[], options?: { primeAssistant?: boolean }): number[] {
-      // Implementation using tokenizer and chatTokens...
+      const primeAssistant = options?.primeAssistant ?? true;
+      const tokens: number[] = [];
+
+      for (const message of messages) {
+        tokens.push(imStart);
+        tokens.push(...tokenizer.encodeText(getRoleString(message), 'skip'));
+        tokens.push(imSep);
+
+        if (message.content) {
+          tokens.push(...tokenizer.encodeText(message.content, 'skip'));
+        }
+
+        if (message.function_call) {
+          const fcContent = formatFunctionCall(message.function_call);
+          tokens.push(...tokenizer.encodeText(fcContent, 'skip'));
+        }
+
+        tokens.push(imEnd);
+      }
+
+      if (primeAssistant) {
+        tokens.push(imStart);
+        tokens.push(...tokenizer.encodeText('assistant', 'skip'));
+        tokens.push(imSep);
+      }
+
+      return tokens;
     },
-    *encodeChatGenerator(messages: Iterable<ChatMessage>, options?: { primeAssistant?: boolean }) {
-      // Generator implementation...
+
+    *encodeChatGenerator(
+      messages: Iterable<ChatMessage>,
+      options?: { primeAssistant?: boolean }
+    ): Generator<number[], number, undefined> {
+      const primeAssistant = options?.primeAssistant ?? true;
+      let totalTokens = 0;
+
+      for (const message of messages) {
+        yield [imStart];
+        totalTokens += 1;
+
+        const roleTokens = tokenizer.encodeText(getRoleString(message), 'skip');
+        yield roleTokens;
+        totalTokens += roleTokens.length;
+
+        yield [imSep];
+        totalTokens += 1;
+
+        if (message.content) {
+          const gen = tokenizer.encodeTextGenerator(message.content, 'skip');
+          let result = gen.next();
+          while (!result.done) {
+            yield result.value;
+            totalTokens += result.value.length;
+            result = gen.next();
+          }
+        }
+
+        if (message.function_call) {
+          const fcContent = formatFunctionCall(message.function_call);
+          const fcTokens = tokenizer.encodeText(fcContent, 'skip');
+          yield fcTokens;
+          totalTokens += fcTokens.length;
+        }
+
+        yield [imEnd];
+        totalTokens += 1;
+      }
+
+      if (primeAssistant) {
+        yield [imStart];
+        totalTokens += 1;
+        const assistantTokens = tokenizer.encodeText('assistant', 'skip');
+        yield assistantTokens;
+        totalTokens += assistantTokens.length;
+        yield [imSep];
+        totalTokens += 1;
+      }
+
+      return totalTokens;
     },
-    isChatWithinTokenLimit(messages: ChatMessage[], limit: number, options?: { primeAssistant?: boolean }): number | false {
-      // Fast limit check implementation...
-    }
+
+    /**
+     * Check if chat messages fit within a token limit.
+     * Object-style input to match main library API.
+     */
+    isChatWithinTokenLimit(input: {
+      messages: ChatMessage[];
+      tokenLimit: number;
+      primeAssistant?: boolean;
+    }): number | false {
+      const { messages, tokenLimit, primeAssistant = true } = input;
+      let count = 0;
+
+      for (const message of messages) {
+        count += 1; // imStart
+        count += tokenizer.encodeText(getRoleString(message), 'skip').length;
+        count += 1; // imSep
+
+        if (count > tokenLimit) return false;
+
+        if (message.content) {
+          const result = tokenizer.encodeTextWithLimit(
+            message.content,
+            tokenLimit - count,
+            'skip'
+          );
+          count += result.count;
+          if (result.exceeded) return false;
+        }
+
+        if (message.function_call) {
+          const fcContent = formatFunctionCall(message.function_call);
+          count += tokenizer.encodeText(fcContent, 'skip').length;
+          if (count > tokenLimit) return false;
+        }
+
+        count += 1; // imEnd
+        if (count > tokenLimit) return false;
+      }
+
+      if (primeAssistant) {
+        count += 1; // imStart
+        count += tokenizer.encodeText('assistant', 'skip').length;
+        count += 1; // imSep
+      }
+
+      return count > tokenLimit ? false : count;
+    },
   };
 }
 ```
@@ -214,16 +427,20 @@ import { BPETokenizer } from '../bpe/core.js';
 import { getSpecialTokenMap } from '../bpe/special-tokens.js';
 import { getTokenSplitRegex } from '../encodings/regex.js';
 // Import vocab from o200k_base (same vocabulary)
-import { O200K_BASE_VOCAB } from '../encodings/generated/o200k_base.js';
+import { VOCAB } from '../encodings/generated/o200k_base.js';
+import { createChatEncoder } from './chat-encoding.js';
+import type { ChatMessage } from '../types.js';
+import type { SpecialTokenHandling } from '../bpe/types.js';
 
 const ENCODING = 'o200k_harmony' as const;
 
 let tokenizer: BPETokenizer | null = null;
+let chatEncoder: ReturnType<typeof createChatEncoder> | null = null;
 
 function getTokenizer(): BPETokenizer {
   if (!tokenizer) {
     tokenizer = new BPETokenizer({
-      vocabDecoder: O200K_BASE_VOCAB,
+      vocabDecoder: VOCAB,
       specialTokenMap: getSpecialTokenMap(ENCODING), // Different special tokens!
       tokenSplitRegex: getTokenSplitRegex(ENCODING),
     });
@@ -231,7 +448,14 @@ function getTokenizer(): BPETokenizer {
   return tokenizer;
 }
 
-// ... same exports as o200k_base
+function getChatEncoder() {
+  if (!chatEncoder) {
+    chatEncoder = createChatEncoder(getTokenizer(), ENCODING);
+  }
+  return chatEncoder;
+}
+
+// ... same exports as o200k_base (encode, decode, encodeGenerator, etc.)
 ```
 
 ### Phase 2: Configure Build
@@ -250,7 +474,7 @@ function getTokenizer(): BPETokenizer {
     "build:browser:p50k_edit": "tsup src/browser/p50k_edit.ts --format iife --globalName AITokenEstimator_p50k_edit --outDir dist/browser --minify",
     "build:browser:r50k": "tsup src/browser/r50k_base.ts --format iife --globalName AITokenEstimator_r50k_base --outDir dist/browser --minify",
     "build:all": "npm run build && npm run build:browser",
-    "test:browser-bundles": "npm run build:browser && node scripts/test-browser-bundles.mjs",
+    "test:browser-bundles": "npm run build:all && node scripts/test-browser-bundles.mjs",
     "prepublishOnly": "npm run lint && npm run test && npm run build:all && npm run test:dist && npm run test:browser-bundles && npm run verify:hashes"
   }
 }
@@ -260,7 +484,7 @@ Key changes:
 - Output to `dist/browser/` (not `dist/`)
 - Separate `o200k_harmony` bundle
 - `build:all` runs both Node and browser builds
-- `test:browser-bundles` tests the actual IIFE artifacts
+- `test:browser-bundles` runs `build:all` first (so main API is available for parity tests)
 - `prepublishOnly` includes browser builds and tests
 
 #### 2.2 Do NOT add unpkg/jsdelivr fields
@@ -309,7 +533,7 @@ Each bundle exports:
 - `decodeGenerator(tokens)` - Streaming decode
 - `decodeAsyncGenerator(tokens)` - Async streaming decode
 - `isWithinTokenLimit(text, limit, options?)` - Check if text fits within limit
-- `isChatWithinTokenLimit(messages, limit, options?)` - Check if chat fits within limit
+- `isChatWithinTokenLimit({ messages, tokenLimit, primeAssistant? })` - Check if chat fits within limit
 - `countTokens(text)` - Count tokens in text (returns number)
 ```
 
@@ -367,21 +591,35 @@ describe('browser entry point modules', () => {
 
 #### 4.2 Create IIFE bundle artifact tests (`scripts/test-browser-bundles.mjs`)
 
-Test the actual built IIFE bundles using node:vm to simulate browser global loading:
+Test the actual built IIFE bundles using node:vm to simulate browser global loading.
+Tests all exported APIs for parity with main library:
 
 ```javascript
 import { createContext, runInContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
-import { encode } from '../dist/index.js';
+import {
+  encode,
+  decode,
+  encodeGenerator,
+  decodeGenerator,
+  isWithinTokenLimit,
+  encodeChat,
+  encodeChatGenerator,
+  isChatWithinTokenLimit,
+} from '../dist/index.js';
 
 const ENCODINGS = ['o200k_base', 'o200k_harmony', 'cl100k_base', 'p50k_base', 'p50k_edit', 'r50k_base'];
 
+// Chat-capable encodings
+const CHAT_ENCODINGS = new Set(['o200k_base', 'o200k_harmony', 'cl100k_base']);
+
 for (const encoding of ENCODINGS) {
+  console.log(`\nTesting ${encoding}...`);
   const bundlePath = `dist/browser/${encoding}.js`;
   const bundleCode = readFileSync(bundlePath, 'utf-8');
 
   // Create a fresh global context
-  const context = { globalThis: {} };
+  const context = { globalThis: {}, console };
   context.globalThis = context;
   createContext(context);
 
@@ -396,30 +634,97 @@ for (const encoding of ENCODINGS) {
     throw new Error(`${bundlePath}: global ${globalName} not defined`);
   }
 
-  // Test encode/decode parity with main API
-  const text = 'Hello, world! Testing browser bundle.';
+  // Test text
+  const text = 'Hello, world! Testing browser bundle with some longer text for generators.';
+
+  // 1. Test encode/decode parity
   const browserTokens = bundle.encode(text);
   const mainTokens = encode(text, { encoding });
-
   if (JSON.stringify(browserTokens) !== JSON.stringify(mainTokens)) {
-    throw new Error(`${bundlePath}: encode() output mismatch with main API`);
+    throw new Error(`${encoding}: encode() output mismatch`);
   }
+  console.log(`  ✓ encode() parity`);
 
   const decoded = bundle.decode(browserTokens);
   if (decoded !== text) {
-    throw new Error(`${bundlePath}: decode() roundtrip failed`);
+    throw new Error(`${encoding}: decode() roundtrip failed`);
   }
+  console.log(`  ✓ decode() roundtrip`);
 
-  // Test countTokens
+  // 2. Test countTokens
   const count = bundle.countTokens(text);
   if (count !== browserTokens.length) {
-    throw new Error(`${bundlePath}: countTokens() mismatch`);
+    throw new Error(`${encoding}: countTokens() mismatch`);
+  }
+  console.log(`  ✓ countTokens()`);
+
+  // 3. Test encodeGenerator - flatten and compare
+  const genChunks = [...bundle.encodeGenerator(text)];
+  const genFlattened = genChunks.flat();
+  if (JSON.stringify(genFlattened) !== JSON.stringify(mainTokens)) {
+    throw new Error(`${encoding}: encodeGenerator() flattened output mismatch`);
+  }
+  console.log(`  ✓ encodeGenerator() flattened equals encode()`);
+
+  // 4. Test decodeGenerator - join and compare
+  const decodeChunks = [...bundle.decodeGenerator(browserTokens)];
+  const decodeJoined = decodeChunks.join('');
+  if (decodeJoined !== text) {
+    throw new Error(`${encoding}: decodeGenerator() joined output mismatch`);
+  }
+  console.log(`  ✓ decodeGenerator() joined equals decode()`);
+
+  // 5. Test isWithinTokenLimit
+  const withinLimit = bundle.isWithinTokenLimit(text, 1000);
+  const mainWithinLimit = isWithinTokenLimit(text, 1000, { encoding });
+  if (withinLimit !== mainWithinLimit) {
+    throw new Error(`${encoding}: isWithinTokenLimit() mismatch`);
+  }
+  const exceedsLimit = bundle.isWithinTokenLimit(text, 1);
+  if (exceedsLimit !== false) {
+    throw new Error(`${encoding}: isWithinTokenLimit() should return false when exceeded`);
+  }
+  console.log(`  ✓ isWithinTokenLimit()`);
+
+  // 6. Test chat functions (only for chat-capable encodings)
+  if (CHAT_ENCODINGS.has(encoding)) {
+    const messages = [
+      { role: 'system', content: 'You are helpful.' },
+      { role: 'user', content: 'Hello!' },
+    ];
+
+    // encodeChat parity
+    const browserChatTokens = bundle.encodeChat(messages);
+    const mainChatTokens = encodeChat(messages, { encoding });
+    if (JSON.stringify(browserChatTokens) !== JSON.stringify(mainChatTokens)) {
+      throw new Error(`${encoding}: encodeChat() output mismatch`);
+    }
+    console.log(`  ✓ encodeChat() parity`);
+
+    // encodeChatGenerator - flatten and compare
+    const chatGenChunks = [...bundle.encodeChatGenerator(messages)];
+    const chatGenFlattened = chatGenChunks.flat();
+    if (JSON.stringify(chatGenFlattened) !== JSON.stringify(mainChatTokens)) {
+      throw new Error(`${encoding}: encodeChatGenerator() flattened output mismatch`);
+    }
+    console.log(`  ✓ encodeChatGenerator() flattened equals encodeChat()`);
+
+    // isChatWithinTokenLimit (object-style input)
+    const chatWithinLimit = bundle.isChatWithinTokenLimit({ messages, tokenLimit: 1000 });
+    if (chatWithinLimit === false || chatWithinLimit !== browserChatTokens.length) {
+      throw new Error(`${encoding}: isChatWithinTokenLimit() count mismatch`);
+    }
+    const chatExceedsLimit = bundle.isChatWithinTokenLimit({ messages, tokenLimit: 1 });
+    if (chatExceedsLimit !== false) {
+      throw new Error(`${encoding}: isChatWithinTokenLimit() should return false when exceeded`);
+    }
+    console.log(`  ✓ isChatWithinTokenLimit()`);
   }
 
-  console.log(`✓ ${bundlePath} (${globalName})`);
+  console.log(`  ✓ All tests passed for ${encoding}`);
 }
 
-console.log('\nAll browser bundle tests passed!');
+console.log('\n✓ All browser bundle tests passed!');
 ```
 
 #### 4.3 Create bundle size test
