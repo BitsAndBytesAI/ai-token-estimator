@@ -27,11 +27,10 @@
 
 ## Next (Highest Impact to Build)
 
-9. ⏳ **Generator-based APIs**: `encodeGenerator`, `encodeChatGenerator`, `decodeGenerator`.
+9. ✅ **Generator-based APIs**: `encodeGenerator`, `encodeChatGenerator`, `decodeGenerator` (released v1.6.0).
+10. ✅ **Async stream decoding**: `decodeAsyncGenerator` / `decodeGenerator` with any iterable input (released v1.6.0).
 
 ## Later (Valuable, but Lower ROI vs Above)
-
-10. ⏳ **Async stream decoding**: `decodeAsyncGenerator` / `decodeGenerator` with any iterable input.
 11. ⏳ **Browser-first distribution options**:
     - Works in the browser out-of-the-box
     - UMD bundles per encoding via unpkg (e.g., `GPTTokenizer_o200k_base` global).
