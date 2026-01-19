@@ -5,7 +5,7 @@
  * delimiter tokens (<|im_start|>, <|im_sep|>, <|im_end|>).
  */
 
-import { encode, getOpenAIEncoding } from './openai-bpe.js';
+import { encode, encodeGenerator, getOpenAIEncoding } from './openai-bpe.js';
 import {
   isChatModel,
   isAnthropicModel,
@@ -269,4 +269,153 @@ function formatFunctionCall(fc: { name: string; arguments: string }): string {
   if (fc.name) parts.push(fc.name);
   if (fc.arguments) parts.push(fc.arguments);
   return parts.join('\n');
+}
+
+/**
+ * Get role string from message (shared between encodeChat and encodeChatGenerator).
+ */
+function getRoleString(message: ChatMessage): string {
+  // Role string depends on message type:
+  // - function role: use name directly (not "function:name")
+  // - other roles with name: use "role:name"
+  // - other roles without name: use "role"
+  if (message.role === 'function' && message.name) {
+    return message.name;
+  } else if (message.name) {
+    return `${message.role}:${message.name}`;
+  }
+  return message.role;
+}
+
+/**
+ * Generator version of encodeChat. Yields token arrays per message component.
+ * Returns total token count.
+ *
+ * Yields tokens in the following order per message:
+ * - [imStart] (1 token)
+ * - role tokens
+ * - [imSep] (1 token)
+ * - content tokens (if present, yielded in chunks)
+ * - function_call tokens (if present)
+ * - [imEnd] (1 token)
+ *
+ * If primeAssistant is true (default), also yields assistant priming tokens at the end.
+ *
+ * @param messages - Array or iterable of chat messages
+ * @param options - Encoding options
+ * @returns Generator that yields token arrays per component, returns total count
+ *
+ * @example
+ * ```typescript
+ * const messages = [
+ *   { role: 'system', content: 'You are helpful.' },
+ *   { role: 'user', content: 'Hello!' }
+ * ];
+ *
+ * // Stream-encode messages
+ * for (const tokenChunk of encodeChatGenerator(messages, { model: 'gpt-4o' })) {
+ *   console.log('Chunk:', tokenChunk);
+ * }
+ *
+ * // Get total count from return value
+ * const gen = encodeChatGenerator(messages, { model: 'gpt-4o' });
+ * let result = gen.next();
+ * while (!result.done) result = gen.next();
+ * console.log('Total tokens:', result.value);
+ * ```
+ */
+export function* encodeChatGenerator(
+  messages: ChatMessage[] | Iterable<ChatMessage>,
+  options?: EncodeChatOptions
+): Generator<number[], number, undefined> {
+  const { model, encoding: encodingOverride, primeAssistant = true } =
+    options ?? {};
+
+  // Validate model
+  validateChatModel(model, encodingOverride);
+
+  // Resolve encoding
+  const encoding =
+    encodingOverride ?? (model ? getOpenAIEncoding({ model }) : 'o200k_base');
+
+  // Warn about experimental o200k_harmony support
+  if (encoding === 'o200k_harmony') {
+    console.warn(
+      '[ai-token-estimator] o200k_harmony support is experimental. ' +
+        'Token structure may not match actual API behavior.'
+    );
+  }
+
+  // Get chat tokens for this encoding
+  const chatTokens = getChatTokens(encoding);
+  if (!chatTokens) {
+    throw new Error(
+      `Encoding "${encoding}" does not support chat format. ` +
+        'Use cl100k_base or o200k_base for chat models.'
+    );
+  }
+
+  const { imStart, imEnd, imSep } = chatTokens;
+  let totalTokens = 0;
+
+  // Encode each message
+  for (const message of messages) {
+    validateMessage(message);
+
+    // <|im_start|>
+    yield [imStart];
+    totalTokens += 1;
+
+    // Role
+    const roleStr = getRoleString(message);
+    const roleTokens = encode(roleStr, { encoding, allowSpecial: 'none' });
+    yield roleTokens;
+    totalTokens += roleTokens.length;
+
+    // <|im_sep|>
+    yield [imSep];
+    totalTokens += 1;
+
+    // Content - use generator for large content
+    if (message.content) {
+      const contentGen = encodeGenerator(message.content, {
+        encoding,
+        allowSpecial: 'none',
+      });
+      let result = contentGen.next();
+      while (!result.done) {
+        yield result.value;
+        totalTokens += result.value.length;
+        result = contentGen.next();
+      }
+    }
+
+    // function_call
+    if (message.function_call) {
+      const fcContent = formatFunctionCall(message.function_call);
+      const fcTokens = encode(fcContent, { encoding, allowSpecial: 'none' });
+      yield fcTokens;
+      totalTokens += fcTokens.length;
+    }
+
+    // <|im_end|>
+    yield [imEnd];
+    totalTokens += 1;
+  }
+
+  // Assistant priming
+  if (primeAssistant) {
+    yield [imStart];
+    totalTokens += 1;
+    const assistantTokens = encode('assistant', {
+      encoding,
+      allowSpecial: 'none',
+    });
+    yield assistantTokens;
+    totalTokens += assistantTokens.length;
+    yield [imSep];
+    totalTokens += 1;
+  }
+
+  return totalTokens;
 }

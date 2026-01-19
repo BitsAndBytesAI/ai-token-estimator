@@ -12,13 +12,22 @@ export {
   DEFAULT_MODELS,
   LAST_UPDATED,
 } from './models.js';
-export { encode, decode, getOpenAIEncoding, isWithinTokenLimit } from './openai-bpe.js';
+export {
+  encode,
+  decode,
+  getOpenAIEncoding,
+  isWithinTokenLimit,
+  // Generator APIs
+  encodeGenerator,
+  decodeGenerator,
+  decodeAsyncGenerator,
+} from './openai-bpe.js';
 export { countTokens } from './token-counter.js';
 export {
   countChatCompletionTokens,
   isChatWithinTokenLimit,
 } from './chat-completion-tokens.js';
-export { encodeChat } from './encode-chat.js';
+export { encodeChat, encodeChatGenerator } from './encode-chat.js';
 export { countAnthropicInputTokens } from './providers/anthropic.js';
 export { countGeminiTokens } from './providers/gemini.js';
 export { countGemmaSentencePieceTokens } from './providers/gemma-sentencepiece.js';

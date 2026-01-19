@@ -13,6 +13,7 @@ The best way to estimate **tokens + input cost** for LLM calls — with **exact 
 - **Exact OpenAI tokenization** (tiktoken-compatible BPE): `encode()` / `decode()` / `openai_exact`
 - **Chat-aware tokenization**: `encodeChat()` returns exact token IDs for chat messages using ChatML format
 - **Fast token limit checking**: `isWithinTokenLimit()` / `isChatWithinTokenLimit()` with early-exit optimization (up to 1000x faster for large texts)
+- **Generator-based streaming**: `encodeGenerator()` / `encodeChatGenerator()` / `decodeGenerator()` / `decodeAsyncGenerator()` for memory-efficient tokenization
 - **OpenAI chat completion token counting** (legacy `functions` API): `countChatCompletionTokens()` with optional per-message breakdown
 - **Pure TypeScript SentencePiece tokenizer** (no native dependencies):
   - Supports `.model` files (protobuf format)
@@ -107,6 +108,26 @@ const chatCount = isChatWithinTokenLimit({
   model: 'gpt-4o',
   tokenLimit: 4096,
 });
+```
+
+### Generator-based streaming tokenization
+
+```ts
+import { encodeGenerator, decodeAsyncGenerator } from 'ai-token-estimator';
+
+// Stream-encode large text (memory efficient)
+let tokenCount = 0;
+for (const tokenChunk of encodeGenerator(hugeText, { model: 'gpt-4o' })) {
+  tokenCount += tokenChunk.length;
+  // Process chunk...
+}
+
+// Decode streaming LLM response
+async function decodeLLMStream(tokenStream: AsyncIterable<number>) {
+  for await (const text of decodeAsyncGenerator(tokenStream, { model: 'gpt-4o' })) {
+    process.stdout.write(text);
+  }
+}
 ```
 
 ### Local SentencePiece token counting
@@ -717,6 +738,81 @@ interface IsChatWithinTokenLimitInput {
 - `Error` if model is not an OpenAI model (unless encoding override provided)
 - `Error` if tools, tool_choice, tool_calls, or tool_call_id are present
 - `Error` if any message has non-string content
+
+### Generator APIs
+
+Generator-based APIs for memory-efficient streaming tokenization.
+
+#### `encodeGenerator(text, options?): Generator<number[], number, undefined>`
+
+Encode text yielding token chunks. Memory-efficient for large inputs.
+
+- **Yields:** `number[]` — token IDs per regex-matched piece (word/punctuation)
+- **Returns:** `number` — total token count when iteration completes
+
+```typescript
+import { encodeGenerator } from 'ai-token-estimator';
+
+// Stream-encode large text
+let tokenCount = 0;
+for (const tokenChunk of encodeGenerator(hugeText, { model: 'gpt-4o' })) {
+  tokenCount += tokenChunk.length;
+}
+
+// Or get total count from return value
+const gen = encodeGenerator(text, { model: 'gpt-4o' });
+let result = gen.next();
+while (!result.done) result = gen.next();
+console.log('Total tokens:', result.value);
+```
+
+#### `encodeChatGenerator(messages, options?): Generator<number[], number, undefined>`
+
+Encode chat messages yielding token chunks per message component.
+
+- **Yields:** `number[]` — token IDs per component (special tokens, role, content chunks, etc.)
+- **Returns:** `number` — total token count
+
+```typescript
+import { encodeChatGenerator } from 'ai-token-estimator';
+
+const messages = [
+  { role: 'system', content: 'You are helpful.' },
+  { role: 'user', content: 'Hello!' }
+];
+
+for (const tokenChunk of encodeChatGenerator(messages, { model: 'gpt-4o' })) {
+  console.log('Chunk:', tokenChunk);
+}
+```
+
+#### `decodeGenerator(tokens, options?): Generator<string, void, void>`
+
+Decode tokens yielding text chunks. Uses TextDecoder streaming mode — may yield empty strings when buffering incomplete UTF-8 sequences.
+
+```typescript
+import { encode, decodeGenerator } from 'ai-token-estimator';
+
+const tokens = encode('Hello, world!', { model: 'gpt-4o' });
+for (const textChunk of decodeGenerator(tokens, { model: 'gpt-4o' })) {
+  process.stdout.write(textChunk);
+}
+```
+
+#### `decodeAsyncGenerator(tokens, options?): AsyncGenerator<string, void, void>`
+
+Decode async token stream yielding text chunks. Accepts `AsyncIterable<number | number[]>` for flexibility with streaming APIs.
+
+```typescript
+import { decodeAsyncGenerator } from 'ai-token-estimator';
+
+// Decode streaming LLM response
+async function decodeLLMStream(tokenStream: AsyncIterable<number>) {
+  for await (const text of decodeAsyncGenerator(tokenStream, { model: 'gpt-4o' })) {
+    process.stdout.write(text);
+  }
+}
+```
 
 ### `getModelConfig(model: string): ModelConfig`
 
