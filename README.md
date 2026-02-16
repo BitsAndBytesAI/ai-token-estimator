@@ -1120,6 +1120,7 @@ npm run benchmark:tokenizer
 | claude-opus-4 | 3.5 | $15.00 |
 | claude-opus-4.1 | 3.5 | $15.00 |
 | claude-opus-4.5 | 3.5 | $5.00 |
+| claude-opus-4.6 | 3.5 | $5.00 |
 | claude-sonnet-4 | 3.5 | $3.00 |
 | claude-sonnet-4.5 | 3.5 | $3.00 |
 
@@ -1141,7 +1142,7 @@ npm run benchmark:tokenizer
 | gemini-3-flash | 4 | $0.50 |
 | gemini-3-pro | 4 | $2.00 |
 
-*Last updated: 2026-01-19*
+*Last updated: 2026-02-16*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
