@@ -1092,12 +1092,15 @@ npm run benchmark:tokenizer
 | gpt-5.2-chat-latest | 4 | $1.75 |
 | gpt-5.2-codex | 4 | $1.75 |
 | gpt-5.2-pro | 4 | $21.00 |
+| gpt-5.3-codex | 4 | $1.75 |
 | gpt-audio | 4 | $2.50 |
+| gpt-audio-1.5 | 4 | $2.50 |
 | gpt-audio-mini | 4 | $0.60 |
 | gpt-image-1 | 4 | $5.00 |
 | gpt-image-1-mini | 4 | $2.00 |
 | gpt-image-1.5 | 4 | $5.00 |
 | gpt-realtime | 4 | $4.00 |
+| gpt-realtime-1.5 | 4 | $4.00 |
 | gpt-realtime-mini | 4 | $0.60 |
 | o1 | 4 | $15.00 |
 | o1-mini | 4 | $1.10 |
@@ -1123,6 +1126,7 @@ npm run benchmark:tokenizer
 | claude-opus-4.6 | 3.5 | $5.00 |
 | claude-sonnet-4 | 3.5 | $3.00 |
 | claude-sonnet-4.5 | 3.5 | $3.00 |
+| claude-sonnet-4.6 | 3.5 | $3.00 |
 
 ### Google Gemini Models
 
@@ -1141,8 +1145,9 @@ npm run benchmark:tokenizer
 | gemini-2.5-pro-preview-tts | 4 | $1.00 |
 | gemini-3-flash | 4 | $0.50 |
 | gemini-3-pro | 4 | $2.00 |
+| gemini-3.1-pro | 4 | $2.00 |
 
-*Last updated: 2026-02-16*
+*Last updated: 2026-03-02*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates

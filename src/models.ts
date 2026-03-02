@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-02-16
+ * Last updated: 2026-03-02
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-02-16';
+export const LAST_UPDATED = '2026-03-02';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -40,6 +40,7 @@ const models: Record<string, ModelConfig> = {
   'codex-mini-latest': {
     charsPerToken: 4,
     inputCostPerMillion: 1.5,
+    outputCostPerMillion: 6,
   },
   'computer-use-preview': {
     charsPerToken: 4,
@@ -108,14 +109,17 @@ const models: Record<string, ModelConfig> = {
   'gpt-4.1': {
     charsPerToken: 4,
     inputCostPerMillion: 2,
+    outputCostPerMillion: 8,
   },
   'gpt-4.1-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 0.4,
+    outputCostPerMillion: 1.6,
   },
   'gpt-4.1-nano': {
     charsPerToken: 4,
     inputCostPerMillion: 0.1,
+    outputCostPerMillion: 0.4,
   },
   'gpt-4o': {
     charsPerToken: 4,
@@ -128,10 +132,12 @@ const models: Record<string, ModelConfig> = {
   'gpt-4o-2024-05-13': {
     charsPerToken: 4,
     inputCostPerMillion: 5,
+    outputCostPerMillion: 15,
   },
   'gpt-4o-audio-preview': {
     charsPerToken: 4,
     inputCostPerMillion: 2.5,
+    outputCostPerMillion: 10,
   },
   'gpt-4o-mini': {
     charsPerToken: 4,
@@ -144,26 +150,32 @@ const models: Record<string, ModelConfig> = {
   'gpt-4o-mini-audio-preview': {
     charsPerToken: 4,
     inputCostPerMillion: 0.15,
+    outputCostPerMillion: 0.6,
   },
   'gpt-4o-mini-realtime-preview': {
     charsPerToken: 4,
     inputCostPerMillion: 0.6,
+    outputCostPerMillion: 2.4,
   },
   'gpt-4o-mini-search-preview': {
     charsPerToken: 4,
     inputCostPerMillion: 0.15,
+    outputCostPerMillion: 0.6,
   },
   'gpt-4o-realtime-preview': {
     charsPerToken: 4,
     inputCostPerMillion: 5,
+    outputCostPerMillion: 20,
   },
   'gpt-4o-search-preview': {
     charsPerToken: 4,
     inputCostPerMillion: 2.5,
+    outputCostPerMillion: 10,
   },
   'gpt-5': {
     charsPerToken: 4,
     inputCostPerMillion: 1.25,
+    outputCostPerMillion: 10,
     cachedInputCostPerMillion: 0.0625,
     batchInputCostPerMillion: 0.625,
     batchOutputCostPerMillion: 5,
@@ -171,14 +183,17 @@ const models: Record<string, ModelConfig> = {
   'gpt-5-chat-latest': {
     charsPerToken: 4,
     inputCostPerMillion: 1.25,
+    outputCostPerMillion: 10,
   },
   'gpt-5-codex': {
     charsPerToken: 4,
     inputCostPerMillion: 1.25,
+    outputCostPerMillion: 10,
   },
   'gpt-5-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 0.25,
+    outputCostPerMillion: 2,
     cachedInputCostPerMillion: 0.0125,
     batchInputCostPerMillion: 0.125,
     batchOutputCostPerMillion: 1,
@@ -186,6 +201,7 @@ const models: Record<string, ModelConfig> = {
   'gpt-5-nano': {
     charsPerToken: 4,
     inputCostPerMillion: 0.05,
+    outputCostPerMillion: 0.4,
     cachedInputCostPerMillion: 0.0025,
     batchInputCostPerMillion: 0.025,
     batchOutputCostPerMillion: 0.2,
@@ -193,14 +209,17 @@ const models: Record<string, ModelConfig> = {
   'gpt-5-pro': {
     charsPerToken: 4,
     inputCostPerMillion: 15,
+    outputCostPerMillion: 120,
   },
   'gpt-5-search-api': {
     charsPerToken: 4,
     inputCostPerMillion: 1.25,
+    outputCostPerMillion: 10,
   },
   'gpt-5.1': {
     charsPerToken: 4,
     inputCostPerMillion: 1.25,
+    outputCostPerMillion: 10,
     cachedInputCostPerMillion: 0.0625,
     batchInputCostPerMillion: 0.625,
     batchOutputCostPerMillion: 5,
@@ -208,22 +227,27 @@ const models: Record<string, ModelConfig> = {
   'gpt-5.1-chat-latest': {
     charsPerToken: 4,
     inputCostPerMillion: 1.25,
+    outputCostPerMillion: 10,
   },
   'gpt-5.1-codex': {
     charsPerToken: 4,
     inputCostPerMillion: 1.25,
+    outputCostPerMillion: 10,
   },
   'gpt-5.1-codex-max': {
     charsPerToken: 4,
     inputCostPerMillion: 1.25,
+    outputCostPerMillion: 10,
   },
   'gpt-5.1-codex-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 0.25,
+    outputCostPerMillion: 2,
   },
   'gpt-5.2': {
     charsPerToken: 4,
     inputCostPerMillion: 1.75,
+    outputCostPerMillion: 14,
     cachedInputCostPerMillion: 0.0875,
     batchInputCostPerMillion: 0.875,
     batchOutputCostPerMillion: 7,
@@ -231,34 +255,51 @@ const models: Record<string, ModelConfig> = {
   'gpt-5.2-chat-latest': {
     charsPerToken: 4,
     inputCostPerMillion: 1.75,
+    outputCostPerMillion: 14,
   },
   'gpt-5.2-codex': {
     charsPerToken: 4,
     inputCostPerMillion: 1.75,
+    outputCostPerMillion: 14,
   },
   'gpt-5.2-pro': {
     charsPerToken: 4,
     inputCostPerMillion: 21,
+    outputCostPerMillion: 168,
+  },
+  'gpt-5.3-codex': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.75,
+    outputCostPerMillion: 14,
   },
   'gpt-audio': {
     charsPerToken: 4,
     inputCostPerMillion: 2.5,
+    outputCostPerMillion: 10,
+  },
+  'gpt-audio-1.5': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2.5,
+    outputCostPerMillion: 10,
   },
   'gpt-audio-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 0.6,
+    outputCostPerMillion: 2.4,
   },
   'gpt-image-1': {
     charsPerToken: 4,
     inputCostPerMillion: 5,
-    cachedInputCostPerMillion: 0.63,
-    batchInputCostPerMillion: 2.5,
+    cachedInputCostPerMillion: 1.25,
+    batchInputCostPerMillion: 5,
+    batchOutputCostPerMillion: 20,
   },
   'gpt-image-1-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 2,
-    cachedInputCostPerMillion: 0.1,
-    batchInputCostPerMillion: 1,
+    cachedInputCostPerMillion: 0.2,
+    batchInputCostPerMillion: 2,
+    batchOutputCostPerMillion: 4,
   },
   'gpt-image-1.5': {
     charsPerToken: 4,
@@ -270,46 +311,62 @@ const models: Record<string, ModelConfig> = {
   'gpt-realtime': {
     charsPerToken: 4,
     inputCostPerMillion: 4,
+    outputCostPerMillion: 16,
+  },
+  'gpt-realtime-1.5': {
+    charsPerToken: 4,
+    inputCostPerMillion: 4,
+    outputCostPerMillion: 16,
   },
   'gpt-realtime-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 0.6,
+    outputCostPerMillion: 2.4,
   },
   'o1': {
     charsPerToken: 4,
     inputCostPerMillion: 15,
+    outputCostPerMillion: 60,
   },
   'o1-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 1.1,
+    outputCostPerMillion: 4.4,
   },
   'o1-pro': {
     charsPerToken: 4,
     inputCostPerMillion: 150,
+    outputCostPerMillion: 600,
   },
   'o3': {
     charsPerToken: 4,
     inputCostPerMillion: 2,
+    outputCostPerMillion: 8,
   },
   'o3-deep-research': {
     charsPerToken: 4,
     inputCostPerMillion: 10,
+    outputCostPerMillion: 40,
   },
   'o3-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 1.1,
+    outputCostPerMillion: 4.4,
   },
   'o3-pro': {
     charsPerToken: 4,
     inputCostPerMillion: 20,
+    outputCostPerMillion: 80,
   },
   'o4-mini': {
     charsPerToken: 4,
     inputCostPerMillion: 1.1,
+    outputCostPerMillion: 4.4,
   },
   'o4-mini-deep-research': {
     charsPerToken: 4,
     inputCostPerMillion: 2,
+    outputCostPerMillion: 8,
   },
 
   // ===================
@@ -356,6 +413,11 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 3,
   },
   'claude-sonnet-4.5': {
+    charsPerToken: 3.5,
+    inputCostPerMillion: 3,
+    outputCostPerMillion: 15,
+  },
+  'claude-sonnet-4.6': {
     charsPerToken: 3.5,
     inputCostPerMillion: 3,
     outputCostPerMillion: 15,
@@ -407,6 +469,7 @@ const models: Record<string, ModelConfig> = {
   'gemini-2.5-flash-preview-tts': {
     charsPerToken: 4,
     inputCostPerMillion: 0.5,
+    outputCostPerMillion: 10,
   },
   'gemini-2.5-pro': {
     charsPerToken: 4,
@@ -416,6 +479,7 @@ const models: Record<string, ModelConfig> = {
   'gemini-2.5-pro-preview-tts': {
     charsPerToken: 4,
     inputCostPerMillion: 1,
+    outputCostPerMillion: 20,
   },
   'gemini-3-flash': {
     charsPerToken: 4,
@@ -423,6 +487,11 @@ const models: Record<string, ModelConfig> = {
     outputCostPerMillion: 3,
   },
   'gemini-3-pro': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2,
+    outputCostPerMillion: 12,
+  },
+  'gemini-3.1-pro': {
     charsPerToken: 4,
     inputCostPerMillion: 2,
     outputCostPerMillion: 12,
