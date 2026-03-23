@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-03-16
+ * Last updated: 2026-03-23
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-03-16';
+export const LAST_UPDATED = '2026-03-23';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -289,18 +289,43 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 21,
     outputCostPerMillion: 168,
   },
+  'gpt-5.3-chat-latest': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.75,
+    outputCostPerMillion: 14,
+    cachedInputCostPerMillion: 0.175,
+    batchOutputCostPerMillion: 14,
+  },
   'gpt-5.3-codex': {
     charsPerToken: 4,
     inputCostPerMillion: 1.75,
     outputCostPerMillion: 14,
+    cachedInputCostPerMillion: 0.175,
+    batchOutputCostPerMillion: 14,
   },
   'gpt-5.4': {
     charsPerToken: 4,
     inputCostPerMillion: 2.5,
     outputCostPerMillion: 15,
-    cachedInputCostPerMillion: 0.13,
-    batchInputCostPerMillion: 1.25,
+    cachedInputCostPerMillion: 0.25,
+    batchInputCostPerMillion: 0.13,
     batchOutputCostPerMillion: 7.5,
+  },
+  'gpt-5.4-mini': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.75,
+    outputCostPerMillion: 4.5,
+    cachedInputCostPerMillion: 0.0375,
+    batchInputCostPerMillion: 0.0375,
+    batchOutputCostPerMillion: 2.25,
+  },
+  'gpt-5.4-nano': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.2,
+    outputCostPerMillion: 1.25,
+    cachedInputCostPerMillion: 0.01,
+    batchInputCostPerMillion: 0.01,
+    batchOutputCostPerMillion: 0.625,
   },
   'gpt-5.4-pro': {
     charsPerToken: 4,

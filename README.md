@@ -1092,8 +1092,11 @@ npm run benchmark:tokenizer
 | gpt-5.2-chat-latest | 4 | $1.75 |
 | gpt-5.2-codex | 4 | $1.75 |
 | gpt-5.2-pro | 4 | $21.00 |
+| gpt-5.3-chat-latest | 4 | $1.75 |
 | gpt-5.3-codex | 4 | $1.75 |
 | gpt-5.4 | 4 | $2.50 |
+| gpt-5.4-mini | 4 | $0.75 |
+| gpt-5.4-nano | 4 | $0.20 |
 | gpt-5.4-pro | 4 | $30.00 |
 | gpt-audio | 4 | $2.50 |
 | gpt-audio-1.5 | 4 | $2.50 |
@@ -1150,7 +1153,7 @@ npm run benchmark:tokenizer
 | gemini-3.1-flash-lite | 4 | $0.25 |
 | gemini-3.1-pro | 4 | $2.00 |
 
-*Last updated: 2026-03-16*
+*Last updated: 2026-03-23*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
