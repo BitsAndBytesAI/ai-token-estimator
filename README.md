@@ -1048,7 +1048,7 @@ npm run benchmark:tokenizer
 | chatgpt-4o-latest | 4 | $5.00 |
 | chatgpt-image-latest | 4 | $5.00 |
 | codex-mini-latest | 4 | $1.50 |
-| computer-use-preview | 4 | $3.00 |
+| computer-use-preview | 4 | $1.50 |
 | davinci-002 | 4 | $2.00 |
 | gpt-3.5-0301 | 4 | $1.50 |
 | gpt-3.5-turbo | 4 | $0.50 |
@@ -1111,11 +1111,11 @@ npm run benchmark:tokenizer
 | o1-mini | 4 | $1.10 |
 | o1-pro | 4 | $150.00 |
 | o3 | 4 | $2.00 |
-| o3-deep-research | 4 | $10.00 |
+| o3-deep-research | 4 | $5.00 |
 | o3-mini | 4 | $1.10 |
 | o3-pro | 4 | $20.00 |
 | o4-mini | 4 | $1.10 |
-| o4-mini-deep-research | 4 | $2.00 |
+| o4-mini-deep-research | 4 | $1.00 |
 
 ### Anthropic Claude Models
 
@@ -1151,9 +1151,10 @@ npm run benchmark:tokenizer
 | gemini-3-flash | 4 | $0.50 |
 | gemini-3-pro | 4 | $2.00 |
 | gemini-3.1-flash-lite | 4 | $0.25 |
+| gemini-3.1-flash-live | 4 | $0.75 |
 | gemini-3.1-pro | 4 | $2.00 |
 
-*Last updated: 2026-03-23*
+*Last updated: 2026-03-30*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates

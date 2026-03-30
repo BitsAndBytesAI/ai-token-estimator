@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-03-23
+ * Last updated: 2026-03-30
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-03-23';
+export const LAST_UPDATED = '2026-03-30';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -47,7 +47,8 @@ const models: Record<string, ModelConfig> = {
   },
   'computer-use-preview': {
     charsPerToken: 4,
-    inputCostPerMillion: 3,
+    inputCostPerMillion: 1.5,
+    outputCostPerMillion: 6,
   },
   'davinci-002': {
     charsPerToken: 4,
@@ -407,8 +408,8 @@ const models: Record<string, ModelConfig> = {
   },
   'o3-deep-research': {
     charsPerToken: 4,
-    inputCostPerMillion: 10,
-    outputCostPerMillion: 40,
+    inputCostPerMillion: 5,
+    outputCostPerMillion: 20,
   },
   'o3-mini': {
     charsPerToken: 4,
@@ -427,8 +428,8 @@ const models: Record<string, ModelConfig> = {
   },
   'o4-mini-deep-research': {
     charsPerToken: 4,
-    inputCostPerMillion: 2,
-    outputCostPerMillion: 8,
+    inputCostPerMillion: 1,
+    outputCostPerMillion: 4,
   },
 
   // ===================
@@ -522,6 +523,7 @@ const models: Record<string, ModelConfig> = {
   'gemini-2.5-flash-native-audio-preview-12-2025': {
     charsPerToken: 4,
     inputCostPerMillion: 0.5,
+    outputCostPerMillion: 2,
   },
   'gemini-2.5-flash-preview-09-2025': {
     charsPerToken: 4,
@@ -557,6 +559,11 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 0.25,
     outputCostPerMillion: 1.5,
+  },
+  'gemini-3.1-flash-live': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.75,
+    outputCostPerMillion: 4.5,
   },
   'gemini-3.1-pro': {
     charsPerToken: 4,
