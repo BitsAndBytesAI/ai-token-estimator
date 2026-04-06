@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-03-30
+ * Last updated: 2026-04-06
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-03-30';
+export const LAST_UPDATED = '2026-04-06';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -316,7 +316,7 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 0.75,
     outputCostPerMillion: 4.5,
-    cachedInputCostPerMillion: 0.0375,
+    cachedInputCostPerMillion: 0.075,
     batchInputCostPerMillion: 0.0375,
     batchOutputCostPerMillion: 2.25,
   },
@@ -324,7 +324,7 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 0.2,
     outputCostPerMillion: 1.25,
-    cachedInputCostPerMillion: 0.01,
+    cachedInputCostPerMillion: 0.02,
     batchInputCostPerMillion: 0.01,
     batchOutputCostPerMillion: 0.625,
   },
