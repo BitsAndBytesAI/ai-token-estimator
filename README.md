@@ -1098,6 +1098,8 @@ npm run benchmark:tokenizer
 | gpt-5.4-mini | 4 | $0.75 |
 | gpt-5.4-nano | 4 | $0.20 |
 | gpt-5.4-pro | 4 | $30.00 |
+| gpt-5.5 | 4 | $5.00 |
+| gpt-5.5-pro | 4 | $30.00 |
 | gpt-audio | 4 | $2.50 |
 | gpt-audio-1.5 | 4 | $2.50 |
 | gpt-audio-mini | 4 | $0.60 |
@@ -1121,14 +1123,17 @@ npm run benchmark:tokenizer
 
 | Model | Chars/Token | Input Cost (per 1M tokens) |
 |-------|-------------|---------------------------|
+| claude-haiku | 3.5 | $1.00 |
 | claude-haiku-3 | 3.5 | $0.25 |
 | claude-haiku-3.5 | 3.5 | $0.80 |
 | claude-haiku-4.5 | 3.5 | $1.00 |
+| claude-opus | 3.5 | $5.00 |
 | claude-opus-3 | 3.5 | $15.00 |
 | claude-opus-4 | 3.5 | $15.00 |
 | claude-opus-4.1 | 3.5 | $15.00 |
 | claude-opus-4.5 | 3.5 | $5.00 |
 | claude-opus-4.6 | 3.5 | $5.00 |
+| claude-sonnet | 3.5 | $3.00 |
 | claude-sonnet-4 | 3.5 | $3.00 |
 | claude-sonnet-4.5 | 3.5 | $3.00 |
 | claude-sonnet-4.6 | 3.5 | $3.00 |
@@ -1154,7 +1159,7 @@ npm run benchmark:tokenizer
 | gemini-3.1-flash-live | 4 | $0.75 |
 | gemini-3.1-pro | 4 | $2.00 |
 
-*Last updated: 2026-04-20*
+*Last updated: 2026-04-27*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates

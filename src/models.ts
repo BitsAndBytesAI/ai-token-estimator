@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-04-20
+ * Last updated: 2026-04-27
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-04-20';
+export const LAST_UPDATED = '2026-04-27';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -335,6 +335,19 @@ const models: Record<string, ModelConfig> = {
     batchInputCostPerMillion: 15,
     batchOutputCostPerMillion: 90,
   },
+  'gpt-5.5': {
+    charsPerToken: 4,
+    inputCostPerMillion: 5,
+    outputCostPerMillion: 30,
+    cachedInputCostPerMillion: 0.5,
+    batchInputCostPerMillion: 0.25,
+    batchOutputCostPerMillion: 15,
+  },
+  'gpt-5.5-pro': {
+    charsPerToken: 4,
+    inputCostPerMillion: 30,
+    outputCostPerMillion: 180,
+  },
   'gpt-audio': {
     charsPerToken: 4,
     inputCostPerMillion: 2.5,
@@ -437,6 +450,11 @@ const models: Record<string, ModelConfig> = {
   // ===================
   // Anthropic uses ~3.5 chars per token for English text
 
+  'claude-haiku': {
+    charsPerToken: 3.5,
+    inputCostPerMillion: 1,
+    outputCostPerMillion: 5,
+  },
   'claude-haiku-3': {
     charsPerToken: 3.5,
     inputCostPerMillion: 0.25,
@@ -449,6 +467,11 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 3.5,
     inputCostPerMillion: 1,
     outputCostPerMillion: 5,
+  },
+  'claude-opus': {
+    charsPerToken: 3.5,
+    inputCostPerMillion: 5,
+    outputCostPerMillion: 25,
   },
   'claude-opus-3': {
     charsPerToken: 3.5,
@@ -470,6 +493,11 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 3.5,
     inputCostPerMillion: 5,
     outputCostPerMillion: 25,
+  },
+  'claude-sonnet': {
+    charsPerToken: 3.5,
+    inputCostPerMillion: 3,
+    outputCostPerMillion: 15,
   },
   'claude-sonnet-4': {
     charsPerToken: 3.5,
