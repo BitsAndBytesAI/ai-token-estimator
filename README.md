@@ -1045,6 +1045,7 @@ npm run benchmark:tokenizer
 | Model | Chars/Token | Input Cost (per 1M tokens) |
 |-------|-------------|---------------------------|
 | babbage-002 | 4 | $0.40 |
+| chat-latest | 4 | $5.00 |
 | chatgpt-4o-latest | 4 | $5.00 |
 | chatgpt-image-latest | 4 | $5.00 |
 | codex-mini-latest | 4 | $1.50 |
@@ -1159,7 +1160,7 @@ npm run benchmark:tokenizer
 | gemini-3.1-flash-live | 4 | $0.75 |
 | gemini-3.1-pro | 4 | $2.00 |
 
-*Last updated: 2026-05-04*
+*Last updated: 2026-05-11*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
