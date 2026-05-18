@@ -1149,6 +1149,7 @@ npm run benchmark:tokenizer
 | gemini-2.5-flash | 4 | $0.30 |
 | gemini-2.5-flash-lite | 4 | $0.10 |
 | gemini-2.5-flash-lite-preview-09-2025 | 4 | $0.10 |
+| gemini-2.5-flash-native-audio | 4 | $0.50 |
 | gemini-2.5-flash-native-audio-preview-12-2025 | 4 | $0.50 |
 | gemini-2.5-flash-preview-09-2025 | 4 | $0.30 |
 | gemini-2.5-flash-preview-tts | 4 | $0.50 |
@@ -1160,7 +1161,7 @@ npm run benchmark:tokenizer
 | gemini-3.1-flash-live | 4 | $0.75 |
 | gemini-3.1-pro | 4 | $2.00 |
 
-*Last updated: 2026-05-11*
+*Last updated: 2026-05-18*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
