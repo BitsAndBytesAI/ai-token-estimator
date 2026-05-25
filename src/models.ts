@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-05-18
+ * Last updated: 2026-05-25
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-05-18';
+export const LAST_UPDATED = '2026-05-25';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -611,6 +611,11 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 2,
     outputCostPerMillion: 12,
+  },
+  'gemini-3.5-flash': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1.5,
+    outputCostPerMillion: 9,
   },
 };
 
