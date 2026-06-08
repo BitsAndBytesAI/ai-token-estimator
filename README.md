@@ -1162,7 +1162,7 @@ npm run benchmark:tokenizer
 | gemini-3.1-pro | 4 | $2.00 |
 | gemini-3.5-flash | 4 | $1.50 |
 
-*Last updated: 2026-06-01*
+*Last updated: 2026-06-08*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
