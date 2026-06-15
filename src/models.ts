@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-06-08
+ * Last updated: 2026-06-15
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-06-08';
+export const LAST_UPDATED = '2026-06-15';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -504,6 +504,11 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 5,
     outputCostPerMillion: 25,
   },
+  'claude-opus-4.8': {
+    charsPerToken: 3.5,
+    inputCostPerMillion: 5,
+    outputCostPerMillion: 25,
+  },
   'claude-sonnet': {
     charsPerToken: 3.5,
     inputCostPerMillion: 3,
@@ -557,6 +562,7 @@ const models: Record<string, ModelConfig> = {
   'gemini-2.5-flash-lite-preview-09-2025': {
     charsPerToken: 4,
     inputCostPerMillion: 0.1,
+    outputCostPerMillion: 0.4,
   },
   'gemini-2.5-flash-native-audio': {
     charsPerToken: 4,
@@ -617,6 +623,11 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 1.5,
     outputCostPerMillion: 9,
+  },
+  'gemini-3.5-live-translate': {
+    charsPerToken: 4,
+    inputCostPerMillion: 3.5,
+    outputCostPerMillion: 21,
   },
 };
 
