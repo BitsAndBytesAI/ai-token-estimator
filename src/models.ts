@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-06-22
+ * Last updated: 2026-06-29
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-06-22';
+export const LAST_UPDATED = '2026-06-29';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -34,7 +34,7 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 5,
     outputCostPerMillion: 30,
     cachedInputCostPerMillion: 0.5,
-    batchInputCostPerMillion: 0.5,
+    batchInputCostPerMillion: 5,
     batchOutputCostPerMillion: 30,
   },
   'chatgpt-4o-latest': {
@@ -310,7 +310,7 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 1.75,
     outputCostPerMillion: 14,
     cachedInputCostPerMillion: 0.175,
-    batchInputCostPerMillion: 0.35,
+    batchInputCostPerMillion: 3.5,
     batchOutputCostPerMillion: 28,
   },
   'gpt-5.4': {
@@ -318,7 +318,7 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 2.5,
     outputCostPerMillion: 15,
     cachedInputCostPerMillion: 0.25,
-    batchInputCostPerMillion: 0.13,
+    batchInputCostPerMillion: 1.25,
     batchOutputCostPerMillion: 7.5,
   },
   'gpt-5.4-mini': {
@@ -326,7 +326,7 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 0.75,
     outputCostPerMillion: 4.5,
     cachedInputCostPerMillion: 0.075,
-    batchInputCostPerMillion: 0.0375,
+    batchInputCostPerMillion: 0.375,
     batchOutputCostPerMillion: 2.25,
   },
   'gpt-5.4-nano': {
@@ -334,7 +334,7 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 0.2,
     outputCostPerMillion: 1.25,
     cachedInputCostPerMillion: 0.02,
-    batchInputCostPerMillion: 0.01,
+    batchInputCostPerMillion: 0.1,
     batchOutputCostPerMillion: 0.625,
   },
   'gpt-5.4-pro': {
@@ -349,13 +349,14 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 5,
     outputCostPerMillion: 30,
     cachedInputCostPerMillion: 0.5,
-    batchInputCostPerMillion: 0.25,
+    batchInputCostPerMillion: 2.5,
     batchOutputCostPerMillion: 15,
   },
   'gpt-5.5-pro': {
     charsPerToken: 4,
     inputCostPerMillion: 30,
     outputCostPerMillion: 180,
+    batchInputCostPerMillion: 15,
     batchOutputCostPerMillion: 90,
   },
   'gpt-audio': {
