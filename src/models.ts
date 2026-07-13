@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-07-06
+ * Last updated: 2026-07-13
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-07-06';
+export const LAST_UPDATED = '2026-07-13';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -360,6 +360,30 @@ const models: Record<string, ModelConfig> = {
     batchInputCostPerMillion: 15,
     batchOutputCostPerMillion: 90,
   },
+  'gpt-5.6-luna': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1,
+    outputCostPerMillion: 6,
+    cachedInputCostPerMillion: 0.1,
+    batchInputCostPerMillion: 0.05,
+    batchOutputCostPerMillion: 3,
+  },
+  'gpt-5.6-sol': {
+    charsPerToken: 4,
+    inputCostPerMillion: 5,
+    outputCostPerMillion: 30,
+    cachedInputCostPerMillion: 0.5,
+    batchInputCostPerMillion: 0.25,
+    batchOutputCostPerMillion: 15,
+  },
+  'gpt-5.6-terra': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2.5,
+    outputCostPerMillion: 15,
+    cachedInputCostPerMillion: 0.25,
+    batchInputCostPerMillion: 0.125,
+    batchOutputCostPerMillion: 7.5,
+  },
   'gpt-audio': {
     charsPerToken: 4,
     inputCostPerMillion: 2.5,
@@ -607,6 +631,11 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 2,
     outputCostPerMillion: 12,
+  },
+  'gemini-3.1-flash': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.5,
+    outputCostPerMillion: 3,
   },
   'gemini-3.1-flash-lite': {
     charsPerToken: 4,

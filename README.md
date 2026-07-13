@@ -1101,6 +1101,9 @@ npm run benchmark:tokenizer
 | gpt-5.4-pro | 4 | $30.00 |
 | gpt-5.5 | 4 | $5.00 |
 | gpt-5.5-pro | 4 | $30.00 |
+| gpt-5.6-luna | 4 | $1.00 |
+| gpt-5.6-sol | 4 | $5.00 |
+| gpt-5.6-terra | 4 | $2.50 |
 | gpt-audio | 4 | $2.50 |
 | gpt-audio-1.5 | 4 | $2.50 |
 | gpt-audio-mini | 4 | $0.60 |
@@ -1158,13 +1161,14 @@ npm run benchmark:tokenizer
 | gemini-2.5-pro-preview-tts | 4 | $1.00 |
 | gemini-3-flash | 4 | $0.50 |
 | gemini-3-pro | 4 | $2.00 |
+| gemini-3.1-flash | 4 | $0.50 |
 | gemini-3.1-flash-lite | 4 | $0.25 |
 | gemini-3.1-flash-live | 4 | $0.75 |
 | gemini-3.1-pro | 4 | $2.00 |
 | gemini-3.5-flash | 4 | $1.50 |
 | gemini-3.5-live-translate | 4 | $3.50 |
 
-*Last updated: 2026-07-06*
+*Last updated: 2026-07-13*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
