@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-07-27
+ * Last updated: 2026-08-03
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-07-27';
+export const LAST_UPDATED = '2026-08-03';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -362,8 +362,8 @@ const models: Record<string, ModelConfig> = {
   },
   'gpt-5.6-luna': {
     charsPerToken: 4,
-    inputCostPerMillion: 1,
-    outputCostPerMillion: 6,
+    inputCostPerMillion: 0.2,
+    outputCostPerMillion: 1.2,
     cachedInputCostPerMillion: 0.1,
     batchInputCostPerMillion: 0.05,
     batchOutputCostPerMillion: 3,
@@ -378,8 +378,8 @@ const models: Record<string, ModelConfig> = {
   },
   'gpt-5.6-terra': {
     charsPerToken: 4,
-    inputCostPerMillion: 2.5,
-    outputCostPerMillion: 15,
+    inputCostPerMillion: 2,
+    outputCostPerMillion: 12,
     cachedInputCostPerMillion: 0.25,
     batchInputCostPerMillion: 0.125,
     batchOutputCostPerMillion: 7.5,
@@ -537,6 +537,11 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 5,
     outputCostPerMillion: 25,
   },
+  'claude-opus-5': {
+    charsPerToken: 3.5,
+    inputCostPerMillion: 5,
+    outputCostPerMillion: 25,
+  },
   'claude-sonnet': {
     charsPerToken: 3.5,
     inputCostPerMillion: 2,
@@ -555,6 +560,11 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 3.5,
     inputCostPerMillion: 3,
     outputCostPerMillion: 15,
+  },
+  'claude-sonnet-5': {
+    charsPerToken: 3.5,
+    inputCostPerMillion: 2,
+    outputCostPerMillion: 10,
   },
 
   // ===================
