@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-08-17
+ * Last updated: 2026-08-24
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-08-17';
+export const LAST_UPDATED = '2026-08-24';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -367,24 +367,24 @@ const models: Record<string, ModelConfig> = {
   },
   'gpt-5.6-luna': {
     charsPerToken: 4,
-    inputCostPerMillion: 0.4,
-    outputCostPerMillion: 2.4,
+    inputCostPerMillion: 0.2,
+    outputCostPerMillion: 1.2,
     cachedInputCostPerMillion: 0.1,
     batchInputCostPerMillion: 0.05,
     batchOutputCostPerMillion: 3,
   },
   'gpt-5.6-sol': {
     charsPerToken: 4,
-    inputCostPerMillion: 10,
-    outputCostPerMillion: 60,
+    inputCostPerMillion: 4,
+    outputCostPerMillion: 20,
     cachedInputCostPerMillion: 0.5,
     batchInputCostPerMillion: 0.25,
     batchOutputCostPerMillion: 15,
   },
   'gpt-5.6-terra': {
     charsPerToken: 4,
-    inputCostPerMillion: 4,
-    outputCostPerMillion: 24,
+    inputCostPerMillion: 2,
+    outputCostPerMillion: 12,
     cachedInputCostPerMillion: 0.25,
     batchInputCostPerMillion: 0.125,
     batchOutputCostPerMillion: 7.5,
