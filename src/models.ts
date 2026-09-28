@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-09-21
+ * Last updated: 2026-09-28
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-09-21';
+export const LAST_UPDATED = '2026-09-28';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -308,8 +308,8 @@ const models: Record<string, ModelConfig> = {
   },
   'gpt-5.3-codex': {
     charsPerToken: 4,
-    inputCostPerMillion: 3.5,
-    outputCostPerMillion: 28,
+    inputCostPerMillion: 1.75,
+    outputCostPerMillion: 14,
     cachedInputCostPerMillion: 0.175,
     batchInputCostPerMillion: 3.5,
     batchOutputCostPerMillion: 14,
@@ -394,6 +394,16 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 10,
     outputCostPerMillion: 50,
   },
+  'gpt-6-luna': {
+    charsPerToken: 4,
+    inputCostPerMillion: 0.1,
+    outputCostPerMillion: 0.5,
+  },
+  'gpt-6-sol': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2,
+    outputCostPerMillion: 10,
+  },
   'gpt-audio': {
     charsPerToken: 4,
     inputCostPerMillion: 2.5,
@@ -444,6 +454,11 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 0.6,
     outputCostPerMillion: 2.4,
+  },
+  'gpt-rosalind-research': {
+    charsPerToken: 4,
+    inputCostPerMillion: 5,
+    outputCostPerMillion: 25,
   },
   'o1': {
     charsPerToken: 4,
@@ -551,6 +566,11 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 3.5,
     inputCostPerMillion: 5,
     outputCostPerMillion: 25,
+  },
+  'claude-opus-5.5': {
+    charsPerToken: 3.5,
+    inputCostPerMillion: 4,
+    outputCostPerMillion: 20,
   },
   'claude-sonnet': {
     charsPerToken: 3.5,

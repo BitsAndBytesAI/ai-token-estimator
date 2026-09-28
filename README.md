@@ -1094,7 +1094,7 @@ npm run benchmark:tokenizer
 | gpt-5.2-codex | 4 | $1.75 |
 | gpt-5.2-pro | 4 | $21.00 |
 | gpt-5.3-chat-latest | 4 | $1.75 |
-| gpt-5.3-codex | 4 | $3.50 |
+| gpt-5.3-codex | 4 | $1.75 |
 | gpt-5.4 | 4 | $2.50 |
 | gpt-5.4-mini | 4 | $0.75 |
 | gpt-5.4-nano | 4 | $0.20 |
@@ -1106,6 +1106,8 @@ npm run benchmark:tokenizer
 | gpt-5.6-sol | 4 | $4.00 |
 | gpt-5.6-terra | 4 | $2.00 |
 | gpt-6-astra | 4 | $10.00 |
+| gpt-6-luna | 4 | $0.10 |
+| gpt-6-sol | 4 | $2.00 |
 | gpt-audio | 4 | $2.50 |
 | gpt-audio-1.5 | 4 | $2.50 |
 | gpt-audio-mini | 4 | $0.60 |
@@ -1115,6 +1117,7 @@ npm run benchmark:tokenizer
 | gpt-realtime | 4 | $4.00 |
 | gpt-realtime-1.5 | 4 | $4.00 |
 | gpt-realtime-mini | 4 | $0.60 |
+| gpt-rosalind-research | 4 | $5.00 |
 | o1 | 4 | $15.00 |
 | o1-mini | 4 | $1.10 |
 | o1-pro | 4 | $150.00 |
@@ -1141,6 +1144,7 @@ npm run benchmark:tokenizer
 | claude-opus-4.6 | 3.5 | $5.00 |
 | claude-opus-4.8 | 3.5 | $5.00 |
 | claude-opus-5 | 3.5 | $5.00 |
+| claude-opus-5.5 | 3.5 | $4.00 |
 | claude-sonnet | 3.5 | $2.00 |
 | claude-sonnet-4 | 3.5 | $3.00 |
 | claude-sonnet-4.5 | 3.5 | $3.00 |
@@ -1172,7 +1176,7 @@ npm run benchmark:tokenizer
 | gemini-3.5-flash | 4 | $1.50 |
 | gemini-3.5-live-translate | 4 | $3.50 |
 
-*Last updated: 2026-09-21*
+*Last updated: 2026-09-28*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
