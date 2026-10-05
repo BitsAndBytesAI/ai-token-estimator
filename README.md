@@ -1108,6 +1108,7 @@ npm run benchmark:tokenizer
 | gpt-6-astra | 4 | $10.00 |
 | gpt-6-luna | 4 | $0.10 |
 | gpt-6-sol | 4 | $2.00 |
+| gpt-6.1-sol | 4 | $2.00 |
 | gpt-audio | 4 | $2.50 |
 | gpt-audio-1.5 | 4 | $2.50 |
 | gpt-audio-mini | 4 | $0.60 |
@@ -1176,7 +1177,7 @@ npm run benchmark:tokenizer
 | gemini-3.5-flash | 4 | $1.50 |
 | gemini-3.5-live-translate | 4 | $3.50 |
 
-*Last updated: 2026-09-28*
+*Last updated: 2026-10-05*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
