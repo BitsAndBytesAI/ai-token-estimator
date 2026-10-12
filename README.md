@@ -1118,6 +1118,7 @@ npm run benchmark:tokenizer
 | gpt-realtime | 4 | $4.00 |
 | gpt-realtime-1.5 | 4 | $4.00 |
 | gpt-realtime-mini | 4 | $0.60 |
+| gpt-rosalind-discovery | 4 | $5.00 |
 | gpt-rosalind-research | 4 | $5.00 |
 | o1 | 4 | $15.00 |
 | o1-mini | 4 | $1.10 |
@@ -1137,6 +1138,7 @@ npm run benchmark:tokenizer
 | claude-haiku-3 | 3.5 | $0.25 |
 | claude-haiku-3.5 | 3.5 | $0.80 |
 | claude-haiku-4.5 | 3.5 | $1.00 |
+| claude-haiku-5.5 | 3.5 | $0.10 |
 | claude-opus | 3.5 | $5.00 |
 | claude-opus-3 | 3.5 | $15.00 |
 | claude-opus-4 | 3.5 | $15.00 |
@@ -1151,6 +1153,7 @@ npm run benchmark:tokenizer
 | claude-sonnet-4.5 | 3.5 | $3.00 |
 | claude-sonnet-4.6 | 3.5 | $3.00 |
 | claude-sonnet-5 | 3.5 | $2.00 |
+| claude-sonnet-5.5 | 3.5 | $2.00 |
 
 ### Google Gemini Models
 
@@ -1177,7 +1180,7 @@ npm run benchmark:tokenizer
 | gemini-3.5-flash | 4 | $1.50 |
 | gemini-3.5-live-translate | 4 | $3.50 |
 
-*Last updated: 2026-10-05*
+*Last updated: 2026-10-12*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates

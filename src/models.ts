@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-10-05
+ * Last updated: 2026-10-12
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-10-05';
+export const LAST_UPDATED = '2026-10-12';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -460,6 +460,11 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 0.6,
     outputCostPerMillion: 2.4,
   },
+  'gpt-rosalind-discovery': {
+    charsPerToken: 4,
+    inputCostPerMillion: 5,
+    outputCostPerMillion: 25,
+  },
   'gpt-rosalind-research': {
     charsPerToken: 4,
     inputCostPerMillion: 5,
@@ -536,6 +541,11 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 1,
     outputCostPerMillion: 5,
   },
+  'claude-haiku-5.5': {
+    charsPerToken: 3.5,
+    inputCostPerMillion: 0.1,
+    outputCostPerMillion: 2.5,
+  },
   'claude-opus': {
     charsPerToken: 3.5,
     inputCostPerMillion: 5,
@@ -597,6 +607,11 @@ const models: Record<string, ModelConfig> = {
     outputCostPerMillion: 15,
   },
   'claude-sonnet-5': {
+    charsPerToken: 3.5,
+    inputCostPerMillion: 2,
+    outputCostPerMillion: 10,
+  },
+  'claude-sonnet-5.5': {
     charsPerToken: 3.5,
     inputCostPerMillion: 2,
     outputCostPerMillion: 10,
