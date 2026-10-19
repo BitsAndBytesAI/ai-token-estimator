@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-10-12
+ * Last updated: 2026-10-19
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-10-12';
+export const LAST_UPDATED = '2026-10-19';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -543,8 +543,8 @@ const models: Record<string, ModelConfig> = {
   },
   'claude-haiku-5.5': {
     charsPerToken: 3.5,
-    inputCostPerMillion: 0.1,
-    outputCostPerMillion: 2.5,
+    inputCostPerMillion: 100,
+    outputCostPerMillion: 500,
   },
   'claude-opus': {
     charsPerToken: 3.5,
