@@ -1138,7 +1138,7 @@ npm run benchmark:tokenizer
 | claude-haiku-3 | 3.5 | $0.25 |
 | claude-haiku-3.5 | 3.5 | $0.80 |
 | claude-haiku-4.5 | 3.5 | $1.00 |
-| claude-haiku-5.5 | 3.5 | $100.00 |
+| claude-haiku-5.5 | 3.5 | $0.10 |
 | claude-opus | 3.5 | $5.00 |
 | claude-opus-3 | 3.5 | $15.00 |
 | claude-opus-4 | 3.5 | $15.00 |
@@ -1180,7 +1180,7 @@ npm run benchmark:tokenizer
 | gemini-3.5-flash | 4 | $1.50 |
 | gemini-3.5-live-translate | 4 | $3.50 |
 
-*Last updated: 2026-10-19*
+*Last updated: 2026-10-26*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
