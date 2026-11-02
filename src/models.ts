@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-10-26
+ * Last updated: 2026-11-02
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-10-26';
+export const LAST_UPDATED = '2026-11-02';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -394,10 +394,20 @@ const models: Record<string, ModelConfig> = {
     inputCostPerMillion: 10,
     outputCostPerMillion: 50,
   },
+  'gpt-6-astra-law': {
+    charsPerToken: 4,
+    inputCostPerMillion: 10,
+    outputCostPerMillion: 50,
+  },
   'gpt-6-luna': {
     charsPerToken: 4,
     inputCostPerMillion: 0.1,
     outputCostPerMillion: 0.5,
+  },
+  'gpt-6-rosalind': {
+    charsPerToken: 4,
+    inputCostPerMillion: 15,
+    outputCostPerMillion: 75,
   },
   'gpt-6-sol': {
     charsPerToken: 4,
@@ -408,6 +418,11 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 2,
     outputCostPerMillion: 10,
+  },
+  'gpt-6.1-terra': {
+    charsPerToken: 4,
+    inputCostPerMillion: 1,
+    outputCostPerMillion: 5,
   },
   'gpt-audio': {
     charsPerToken: 4,
@@ -544,7 +559,7 @@ const models: Record<string, ModelConfig> = {
   'claude-haiku-5.5': {
     charsPerToken: 3.5,
     inputCostPerMillion: 0.1,
-    outputCostPerMillion: 2.5,
+    outputCostPerMillion: 0.5,
   },
   'claude-opus': {
     charsPerToken: 3.5,
