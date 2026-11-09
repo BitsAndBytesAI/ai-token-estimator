@@ -1107,6 +1107,7 @@ npm run benchmark:tokenizer
 | gpt-5.6-terra | 4 | $2.00 |
 | gpt-6-astra | 4 | $10.00 |
 | gpt-6-astra-law | 4 | $10.00 |
+| gpt-6-cyber | 4 | $20.00 |
 | gpt-6-luna | 4 | $0.10 |
 | gpt-6-rosalind | 4 | $15.00 |
 | gpt-6-sol | 4 | $2.00 |
@@ -1183,7 +1184,7 @@ npm run benchmark:tokenizer
 | gemini-3.5-flash | 4 | $1.50 |
 | gemini-3.5-live-translate | 4 | $3.50 |
 
-*Last updated: 2026-11-02*
+*Last updated: 2026-11-09*
 <!-- SUPPORTED_MODELS_END -->
 
 ## Pricing Updates
