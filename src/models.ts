@@ -4,7 +4,7 @@ import type { ModelConfig } from './types.js';
  * Default model configurations.
  *
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Last updated: 2026-11-16
+ * Last updated: 2026-11-23
  *
  * Sources:
  * - OpenAI: https://platform.openai.com/docs/pricing
@@ -14,7 +14,7 @@ import type { ModelConfig } from './types.js';
  * This file is automatically updated weekly by GitHub Actions.
  */
 
-export const LAST_UPDATED = '2026-11-16';
+export const LAST_UPDATED = '2026-11-23';
 
 const models: Record<string, ModelConfig> = {
   // ===================
@@ -411,8 +411,8 @@ const models: Record<string, ModelConfig> = {
   },
   'gpt-6-rosalind': {
     charsPerToken: 4,
-    inputCostPerMillion: 15,
-    outputCostPerMillion: 75,
+    inputCostPerMillion: 10,
+    outputCostPerMillion: 50,
   },
   'gpt-6-sol': {
     charsPerToken: 4,
@@ -428,6 +428,26 @@ const models: Record<string, ModelConfig> = {
     charsPerToken: 4,
     inputCostPerMillion: 1,
     outputCostPerMillion: 5,
+  },
+  'gpt-6.2-astra': {
+    charsPerToken: 4,
+    inputCostPerMillion: 8,
+    outputCostPerMillion: 40,
+  },
+  'gpt-6.2-astra-law': {
+    charsPerToken: 4,
+    inputCostPerMillion: 8,
+    outputCostPerMillion: 40,
+  },
+  'gpt-6.2-sol': {
+    charsPerToken: 4,
+    inputCostPerMillion: 2,
+    outputCostPerMillion: 10,
+  },
+  'gpt-6.astra-law': {
+    charsPerToken: 4,
+    inputCostPerMillion: 10,
+    outputCostPerMillion: 50,
   },
   'gpt-audio': {
     charsPerToken: 4,
